@@ -37,10 +37,10 @@ async function initCategories() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        const response = await fetch('https://cors-anywhere.herokuapp.com/https://opentdb.com/api_category.php', {
+        // Removed CORS proxy
+        const response = await fetch('https://opentdb.com/api_category.php', {
             signal: controller.signal
         });
-        clearTimeout(timeoutId);
 
         if (!response.ok) throw new Error('Server error');
         
@@ -67,7 +67,9 @@ function populateCategories(categories) {
 async function fetchQuestions(category, difficulty) {
     try {
         startBtn.classList.add('loading');
-        const url = new URL('https://cors-anywhere.herokuapp.com/https://opentdb.com/api.php');
+        // Direct API call without proxy
+        const url = new URL('https://opentdb.com/api.php');
+        // Rest of the function remains the same
         url.searchParams.append('amount', 10);
         if (category) url.searchParams.append('category', category);
         if (difficulty) url.searchParams.append('difficulty', difficulty);

@@ -121,8 +121,30 @@ async function fetchQuestions(category, difficulty) {
  * Display current question with animations
  */
 function showQuestion() {
+    // Ensure questions exist
+    if (!questions.length) {
+        console.error('No questions loaded');
+        return;
+    }
+
+    // Validate current question index
+    if (currentQuestion < 0 || currentQuestion >= questions.length) {
+        console.error('Invalid question index:', currentQuestion);
+        return;
+    }
+
+    // Safely update question text
+    if (questionEl) {
+        questionEl.textContent = questions[currentQuestion].question;
+    } else {
+        console.error('Question element not found');
+        return;
+    }
+    
     // Update question counter
+    //questionCounterEl.textContent = 0
     questionCounterEl.textContent = `${currentQuestion + 1}/10`;
+    
     
     const question = questions[currentQuestion];
     questionEl.innerHTML = `
@@ -180,6 +202,7 @@ function resetTimer() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
     questionTimerEl.textContent = '15';
+    questionCounterEl.textContent = '0'
 }
 
 // ======================
@@ -191,8 +214,21 @@ function resetTimer() {
  * @param {boolean} isCorrect - Whether answer is correct
  */
 function checkAnswer(isCorrect) {
+    
     clearInterval(timerId);
     const question = questions[currentQuestion];
+
+    optionsEl.querySelectorAll('button').forEach(btn => {
+        btn.disabled = true;
+        btn.classList.add('option-selected');
+        
+        if (btn.textContent === question.correct) {
+            btn.classList.add('correct');
+        } else {
+            btn.classList.add('wrong');
+        }
+    });
+
 
     // Update answer log
     answersLog.push({
@@ -224,14 +260,74 @@ function handleNextQuestion() {
     }
 }
 
+// New summary screen implementation
+// Modify showSummary function
+function showSummary() {
+    const timeUsed = 150 - totalTimeLeft;
+    const correctCount = answersLog.filter(a => a.isCorrect).length;
+    const performanceScore = (correctCount * 100) + (150 - timeUsed);
+    
+    let message;
+    if (performanceScore >= 1300) {
+        message = `🎉 Legendary! You're a trivia master! 🏆 (Top 1% Performance)`;
+    } else if (performanceScore >= 1000) {
+        message = `👑 Excellent! Your knowledge shines bright! ✨`;
+    } else if (performanceScore >= 700) {
+        message = `👍 Good effort! Room to grow! 📚`;
+    } else {
+        message = `💤 Wake up! Time to hit the books! 📖`;
+    }
+
+    summaryScreen.innerHTML = `
+        <h2>Game Report Card</h2>
+        <div class="performance-card ${performanceScore >= 1000 ? 'gold' : performanceScore >= 700 ? 'silver' : 'bronze'}">
+            <div class="stats-grid">
+                <div class="stat-box correct">
+                    <span class="material-icons">check_circle</span>
+                    <h3>${correctCount}</h3>
+                    <p>Correct Answers</p>
+                </div>
+                <div class="stat-box time">
+                    <span class="material-icons">timer</span>
+                    <h3>${Math.floor(timeUsed/60)}m ${timeUsed%60}s</h3>
+                    <p>Total Time</p>
+                </div>
+            </div>
+            <div class="performance-message">${message}</div>
+        </div>
+        <button class="btn primary" onclick="location.reload()">
+            <span class="material-icons">replay</span>
+            Try Again
+        </button>
+    `;
+}
+
 /**
  * End game and show summary
  */
 function endGame() {
-    resetTimer();
-    gameScreen.classList.add('hidden');
-    showSummary();
-    saveHighScore();
+    try {
+        // Hide game screen
+        gameScreen.classList.add('hidden');
+        
+        // Clear timers
+        clearInterval(timerId);
+        clearInterval(totalTimerId);
+        
+        // Show summary screen
+        summaryScreen.classList.remove('hidden');
+        summaryScreen.style.display = 'block';
+        
+        // Generate summary content
+        showSummary();
+        
+        // Save high score
+        saveHighScore();
+
+    } catch (error) {
+        console.error('Error ending game:', error);
+        alert('Game ended unexpectedly. Please refresh the page.');
+    }
 }
 
 // ======================
@@ -304,6 +400,7 @@ startBtn.addEventListener('click', async () => {
     // Reset game state
     questions = await fetchQuestions(categorySelect.value, difficultySelect.value);
     currentQuestion = 0;
+    //questionCounterEl = 0;
     score = 0;
     answersLog = [];
     

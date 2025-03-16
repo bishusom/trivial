@@ -68,6 +68,7 @@ label {
 .btn {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
     padding: 12px 24px;
     border: none;
     border-radius: var(--border-radius);
@@ -87,7 +88,7 @@ label {
     color: var(--primary-color);
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: var(--card-shadow);
 }
@@ -113,6 +114,12 @@ label {
     line-height: 1.4;
 }
 
+.question-category {
+    font-size: 0.9rem;
+    color: #5f6368;
+    margin-top: 8px;
+}
+
 .options-grid {
     display: grid;
     gap: 12px;
@@ -129,7 +136,7 @@ label {
     transition: all 0.2s;
 }
 
-.options-grid button:hover {
+.options-grid button:hover:not(:disabled) {
     background: var(--secondary-color);
     border-color: var(--primary-color);
 }
@@ -139,10 +146,54 @@ label {
     gap: 12px;
 }
 
-.highscores-list div {
+.highscore-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 12px;
     background: var(--secondary-color);
     border-radius: var(--border-radius);
+}
+
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.error-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 20px;
+    background: #fce8e6;
+    color: #c5221f;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: var(--card-shadow);
+    z-index: 1000;
 }
 
 .hidden {
@@ -161,8 +212,25 @@ label {
     .options-grid {
         grid-template-columns: 1fr;
     }
+    
+    .game-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .input {
+        font-size: 0.9rem;
+    }
 }
 
 .material-icons {
     vertical-align: middle;
+    font-size: 1.2em;
 }

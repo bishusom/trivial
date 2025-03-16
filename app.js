@@ -24,7 +24,10 @@ const fallbackCategories = [
     { id: 10, name: "Books" },
     { id: 17, name: "Science & Nature" },
     { id: 11, name: "Film" },
-    { id: 12, name: "Music" }
+    { id: 12, name: "Music" },
+    { id :23, name:"History"},
+    { id :24, name:"Politics"},
+    { id :26, name:"Celebrities"}    
 ];
 
 // Initialize Categories

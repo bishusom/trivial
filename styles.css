@@ -234,3 +234,142 @@ label {
     vertical-align: middle;
     font-size: 1.2em;
 }
+
+/* styles.css */
+.correct {
+    background: #a6e8b7  !important;
+    color: white;
+    border-color: #34a853 !important;
+}
+
+.wrong {
+    background: #fa8d84 !important;
+    color: white;
+    border-color: #ea4335 !important;
+}
+
+.option-selected {
+    transform: scale(0.95);
+    opacity: 0.9;
+}
+
+/* styles.css */
+.progress-bar {
+    width: 100%;
+    height: 25px;
+    background: #eee;
+    border-radius: 13px;
+    overflow: hidden;
+    display: flex;
+    margin: 2rem 0;
+}
+
+.correct-bar {
+    background: #34a853;
+    transition: width 0.5s ease;
+}
+
+.wrong-bar {
+    background: #ea4335;
+    transition: width 0.5s ease;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.stat {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.correct-stat { background: #e6f4ea; color: #34a853; }
+.wrong-stat { background: #fce8e6; color: #ea4335; }
+.time-stat { background: #e8f0fe; color: #1a73e8; }
+
+.speed-message {
+    background: #fff9c4;
+    color: #f57f17;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* Modify summary screen positioning */
+.summary-screen {
+    margin-bottom: 2rem;
+    position: static;
+    transform: none;
+    width: 100%;
+    animation: slideUp 0.5s ease-out;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.highscores {
+    margin-top: 2rem;
+}
+
+/* Add performance card styling */
+.performance-card {
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+}
+
+.performance-card.gold {
+    background: linear-gradient(135deg, #ffd70022, #ffffff);
+    border: 2px solid #ffd700;
+}
+
+.performance-card.silver {
+    background: linear-gradient(135deg, #c0c0c022, #ffffff);
+    border: 2px solid #c0c0c0;
+}
+
+.performance-card.bronze {
+    background: linear-gradient(135deg, #cd7f3222, #ffffff);
+    border: 2px solid #cd7f32;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.stat-box.correct {
+    background: #34a85315;
+    border: 1px solid #34a853;
+}
+
+.stat-box.time {
+    background: #1a73e815;
+    border: 1px solid #1a73e8;
+}
+
+.performance-message {
+    font-size: 1.25rem;
+    text-align: center;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+}

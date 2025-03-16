@@ -1,10 +1,21 @@
-// DOM Elements
+/* 
+ * Trivia Master Game Logic
+ * Features:
+ * - Category selection from Open Trivia DB
+ * - 10 questions per game with 15s/question
+ * - Total game timer (2.5 minutes)
+ * - Score tracking with time bonuses
+ * - High score system with localStorage
+ * - Animated transitions and feedback
+ * - Detailed end-game summary
+ */
+
+// ======================
+// DOM Element References
+// ======================
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
-const questionCounterEl = document.getElementById('question-counter');
-const questionTimerEl = document.getElementById('question-timer');
-const totalTimerEl = document.getElementById('total-timer');
 const categorySelect = document.getElementById('category');
 const difficultySelect = document.getElementById('difficulty');
 const startBtn = document.getElementById('start-btn');
@@ -12,240 +23,45 @@ const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('next-btn');
 const scoreEl = document.getElementById('score');
-const timerEl = document.getElementById('timer');
+const questionCounterEl = document.getElementById('question-counter');
+const questionTimerEl = document.getElementById('question-timer');
+const totalTimerEl = document.getElementById('total-timer');
 const highscoresList = document.getElementById('highscores-list');
-const summaryScreen = document.querySelector('.summary-screen');
 
-
-
+// =================
 // Game State
-let totalTimeLeft = 150; // 2 minutes 30 seconds for 10 questions
-let totalTimerId;
-let questions = [];
-let currentQuestion = 0;
-let score = 0;
-let timeLeft = 15;
-let timerId;
-let answersLog = [];
-let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+// =================
+let questions = [];               // Array to store current game questions
+let currentQuestion = 0;          // Index of current question (0-9)
+let score = 0;                    // Player's current score
+let timeLeft = 15;                // Time left for current question
+let totalTimeLeft = 150;          // Total time left (2.5 minutes in seconds)
+let timerId;                      // Interval ID for question timer
+let totalTimerId;                 // Interval ID for total timer
+let highScores = JSON.parse(localStorage.getItem('highScores')) || [];  // High scores
+let answersLog = [];              // Track answers for summary screen
+
+// Fallback categories if API fails
 const fallbackCategories = [
     { id: '', name: "All Categories" },
     { id: 9, name: "General Knowledge" },
     { id: 10, name: "Books" },
-    { id: 17, name: "Science & Nature" },
-    { id: 11, name: "Film" },
-    { id: 12, name: "Music" },
-    { id :23, name:"History"},
-    { id :24, name:"Politics"},
-    { id :26, name:"Celebrities"}    
+    { id: 17, name: "Science & Nature" }
 ];
 
+// ======================
+// Initialization Functions
+// ======================
 
-
-// Modified showQuestion with animation
-function showQuestion() {
-    resetTimer();
-    startTimer();
-    
-    // Animate question entrance
-    questionEl.style.animation = 'slideIn 0.3s ease-out';
-    optionsEl.style.animation = 'fadeIn 0.5s ease-out';
-    
-    const question = questions[currentQuestion];
-    questionEl.innerHTML = `
-        ${question.question}
-        <div class="question-category">${question.category}</div>
-    `;
-
-    // Create options with animation delay
-    optionsEl.innerHTML = '';
-    question.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.innerHTML = option;
-        button.style.animationDelay = `${index * 0.1}s`;
-        button.addEventListener('click', () => checkAnswer(option === question.correct));
-        optionsEl.appendChild(button);
-    });
-
-    // Reset animations after completion
-    setTimeout(() => {
-        questionEl.style.animation = '';
-        optionsEl.style.animation = '';
-    }, 500);
-}
-
-// Updated checkAnswer with animations
-function checkAnswer(isCorrect) {
-    clearInterval(timerId);
-    const correctAnswer = questions[currentQuestion].correct;
-    
-    // Animate options
-    optionsEl.querySelectorAll('button').forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === correctAnswer) {
-            btn.classList.add('correct-answer');
-        } else {
-            btn.classList.add('wrong-answer');
-        }
-    });
-
-    // Log answer
-    answersLog.push({
-        question: questions[currentQuestion].question,
-        correct: correctAnswer,
-        selected: isCorrect ? correctAnswer : '',
-        isCorrect
-    });
-
-    if (isCorrect) {
-        score += timeLeft * 10;
-        scoreEl.textContent = score;
-        resultEl.textContent = "Correct! 🎉";
-    } else {
-        resultEl.textContent = `Wrong! Correct answer: ${correctAnswer}`;
-    }
-
-    nextBtn.classList.remove('hidden');
-}
-
-// New summary screen implementation
-function showSummary() {
-    gameScreen.classList.add('hidden');
-    summaryScreen.classList.remove('hidden');
-    
-    const summaryHTML = `
-        <h2>Game Summary</h2>
-        <div class="final-score">Final Score: ${score}</div>
-        <div class="summary-grid">
-            ${answersLog.map((answer, index) => `
-                <div class="summary-item ${answer.isCorrect ? 'correct' : 'wrong'}">
-                    <div class="question-number">Q${index + 1}</div>
-                    <div class="question-text">${answer.question}</div>
-                    ${!answer.isCorrect ? `
-                        <div class="correct-answer">Correct: ${answer.correct}</div>
-                    ` : ''}
-                </div>
-            `).join('')}
-        </div>
-        <button class="btn primary" onclick="location.reload()">
-            <span class="material-icons">replay</span>
-            Play Again
-        </button>
-    `;
-    
-    summaryScreen.innerHTML = summaryHTML;
-    summaryScreen.style.animation = 'slideUp 0.5s ease-out';
-}
-
-// Modified endGame
-function endGame() {
-    clearInterval(totalTimerId);
-    showSummary();
-    saveHighScore();
-}
-
-// Add to CSS
-const newStyles = `
-    /* Animations */
-    @keyframes slideIn {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-    }
-
-    .correct-answer {
-        animation: correctPulse 0.5s ease-out;
-        background: #e6f4ea !important;
-        border-color: #34a853 !important;
-    }
-
-    .wrong-answer {
-        animation: wrongShake 0.5s ease-out;
-        background: #fce8e6 !important;
-        border-color: #ea4335 !important;
-    }
-
-    @keyframes correctPulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
-    @keyframes wrongShake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-
-    /* Summary Screen */
-    .summary-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: white;
-        padding: 2rem;
-        overflow-y: auto;
-    }
-
-    .summary-grid {
-        display: grid;
-        gap: 1rem;
-        margin: 2rem 0;
-    }
-
-    .summary-item {
-        padding: 1rem;
-        border-radius: 8px;
-        animation: slideIn 0.3s ease-out;
-    }
-
-    .summary-item.correct {
-        background: #e6f4ea;
-        border-left: 4px solid #34a853;
-    }
-
-    .summary-item.wrong {
-        background: #fce8e6;
-        border-left: 4px solid #ea4335;
-    }
-
-    .final-score {
-        font-size: 1.5rem;
-        text-align: center;
-        margin: 1rem 0;
-        color: #1a73e8;
-    }
-`;
-
-// Add new styles to document
-const styleSheet = document.createElement('style');
-styleSheet.innerHTML = newStyles;
-document.head.appendChild(styleSheet);
-
-
-// Initialize Categories
+/**
+ * Initialize categories from Open Trivia DB API
+ * Uses fallback categories if API fails
+ */
 async function initCategories() {
     try {
         categorySelect.classList.add('loading');
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        // Removed CORS proxy
-        const response = await fetch('https://opentdb.com/api_category.php', {
-            signal: controller.signal
-        });
-
+        const response = await fetch('https://opentdb.com/api_category.php');
+        
         if (!response.ok) throw new Error('Server error');
         
         const data = await response.json();
@@ -253,42 +69,41 @@ async function initCategories() {
     } catch (error) {
         console.error('Using fallback categories:', error);
         populateCategories(fallbackCategories);
-        showError('Couldn\'t load categories. Using fallback data.');
     } finally {
         categorySelect.classList.remove('loading');
     }
 }
 
+/**
+ * Populate category select dropdown
+ * @param {Array} categories - Array of category objects
+ */
 function populateCategories(categories) {
     categorySelect.innerHTML = categories.map(cat => `
-        <option value="${cat.id}" ${cat.id === '' ? 'selected' : ''}>
-            ${cat.name}
-        </option>
+        <option value="${cat.id}">${cat.name}</option>
     `).join('');
 }
 
-// Fetch Questions
+// ======================
+// Question Handling
+// ======================
+
+/**
+ * Fetch questions from Open Trivia DB API
+ * @param {string} category - Selected category ID
+ * @param {string} difficulty - Selected difficulty
+ * @returns {Array} - Array of question objects
+ */
 async function fetchQuestions(category, difficulty) {
     try {
-        startBtn.classList.add('loading');
-        // Direct API call without proxy
         const url = new URL('https://opentdb.com/api.php');
-        // Rest of the function remains the same
         url.searchParams.append('amount', 10);
         if (category) url.searchParams.append('category', category);
         if (difficulty) url.searchParams.append('difficulty', difficulty);
         url.searchParams.append('type', 'multiple');
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) throw new Error('API Error');
-        
+        const response = await fetch(url);
         const data = await response.json();
-        if (data.response_code !== 0) throw new Error('No results');
         
         return data.results.map(q => ({
             question: decodeHTML(q.question),
@@ -297,59 +112,49 @@ async function fetchQuestions(category, difficulty) {
             category: q.category
         }));
     } catch (error) {
-        console.error('Fetch questions failed:', error);
-        showError('Failed to load questions. Please try again later.');
+        console.error('Failed to fetch questions:', error);
         return [];
-    } finally {
-        startBtn.classList.remove('loading');
     }
 }
 
-// Game Functions
-// Modified showQuestion
+/**
+ * Display current question with animations
+ */
 function showQuestion() {
+    // Update question counter
     questionCounterEl.textContent = `${currentQuestion + 1}/10`;
-    resetTimer();
-    startTimer();
     
     const question = questions[currentQuestion];
     questionEl.innerHTML = `
         ${question.question}
         <div class="question-category">${question.category}</div>
     `;
-    
+
+    // Create answer buttons with staggered animation
     optionsEl.innerHTML = '';
-    question.options.forEach(option => {
+    question.options.forEach((option, index) => {
         const button = document.createElement('button');
         button.innerHTML = option;
-        button.addEventListener('click', () => checkAnswer(option === question.correct));
+        button.style.animationDelay = `${index * 0.1}s`;
+        button.onclick = () => checkAnswer(option === question.correct);
         optionsEl.appendChild(button);
     });
+
+    // Start timers
+    startTimer();
 }
 
-function checkAnswer(isCorrect) {
-    clearInterval(timerId);
-    optionsEl.querySelectorAll('button').forEach(btn => {
-        btn.disabled = true;
-        btn.style.backgroundColor = btn.textContent === questions[currentQuestion].correct ? 
-            '#e6f4ea' : '#fce8e6';
-    });
-    
-    if (isCorrect) {
-        score += timeLeft * 10;
-        scoreEl.textContent = score;
-    }
-    
-    nextBtn.classList.remove('hidden');
-}
-
+// ======================
 // Timer Functions
-// Modified startTimer function
+// ======================
+
+/**
+ * Start both question and total timers
+ */
 function startTimer() {
     // Question timer
     timeLeft = 15;
     questionTimerEl.textContent = timeLeft;
-    
     timerId = setInterval(() => {
         timeLeft--;
         questionTimerEl.textContent = timeLeft;
@@ -357,49 +162,100 @@ function startTimer() {
     }, 1000);
 
     // Total timer
+    totalTimeLeft = 150;
     totalTimerId = setInterval(() => {
         totalTimeLeft--;
         const minutes = Math.floor(totalTimeLeft / 60);
         const seconds = totalTimeLeft % 60;
         totalTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         
-        if (totalTimeLeft <= 0) {
-            clearInterval(totalTimerId);
-            endGame();
-        }
+        if (totalTimeLeft <= 0) endGame();
     }, 1000);
 }
 
-
-// Modified resetTimer
+/**
+ * Reset all timers
+ */
 function resetTimer() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
     questionTimerEl.textContent = '15';
 }
 
-// Navigation
-nextBtn.addEventListener('click', () => {
-    nextBtn.classList.add('hidden');
+// ======================
+// Game Logic
+// ======================
+
+/**
+ * Check if selected answer is correct
+ * @param {boolean} isCorrect - Whether answer is correct
+ */
+function checkAnswer(isCorrect) {
+    clearInterval(timerId);
+    const question = questions[currentQuestion];
+
+    // Update answer log
+    answersLog.push({
+        question: question.question,
+        correct: question.correct,
+        selected: isCorrect ? question.correct : '',
+        isCorrect
+    });
+
+    // Update score and show feedback
+    if (isCorrect) {
+        score += timeLeft * 10;  // Bonus points for remaining time
+        scoreEl.textContent = score;
+    }
+
+    // Show next question button
+    nextBtn.classList.remove('hidden');
+}
+
+/**
+ * Handle next question or end game
+ */
+function handleNextQuestion() {
     currentQuestion++;
-    
-    if (currentQuestion < questions.length) {
+    if (currentQuestion < 10) {
         showQuestion();
     } else {
         endGame();
     }
-});
+}
 
-// High Scores
+/**
+ * End game and show summary
+ */
+function endGame() {
+    resetTimer();
+    gameScreen.classList.add('hidden');
+    showSummary();
+    saveHighScore();
+}
+
+// ======================
+// High Score System
+// ======================
+
+/**
+ * Save score to localStorage
+ */
 function saveHighScore() {
     const name = prompt('Enter your name:', 'Anonymous');
     highScores.push({ name, score });
+    
+    // Sort and keep top 5 scores
     highScores.sort((a, b) => b.score - a.score);
     highScores = highScores.slice(0, 5);
+    
     localStorage.setItem('highScores', JSON.stringify(highScores));
     updateHighScores();
 }
 
+/**
+ * Update high score display
+ */
 function updateHighScores() {
     highscoresList.innerHTML = highScores
         .map((entry, index) => `
@@ -411,13 +267,26 @@ function updateHighScores() {
         `).join('');
 }
 
-// Helpers
+// ======================
+// Helper Functions
+// ======================
+
+/**
+ * Decode HTML entities in questions/answers
+ * @param {string} text - Text to decode
+ * @returns {string} Decoded text
+ */
 function decodeHTML(text) {
     const textArea = document.createElement('textarea');
     textArea.innerHTML = text;
     return textArea.value;
 }
 
+/**
+ * Fisher-Yates shuffle algorithm
+ * @param {Array} array - Array to shuffle
+ * @returns {Array} Shuffled array
+ */
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -426,49 +295,30 @@ function shuffle(array) {
     return array;
 }
 
-function showError(message) {
-    const errorEl = document.createElement('div');
-    errorEl.className = 'error-message';
-    errorEl.innerHTML = `
-        <span class="material-icons">error_outline</span>
-        ${message}
-    `;
-    document.body.prepend(errorEl);
-    setTimeout(() => errorEl.remove(), 5000);
-}
-
+// ======================
 // Event Listeners
+// ======================
+
+// Start game button
 startBtn.addEventListener('click', async () => {
-     // Reset timers
-    totalTimeLeft = 150;
-    totalTimerEl.textContent = '2:30';
-    startBtn.disabled = true;
-    startBtn.innerHTML = `<span class="material-icons">autorenew</span> Loading...`;
+    // Reset game state
+    questions = await fetchQuestions(categorySelect.value, difficultySelect.value);
+    currentQuestion = 0;
+    score = 0;
+    answersLog = [];
     
-    try {
-        questions = await fetchQuestions(
-            categorySelect.value || undefined,
-            difficultySelect.value || undefined
-        );
-        
-        if (questions.length > 0) {
-            setupScreen.classList.add('hidden');
-            gameScreen.classList.remove('hidden');
-            score = 0;
-            currentQuestion = 0;
-            scoreEl.textContent = '0';
-            showQuestion();
-        }
-    } catch (error) {
-        showError('Failed to start game. Please try again.');
+    if (questions.length > 0) {
+        setupScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        showQuestion();
     }
-    
-    startBtn.disabled = false;
-    startBtn.innerHTML = `<span class="material-icons">play_arrow</span> Start Game`;
 });
 
-// Initialize
+// Next question button
+nextBtn.addEventListener('click', handleNextQuestion);
+
+// ======================
+// Initial Setup
+// ======================
 initCategories();
 updateHighScores();
-
-

@@ -1,0 +1,25 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.options {
+  display: grid;
+  gap: 10px;
+  margin: 20px;
+}
+
+.option-btn {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}

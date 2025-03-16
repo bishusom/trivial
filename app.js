@@ -185,6 +185,10 @@ function startTimer() {
     timeLeft = 15;
     questionTimerEl.textContent = timeLeft;
     
+    // Reset total time when starting new question
+    totalTimeLeft = 150;  // Move this from global scope
+    
+    // Question timer
     timerId = setInterval(() => {
         timeLeft--;
         questionTimerEl.textContent = timeLeft;
@@ -193,6 +197,14 @@ function startTimer() {
             checkAnswer(false);
             if (currentQuestion === 9) endGame();
         }
+    }, 1000);
+
+    // Total game timer
+    totalTimerId = setInterval(() => {
+        totalTimeLeft--;
+        const minutes = Math.floor(totalTimeLeft / 60);
+        const seconds = totalTimeLeft % 60;
+        totalTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }, 1000);
 }
 
@@ -203,8 +215,18 @@ function resetTimer() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
     questionTimerEl.textContent = '15';
-    questionCounterEl.textContent = '0'
+    totalTimerEl.textContent = '2:30';  // Reset total timer display
+    totalTimeLeft = 150;  // Reset total time counter
 }
+
+
+
+/*function resetTimer() {
+    clearInterval(timerId);
+    clearInterval(totalTimerId);
+    questionTimerEl.textContent = '15';
+    questionCounterEl.textContent = '0'
+}*/
 
 // ======================
 // Game Logic
@@ -292,10 +314,16 @@ function restartGame() {
 
 // New summary screen implementation
 function showSummary() {
-    const timeUsed = 150 - totalTimeLeft;
+    const timeUsed = 150 - totalTimeLeft;  // Calculate actual time used
+    const minutes = Math.floor(timeUsed / 60);
+    const seconds = timeUsed % 60;
+    
+    // Update the time display in the summary
+    const timeDisplay = `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+    
     const correctCount = answersLog.filter(a => a.isCorrect).length;
     const performanceScore = (correctCount * 100) + (150 - timeUsed);
-    
+
     let message;
     if (performanceScore >= 1300) {
         message = `🎉 Legendary! You're a trivia master! 🏆 (Top 1% Performance)`;
@@ -306,6 +334,7 @@ function showSummary() {
     } else {
         message = `💤 Wake up! Time to hit the books! 📖`;
     }
+
 
     summaryScreen.innerHTML = `
         <h2>Game Report Card</h2>
@@ -318,11 +347,14 @@ function showSummary() {
                 </div>
                 <div class="stat-box time">
                     <span class="material-icons">timer</span>
-                    <h3>${Math.floor(timeUsed/60)}m ${timeUsed%60}s</h3>
+                    <h3>${timeDisplay}</h3>
                     <p>Total Time</p>
                 </div>
             </div>
             <div class="performance-message">${message}</div>
+            <div class="affiliate-banner">
+                <p>Love trivia? Check out <a href="[Amazon Affiliate Link]">The World Encyclopedia of Trivia</a></p>
+            </div>
         </div>
 
         <button class="btn primary" id="restart-btn">

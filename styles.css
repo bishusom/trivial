@@ -305,6 +305,7 @@ label {
 
 /* Modify summary screen positioning */
 .summary-screen {
+    display: block !important; 
     margin-bottom: 2rem;
     position: static;
     transform: none;
@@ -372,4 +373,58 @@ label {
     padding: 1rem;
     border-radius: 8px;
     font-weight: 500;
+}
+
+.game-ended {
+    /* Only apply to game screen elements */
+    .game-screen * {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    /* Allow clicks on summary screen */
+    .summary-screen * {
+        pointer-events: auto;
+        opacity: 1;
+    }
+}
+
+/* Add this to ensure button visibility */
+#restart-btn {
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+/* Fix button state transitions */
+.btn:not(:disabled) {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.result-message {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.result-message.correct {
+    background: #e6f4ea;
+    color: #34a853;
+}
+
+.result-message.wrong {
+    background: #fce8e6;
+    color: #ea4335;
+}
+
+/* Add this to make summary appear smoothly */
+.summary-screen {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }

@@ -11,7 +11,7 @@
     <div class="container">
         <!-- Setup Screen -->
         <div class="setup-screen card">
-            <h1 class="title">Trivia Master</h1>
+            <h1 class="title">Triviaah Master</h1>
             <!-- Category Selector -->
             <div class="form-group">
                 <label for="category">Category</label>
@@ -42,12 +42,17 @@
                 <div class="score-box">
                     <span class="material-icons">emoji_events</span>
                     <span id="score">0</span>
+                    <span id="question-counter">0/10</span>
                 </div>
                 <div class="timer-box">
                     <span class="material-icons">timer</span>
                     <span id="timer">15</span>
+                    <span id="question-timer">15</span> 
+                    <span id="total-timer">2:30</span>
                 </div>
             </div>
+
+            
 
             <div id="question" class="question"></div>
             
@@ -61,7 +66,10 @@
             </div>
         </div>
 
-        <div class="summary-screen card hidden"></div>
+        <!-- Add this after game-screen -->
+        <div class="summary-screen card hidden">
+            <!-- Content will be populated by JavaScript -->
+        </div>
         
         <!-- High Scores -->
         <div class="highscores card">

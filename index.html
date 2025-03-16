@@ -1,21 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Trivia Game</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Master</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <h1>Trivia Game</h1>
-    <div id="score">Score: 0</div>
-    <div id="question"></div>
-    <div id="options" class="options"></div>
-    <button id="next-btn" class="hidden">Next Question</button>
-    <div id="result"></div>
-    <div id="timer" class="timer"></div>
-    <div id="highscore" class="highscore"></div>
-  </div>
-  <button id="reset-btn" onclick="location.reload()">Play Again</button>
-  <script src="app.js"></script>
+    <div class="container">
+        <!-- Setup Screen -->
+        <div class="setup-screen card">
+            <h1 class="title">Trivia Master</h1>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" class="input">
+                    <option value="">Loading Categories...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="difficulty">Difficulty</label>
+                <select id="difficulty" class="input">
+                    <option value="">Any Difficulty</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            <button id="start-btn" class="btn primary">
+                <span class="material-icons">play_arrow</span>
+                Start Game
+            </button>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="game-screen card hidden">
+            <div class="game-header">
+                <div class="score-box">
+                    <span class="material-icons">emoji_events</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="timer-box">
+                    <span class="material-icons">timer</span>
+                    <span id="timer">15</span>
+                </div>
+            </div>
+
+            <div id="question" class="question"></div>
+            
+            <div id="options" class="options-grid"></div>
+
+            <div class="game-footer">
+                <button id="next-btn" class="btn secondary hidden">
+                    Next Question
+                    <span class="material-icons">arrow_forward</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- High Scores -->
+        <div class="highscores card">
+            <h2><span class="material-icons">leaderboard</span> High Scores</h2>
+            <div id="highscores-list" class="highscores-list"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>

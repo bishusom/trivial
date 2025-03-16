@@ -27,6 +27,8 @@ const questionCounterEl = document.getElementById('question-counter');
 const questionTimerEl = document.getElementById('question-timer');
 const totalTimerEl = document.getElementById('total-timer');
 const highscoresList = document.getElementById('highscores-list');
+const restartBtn = document.getElementById('restart-btn');
+const resultEl = document.getElementById('result');
 
 // =================
 // Game State
@@ -40,7 +42,7 @@ let timerId;                      // Interval ID for question timer
 let totalTimerId;                 // Interval ID for total timer
 let highScores = JSON.parse(localStorage.getItem('highScores')) || [];  // High scores
 let answersLog = [];              // Track answers for summary screen
-
+let isScoreSaved = false;         // Tracks completed games
 // Fallback categories if API fails
 const fallbackCategories = [
     { id: '', name: "All Categories" },
@@ -133,6 +135,12 @@ function showQuestion() {
         return;
     }
 
+    // Hide next button if last question
+    if (currentQuestion === 9) {
+        nextBtn.classList.add('hidden');
+    } else {
+        nextBtn.classList.add('hidden'); // Ensure hidden initially
+    }
     // Safely update question text
     if (questionEl) {
         questionEl.textContent = questions[currentQuestion].question;
@@ -174,24 +182,17 @@ function showQuestion() {
  * Start both question and total timers
  */
 function startTimer() {
-    // Question timer
     timeLeft = 15;
     questionTimerEl.textContent = timeLeft;
+    
     timerId = setInterval(() => {
         timeLeft--;
         questionTimerEl.textContent = timeLeft;
-        if (timeLeft <= 0) checkAnswer(false);
-    }, 1000);
-
-    // Total timer
-    totalTimeLeft = 150;
-    totalTimerId = setInterval(() => {
-        totalTimeLeft--;
-        const minutes = Math.floor(totalTimeLeft / 60);
-        const seconds = totalTimeLeft % 60;
-        totalTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         
-        if (totalTimeLeft <= 0) endGame();
+        if (timeLeft <= 0) {
+            checkAnswer(false);
+            if (currentQuestion === 9) endGame();
+        }
     }, 1000);
 }
 
@@ -214,21 +215,17 @@ function resetTimer() {
  * @param {boolean} isCorrect - Whether answer is correct
  */
 function checkAnswer(isCorrect) {
-    
     clearInterval(timerId);
     const question = questions[currentQuestion];
-
+    
     optionsEl.querySelectorAll('button').forEach(btn => {
         btn.disabled = true;
-        btn.classList.add('option-selected');
-        
         if (btn.textContent === question.correct) {
             btn.classList.add('correct');
         } else {
             btn.classList.add('wrong');
         }
     });
-
 
     // Update answer log
     answersLog.push({
@@ -238,15 +235,18 @@ function checkAnswer(isCorrect) {
         isCorrect
     });
 
-    // Update score and show feedback
     if (isCorrect) {
-        score += timeLeft * 10;  // Bonus points for remaining time
+        score += timeLeft * 10;
         scoreEl.textContent = score;
     }
 
-    // Show next question button
-    nextBtn.classList.remove('hidden');
-}
+    // Modified next button handling
+    if (currentQuestion === 9) { // Last question
+        setTimeout(endGame, 1000); // Show summary after 1 second
+    } else {
+        nextBtn.classList.remove('hidden');
+    }
+} // Only ONE closing brace here
 
 /**
  * Handle next question or end game
@@ -260,8 +260,37 @@ function handleNextQuestion() {
     }
 }
 
+// Ensure clean restart function
+function restartGame() {
+    // Reset game state
+    currentQuestion = 0;
+    score = 0;
+    timeLeft = 15;
+    totalTimeLeft = 150;
+    answersLog = [];
+    isScoreSaved = false;
+
+    // Clear DOM elements safely
+    optionsEl.innerHTML = '';
+    questionEl.innerHTML = '';
+    if (resultEl) resultEl.textContent = ''; // Safe check
+    
+    // Reset UI elements
+    scoreEl.textContent = '0';
+    questionCounterEl.textContent = '0/10';
+    questionTimerEl.textContent = '15';
+    totalTimerEl.textContent = '2:30';
+    
+    // Show setup screen
+    summaryScreen.classList.add('hidden');
+    gameScreen.classList.add('hidden');
+    setupScreen.classList.remove('hidden');
+    
+    // Re-enable interactions
+    document.body.classList.remove('game-ended');
+}
+
 // New summary screen implementation
-// Modify showSummary function
 function showSummary() {
     const timeUsed = 150 - totalTimeLeft;
     const correctCount = answersLog.filter(a => a.isCorrect).length;
@@ -295,18 +324,52 @@ function showSummary() {
             </div>
             <div class="performance-message">${message}</div>
         </div>
-        <button class="btn primary" onclick="location.reload()">
+
+        <button class="btn primary" id="restart-btn">
             <span class="material-icons">replay</span>
             Try Again
         </button>
     `;
+
+    // Add event listener properly
+    //document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+    // Proper event listener binding
+    const restartButton = document.getElementById('restart-btn');
+    if (restartButton) {
+        restartButton.addEventListener('click', restartGame);
+    } else {
+        console.error('Restart button not found');
+    }
 }
 
 /**
  * End game and show summary
  */
 function endGame() {
+    clearInterval(timerId);
+    clearInterval(totalTimerId);
+    
+    // Hide game screen and show summary
+    gameScreen.classList.add('hidden');
+    summaryScreen.classList.remove('hidden'); // Add this line
+    showSummary();
+    saveHighScore();
+    
+    // Disable all interactions
+    optionsEl.querySelectorAll('button').forEach(btn => {
+        btn.disabled = true;
+    });
+}
+/*function endGame() {
     try {
+        
+        if (isScoreSaved) return;
+    
+        // Add this line
+        document.body.classList.add('game-ended');
+
+
         // Hide game screen
         gameScreen.classList.add('hidden');
         
@@ -328,7 +391,7 @@ function endGame() {
         console.error('Error ending game:', error);
         alert('Game ended unexpectedly. Please refresh the page.');
     }
-}
+} */
 
 // ======================
 // High Score System
@@ -338,15 +401,28 @@ function endGame() {
  * Save score to localStorage
  */
 function saveHighScore() {
-    const name = prompt('Enter your name:', 'Anonymous');
-    highScores.push({ name, score });
-    
-    // Sort and keep top 5 scores
-    highScores.sort((a, b) => b.score - a.score);
-    highScores = highScores.slice(0, 5);
-    
-    localStorage.setItem('highScores', JSON.stringify(highScores));
-    updateHighScores();
+    try {
+        // Prevent multiple saves
+        if (isScoreSaved) return;
+        isScoreSaved = true;
+
+        // Only save if score > 0 and in top 5
+        const minScore = highScores.length ? 
+            Math.min(...highScores.map(h => h.score)) : 0;
+
+        if (score > 0 && (highScores.length < 5 || score > minScore)) {
+            const name = prompt('Enter your name for the leaderboard:', 'Anonymous') || 'Anonymous';
+            
+            highScores.push({ name, score });
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 5);
+            
+            localStorage.setItem('highScores', JSON.stringify(highScores));
+            updateHighScores();
+        }
+    } catch (error) {
+        console.error('Error saving high score:', error);
+    }
 }
 
 /**

@@ -1,11 +1,15 @@
 // DOM Elements
-const questionEl = document.getElementById("question");
-const optionsEl = document.getElementById("options");
-const nextBtn = document.getElementById("next-btn");
-const scoreEl = document.getElementById("score");
-const resultEl = document.getElementById("result");
-const timerEl = document.getElementById("timer");
-const highscoreEl = document.getElementById("highscore");
+const setupScreen = document.querySelector('.setup-screen');
+const gameScreen = document.querySelector('.game-screen');
+const categorySelect = document.getElementById('category');
+const difficultySelect = document.getElementById('difficulty');
+const startBtn = document.getElementById('start-btn');
+const questionEl = document.getElementById('question');
+const optionsEl = document.getElementById('options');
+const nextBtn = document.getElementById('next-btn');
+const scoreEl = document.getElementById('score');
+const timerEl = document.getElementById('timer');
+const highscoresList = document.getElementById('highscores-list');
 
 // Game State
 let questions = [];
@@ -13,46 +17,90 @@ let currentQuestion = 0;
 let score = 0;
 let timeLeft = 15;
 let timerId;
-let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
 
-// Initialize Game
-async function initGame() {
+// Initialize Categories
+async function initCategories() {
     try {
-        questions = await fetchQuestions();
-        showQuestion();
-        updateHighScoreDisplay();
+        const response = await fetch('https://opentdb.com/api_category.php');
+        const data = await response.json();
+        populateCategories(data.trivia_categories);
     } catch (error) {
-        questionEl.textContent = "Failed to load questions. Please try again later.";
+        categorySelect.innerHTML = `
+            <option value="9">General Knowledge</option>
+            <option value="10">Books</option>
+            <option value="17">Science & Nature</option>
+        `;
     }
 }
 
-// Fetch Questions from Open Trivia DB
-async function fetchQuestions() {
-    const response = await fetch("https://opentdb.com/api.php?amount=10&type=multiple");
+function populateCategories(categories) {
+    categorySelect.innerHTML = categories.map(cat => `
+        <option value="${cat.id}">${cat.name}</option>
+    `).join('');
+}
+
+// Start Game
+startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true;
+    startBtn.innerHTML = `<span class="material-icons">autorenew</span> Loading...`;
+    
+    try {
+        questions = await fetchQuestions(
+            categorySelect.value,
+            difficultySelect.value
+        );
+        
+        if (questions.length > 0) {
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            showQuestion();
+            updateHighScores();
+        } else {
+            alert('No questions found for this category!');
+        }
+    } catch (error) {
+        alert('Failed to load questions. Please try again.');
+    }
+    
+    startBtn.disabled = false;
+    startBtn.innerHTML = `<span class="material-icons">play_arrow</span> Start Game`;
+});
+
+// Fetch Questions
+async function fetchQuestions(category, difficulty) {
+    const url = new URL('https://opentdb.com/api.php');
+    url.searchParams.append('amount', 10);
+    if (category) url.searchParams.append('category', category);
+    if (difficulty) url.searchParams.append('difficulty', difficulty);
+    url.searchParams.append('type', 'multiple');
+
+    const response = await fetch(url);
     const data = await response.json();
     return data.results.map(q => ({
-        question: decodeURIComponent(q.question),
-        correct_answer: decodeURIComponent(q.correct_answer),
-        incorrect_answers: q.incorrect_answers.map(a => decodeURIComponent(a))
+        question: decodeHTML(q.question),
+        correct: decodeHTML(q.correct_answer),
+        options: shuffle([...q.incorrect_answers.map(decodeHTML), decodeHTML(q.correct_answer)]),
+        category: q.category
     }));
 }
 
-// Display Question
+// Show Question
 function showQuestion() {
     resetTimer();
     startTimer();
     
     const question = questions[currentQuestion];
-    const options = shuffle([...question.incorrect_answers, question.correct_answer]);
+    questionEl.innerHTML = `
+        ${question.question}
+        <div class="question-category">${question.category}</div>
+    `;
     
-    questionEl.innerHTML = question.question;
-    optionsEl.innerHTML = "";
-    
-    options.forEach(option => {
-        const button = document.createElement("button");
-        button.className = "option-btn";
+    optionsEl.innerHTML = '';
+    question.options.forEach(option => {
+        const button = document.createElement('button');
         button.innerHTML = option;
-        button.onclick = () => checkAnswer(option === question.correct_answer);
+        button.addEventListener('click', () => checkAnswer(option === question.correct));
         optionsEl.appendChild(button);
     });
 }
@@ -60,83 +108,20 @@ function showQuestion() {
 // Check Answer
 function checkAnswer(isCorrect) {
     clearInterval(timerId);
+    optionsEl.querySelectorAll('button').forEach(btn => {
+        btn.disabled = true;
+        btn.style.backgroundColor = btn.textContent === questions[currentQuestion].correct ? 
+            '#e6f4ea' : '#fce8e6';
+    });
+    
     if (isCorrect) {
-        score += timeLeft * 10; // Bonus points for remaining time
-        scoreEl.textContent = `Score: ${score}`;
-        resultEl.textContent = "Correct! 🎉";
-    } else {
-        resultEl.textContent = "Wrong! ❌";
+        score += timeLeft * 10;
+        scoreEl.textContent = score;
     }
-    nextBtn.classList.remove("hidden");
+    
+    nextBtn.classList.remove('hidden');
 }
 
 // Timer Functions
 function startTimer() {
-    timeLeft = 15;
-    timerEl.textContent = `Time: ${timeLeft}s`;
-    
-    timerId = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = `Time: ${timeLeft}s`;
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerId);
-            checkAnswer(false);
-        }
-    }, 1000);
-}
-
-function resetTimer() {
-    clearInterval(timerId);
-    timerEl.textContent = `Time: 15s`;
-}
-
-// Next Question
-nextBtn.addEventListener("click", () => {
-    currentQuestion++;
-    resultEl.textContent = "";
-    nextBtn.classList.add("hidden");
-    
-    if (currentQuestion < questions.length) {
-        showQuestion();
-    } else {
-        endGame();
-    }
-});
-
-// End Game
-function endGame() {
-    questionEl.textContent = `Game Over! Final Score: ${score}`;
-    optionsEl.innerHTML = "";
-    timerEl.textContent = "";
-    saveHighScore();
-    updateHighScoreDisplay();
-}
-
-// High Scores
-function saveHighScore() {
-    const name = prompt("Enter your name for the high score board:", "Anonymous");
-    highScores.push({ name, score });
-    highScores.sort((a, b) => b.score - a.score);
-    highScores = highScores.slice(0, 5); // Keep top 5 scores
-    localStorage.setItem("highScores", JSON.stringify(highScores));
-}
-
-function updateHighScoreDisplay() {
-    highscoreEl.innerHTML = "<h3>High Scores</h3>" + 
-        highScores.map((entry, index) => 
-            `${index + 1}. ${entry.name}: ${entry.score}`
-        ).join("<br>");
-}
-
-// Utility Functions
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
-// Start the game
-initGame();
+   

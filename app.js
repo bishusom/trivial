@@ -1,6 +1,10 @@
 // DOM Elements
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
+const summaryScreen = document.querySelector('.summary-screen');
+const questionCounterEl = document.getElementById('question-counter');
+const questionTimerEl = document.getElementById('question-timer');
+const totalTimerEl = document.getElementById('total-timer');
 const categorySelect = document.getElementById('category');
 const difficultySelect = document.getElementById('difficulty');
 const startBtn = document.getElementById('start-btn');
@@ -15,6 +19,8 @@ const summaryScreen = document.querySelector('.summary-screen');
 
 
 // Game State
+let totalTimeLeft = 150; // 2 minutes 30 seconds for 10 questions
+let totalTimerId;
 let questions = [];
 let currentQuestion = 0;
 let score = 0;
@@ -33,6 +39,8 @@ const fallbackCategories = [
     { id :24, name:"Politics"},
     { id :26, name:"Celebrities"}    
 ];
+
+
 
 // Modified showQuestion with animation
 function showQuestion() {
@@ -131,6 +139,7 @@ function showSummary() {
 
 // Modified endGame
 function endGame() {
+    clearInterval(totalTimerId);
     showSummary();
     saveHighScore();
 }
@@ -297,7 +306,9 @@ async function fetchQuestions(category, difficulty) {
 }
 
 // Game Functions
+// Modified showQuestion
 function showQuestion() {
+    questionCounterEl.textContent = `${currentQuestion + 1}/10`;
     resetTimer();
     startTimer();
     
@@ -333,21 +344,38 @@ function checkAnswer(isCorrect) {
 }
 
 // Timer Functions
+// Modified startTimer function
 function startTimer() {
+    // Question timer
     timeLeft = 15;
-    timerEl.textContent = timeLeft;
+    questionTimerEl.textContent = timeLeft;
     
     timerId = setInterval(() => {
         timeLeft--;
-        timerEl.textContent = timeLeft;
-        
+        questionTimerEl.textContent = timeLeft;
         if (timeLeft <= 0) checkAnswer(false);
+    }, 1000);
+
+    // Total timer
+    totalTimerId = setInterval(() => {
+        totalTimeLeft--;
+        const minutes = Math.floor(totalTimeLeft / 60);
+        const seconds = totalTimeLeft % 60;
+        totalTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (totalTimeLeft <= 0) {
+            clearInterval(totalTimerId);
+            endGame();
+        }
     }, 1000);
 }
 
+
+// Modified resetTimer
 function resetTimer() {
     clearInterval(timerId);
-    timerEl.textContent = '15';
+    clearInterval(totalTimerId);
+    questionTimerEl.textContent = '15';
 }
 
 // Navigation
@@ -411,6 +439,9 @@ function showError(message) {
 
 // Event Listeners
 startBtn.addEventListener('click', async () => {
+     // Reset timers
+    totalTimeLeft = 150;
+    totalTimerEl.textContent = '2:30';
     startBtn.disabled = true;
     startBtn.innerHTML = `<span class="material-icons">autorenew</span> Loading...`;
     
@@ -439,3 +470,5 @@ startBtn.addEventListener('click', async () => {
 // Initialize
 initCategories();
 updateHighScores();
+
+

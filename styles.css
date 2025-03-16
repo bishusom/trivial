@@ -23,3 +23,15 @@ body {
 .hidden {
   display: none;
 }
+.timer {
+    font-size: 1.2em;
+    color: #d35400;
+    margin: 10px 0;
+}
+
+.highscore {
+    margin-top: 30px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}

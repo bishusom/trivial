@@ -306,7 +306,6 @@ function showSummary() {
                 </div>
             </div>
             ${createPerformanceMessage(correctCount)}
-             <p class="local-disclaimer">Scores are stored locally on this browser</p>
             <button class="btn primary" id="restart-btn">
                 <span class="material-icons">replay</span>
                 Play Again

@@ -8,8 +8,8 @@
     --background: #1a1a2e;
     --card-bg: #2a2a4a;
     --text-color: #ffffff;
-    --correct: #00ff88;
-    --wrong: #ff3860;
+    --correct: #80e6a3;  /* Soft green */
+    --wrong: #ff7d7d;    /* Coral red */
     --glow: 0 0 20px;
 }
 
@@ -308,10 +308,27 @@ body {
 
 .options-grid button.correct {
     background: var(--correct) !important;
+    color: #1a1a2e !important;  /* Dark text */
+    border: 2px solid #4dffa6 !important;
 }
 
 .options-grid button.wrong {
     background: var(--wrong) !important;
+    color: #1a1a2e !important;  /* Dark text */
+    border: 2px solid #ff4d4d !important;
+}
+
+/* Question Feedback */
+#question.correct-bg {
+    background: var(--correct) !important;
+    color: #1a1a2e !important;
+    border-color: #4dffa6 !important;
+}
+
+#question.wrong-bg {
+    background: var(--wrong) !important;
+    color: #1a1a2e !important;
+    border-color: #ff4d4d !important;
 }
 
 .timer-box {

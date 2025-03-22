@@ -77,10 +77,41 @@ body {
 /* ================ */
 /* Setup Screen */
 /* ================ */
+/* Add to your styles.css */
 .setup-screen {
-    max-width: 600px;
-    margin: 1rem auto;
-    padding: 1rem;
+    padding-top: 1rem !important; /* Reduced from 2rem */
+}
+
+.logo-container {
+    margin: 1rem 0 1.5rem !important; /* Reduced top margin */
+    padding: 0.5rem !important;
+}
+
+.setup-card {
+    padding: 1.5rem !important; /* Reduced padding */
+}
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+    .logo-container {
+        margin: 0.5rem 0 1rem !important;
+    }
+    
+    .setup-screen {
+        padding-top: 0.5rem !important;
+    }
+    
+    .logo {
+        height: 50px; /* Smaller logo on mobile */
+    }
+    
+    .setup-card {
+        padding: 1rem !important;
+    }
+    
+    .settings-grid {
+        gap: 1rem !important;
+    }
 }
 
 .setup-card {

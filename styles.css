@@ -188,7 +188,8 @@ body {
 
 .difficulty-pill.active {
     background: var(--primary-color);
-    transform: scale(1.1);
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(70, 23, 143, 0.5);
 }
 
 /* Compact Difficulty Selector */

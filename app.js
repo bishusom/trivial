@@ -469,18 +469,20 @@ document.addEventListener('click', (e) => {
     }
 });
 
-document.querySelectorAll('.difficulty-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Remove active state from all buttons
-      document.querySelectorAll('.difficulty-btn').forEach(b => 
-        b.setAttribute('aria-pressed', 'false')
-      );
-      
-      // Set active state and store value
-      btn.setAttribute('aria-pressed', 'true');
-      selectedDifficulty = btn.dataset.difficulty;
+document.querySelectorAll('.difficulty-pill').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Remove active class from all buttons
+        document.querySelectorAll('.difficulty-pill').forEach(b => 
+            b.classList.remove('active')
+        );
+        
+        // Add active class to clicked button
+        this.classList.add('active');
+        
+        // Update selected difficulty
+        selectedDifficulty = this.dataset.difficulty;
     });
-  });
+});
 
 // Add this event listener in your DOMContentLoaded handler
 document.getElementById('clear-scores')?.addEventListener('click', () => {
@@ -500,4 +502,4 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
     document.body.appendChild(toast);
     
     setTimeout(() => toast.remove(), 2000);
-  }  
+  }

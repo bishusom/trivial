@@ -1,87 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Add to your HTML head -->
+    <meta name="description" content="Play Trivaah - The ultimate free online trivia game with 10,000+ questions across 20 categories. Compete with friends and climb leaderboards!">
+    <meta name="keywords" content="trivia game, online quiz, free trivia, multiplayer quiz">
+
+    <!-- Open Graph tags for social sharing -->
+    <meta property="og:title" content="Trivaah - Free Online Trivia Game">
+    <meta property="og:image" content="https://yourdomain.com/trivia-preview.jpg">
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Triviaah Master</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
+
+
+
     <div class="container">
         <!-- Setup Screen -->
-        <div class="setup-screen card">
-            <h1 class="title">Triviaah Master</h1>
-            <!-- Category Selector -->
-            <div class="form-group">
-                <label for="category">Category</label>
-                <select id="category" class="input">
-                    <option value="" selected>All Categories</option>
-                    <!-- Dynamic categories will be loaded here -->
-                </select>
-</div>
-            
-            <div class="form-group">
-                <label for="difficulty">Difficulty</label>
-                <select id="difficulty" class="input">
-                    <option value="">Any Difficulty</option>
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
+        <!-- Add to your HTML -->
+      <div class="setup-screen active">
+        <h1 class="title">Triviaah Master</h1>
+        <div class="setup-card">
+          <div class="settings-grid">
+            <!-- Category -->
+            <div class="setting-group">
+              <div class="setting-label"><span class="material-icons">category</span>CATEGORY</div>
+                <select id="category" class="styled-select">
+                  <option value="">All Categories
+                  </option>
                 </select>
             </div>
-            <button id="start-btn" class="btn primary">
-                <span class="material-icons">play_arrow</span>
-                Start Game
-            </button>
-        </div>
-
-        <!-- Game Screen -->
-        <div class="game-screen card hidden">
-            <div class="game-header">
-                <div class="score-box">
-                    <span class="material-icons">emoji_events</span>
-                    <span id="score">0</span>
-                    <span id="question-counter">0/10</span>
-                </div>
-                <div class="timer-box">
-                    <span class="material-icons">timer</span>
-                    <span id="timer">15</span>
-                    <span id="question-timer">15</span> 
-                    <span id="total-timer">2:30</span>
-                </div>
+  
+            <!-- Difficulty -->
+            <div class="setting-group">
+              <div class="setting-label"><span class="material-icons">speed</span>DIFFICULTY</div>
+              <div id="difficulty" class="difficulty-picker">
+                <button class="difficulty-btn" data-difficulty="easy" aria-pressed="true">🌱 Easy</button>
+                <button class="difficulty-btn" data-difficulty="medium">🌟 Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard">💀 Hard</button>
+              </div>
             </div>
-
-            
-
-            <div id="question" class="question"></div>
-            
-            <div id="options" class="options-grid"></div>
-
-            <div id="result" class="result-message"></div>
-
-            <div class="game-footer">
-                <button id="next-btn" class="btn secondary hidden">
-                    Next Question
-                    <span class="material-icons">arrow_forward</span>
-                </button>
+  
+            <!-- Questions & Time -->
+            <div class="dual-settings">
+              <div class="setting-group compact">
+                <div class="setting-label"><span class="material-icons">format_list_numbered</span>QUESTIONS</div>
+                <select id="num-questions" class="styled-select">
+                    <option value="5">5 (Quick Play)</option>
+                    <option value="10" selected>10 (Standard)</option>
+                    <option value="15">15 (Extended)</option>
+                    <option value="20">20 (Marathon)</option>
+                </select>
             </div>
+  
+            <div class="setting-group compact">
+              <div class="setting-label"><span class="material-icons">timer</span>TIME</div>
+              <select id="time-per-question" class="styled-select">
+                <option value="5">5 seconds</option>
+                <option value="10" selected>10 seconds</option>
+                <option value="15">15 seconds</option>
+              </select>
+            </div>
+            </div>
+      </div>
+    </div>
+    </div>  
+    <!-- Game Screen -->
+    <div class="game-screen card">
+      <div class="game-header">
+        <div class="score-box">
+            <span class="material-icons">emoji_events</span>
+            <span id="score">0</span>
+            <span id="question-counter">0/10</span>
         </div>
+        <div class="timer-box">
+            <span class="material-icons">timer</span>
+            <span id="timer">15</span>
+            <span id="question-timer">15</span> 
+            <span id="total-timer">2:30</span>
+        </div>
+      </div>
 
-        <!-- Add this after game-screen -->
-        <div class="summary-screen card hidden">
-            <!-- Content will be populated by JavaScript -->
-        </div>
-        
-        <!-- High Scores -->
-        <div class="highscores card">
-            <h2><span class="material-icons">leaderboard</span>Your Best Scores</h2>
-            <div id="highscores-list" class="highscores-list"></div>
+      <div id="question" class="question"></div>
+      <div id="options" class="options-grid"></div>
+      <div id="result" class="result-message"></div>
+      <div class="game-footer">
+          <button id="next-btn" class="btn primary" onclick="handleNextQuestion()">
+            Next Question <span class="material-icons">arrow_forward</span>
+          </button>
+            <!--button id="next-btn" class="btn secondary hidden">
+                Next Question
+                <span class="material-icons">arrow_forward</span>
+            </button-->
         </div>
     </div>
+  
+    <button id="start-btn" class="btn primary launch-btn">
+        <span class="material-icons">rocket_launch</span>
+        START GAME
+    </button>
+    
+
+       <!-- Add this after game-screen -->
+    <div class="summary-screen card">
+        <!-- Content will be populated by JavaScript -->
+    </div>
+    
+    
+    <div class="highscores">
+        <h3>My Best Scores</h3>
+        <button id="clear-scores" class="btn small danger" title="Delete all local scores" aria-label="Clear saved scores">
+    🗑️ Clear All
+        </button>
+        <p class="local-warning">(Stored on this device only)</p>
+        <div id="highscores-list" class="highscores-list"></div>
+    </div>
+
+  </div>
 
     
     
     <script src="app.js"></script>
 </body>
+ <!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXX');
+</script>
+
+<!-- Track game events -->
+<script>
+function trackEvent(category, action) {
+  gtag('event', action, {
+    'event_category': category
+  });
+}
+</script>   
 </html>

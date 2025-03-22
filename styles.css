@@ -404,13 +404,10 @@ correct {
     transition: all 0.3s ease;
 }
 
-#next-btn.visible, 
-#restart-btn {
-    margin: 1rem auto;
-    display: flex;
-    justify-content: center;
-    width: 80%;
-    max-width: 300px;
+#next-btn.visible {
+    display: inline-flex;
+    opacity: 1;
+    animation: buttonPop 0.3s ease;
 }
 
 @keyframes buttonPop {
@@ -621,9 +618,6 @@ correct {
     backdrop-filter: blur(4px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
 }
 
 /* Add to styles.css */
@@ -633,6 +627,12 @@ correct {
     text-align: center;
     margin-top: 1.5rem;
     order: 3; /* Ensures it appears after buttons */
+}
+
+.performance-card.compact {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 /* Add subtle texture */

@@ -1,13 +1,10 @@
 /* 
- * Trivia Master Game Logic
+ * Trivia Master Game Logic - Optimized
  * Features:
- * - Category selection from Open Trivia DB
- * - 10 questions per game with 15s/question
- * - Total game timer (2.5 minutes)
- * - Score tracking with time bonuses
- * - High score system with localStorage
- * - Animated transitions and feedback
- * - Detailed end-game summary
+ * - User-selectable questions/time
+ * - Compact summary screen
+ * - Optimized code structure
+ * - Better error handling
  */
 
 // ======================
@@ -17,7 +14,10 @@ const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
 const categorySelect = document.getElementById('category');
-const difficultySelect = document.getElementById('difficulty');
+//const difficultySelect = document.getElementById('difficulty');
+const difficultyPicker = document.getElementById('difficulty');
+const numQuestionsSelect = document.getElementById('num-questions');
+const timePerQuestionSelect = document.getElementById('time-per-question');
 const startBtn = document.getElementById('start-btn');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
@@ -26,91 +26,88 @@ const scoreEl = document.getElementById('score');
 const questionCounterEl = document.getElementById('question-counter');
 const questionTimerEl = document.getElementById('question-timer');
 const totalTimerEl = document.getElementById('total-timer');
+const highscores = document.querySelector('.highscores');
 const highscoresList = document.getElementById('highscores-list');
-const restartBtn = document.getElementById('restart-btn');
-const resultEl = document.getElementById('result');
 
-// =================
+// ======================
 // Game State
-// =================
-let questions = [];               // Array to store current game questions
-let currentQuestion = 0;          // Index of current question (0-9)
-let score = 0;                    // Player's current score
-let timeLeft = 15;                // Time left for current question
-let totalTimeLeft = 150;          // Total time left (2.5 minutes in seconds)
-let timerId;                      // Interval ID for question timer
-let totalTimerId;                 // Interval ID for total timer
-let highScores = JSON.parse(localStorage.getItem('highScores')) || [];  // High scores
-let answersLog = [];              // Track answers for summary screen
-let isScoreSaved = false;         // Tracks completed games
-// Fallback categories if API fails
-const fallbackCategories = [
-    { id: '', name: "All Categories" },
-    { id: 9, name: "General Knowledge" },
-    { id: 10, name: "Books" },
-    { id: 17, name: "Science & Nature" }
-];
+// ======================
+let selectedQuestions = 10;
+let selectedTime = 15;
+let selectedDifficulty = 'easy'
+let questions = [];
+let currentQuestion = 0;
+let score = 0;
+let timeLeft = 15;
+let totalTimeLeft = 150;
+let timerId;
+let totalTimerId;
+let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
+let answersLog = [];
+let isScoreSaved = false;
+let isNextQuestionPending = false;
 
 // ======================
-// Initialization Functions
+// Core Functions
 // ======================
 
-/**
- * Initialize categories from Open Trivia DB API
- * Uses fallback categories if API fails
- */
+// Initialization
 async function initCategories() {
     try {
-        categorySelect.classList.add('loading');
+        categorySelect.disabled = true;
+        categorySelect.innerHTML = '<option>Loading categories...</option>';
+        
         const response = await fetch('https://opentdb.com/api_category.php');
-        
-        if (!response.ok) throw new Error('Server error');
-        
         const data = await response.json();
-        populateCategories([{ id: '', name: "All Categories" }, ...data.trivia_categories]);
+        
+        // Add category name cleaning
+        const categories = [{ id: '', name: "All Categories" }, ...data.trivia_categories].map(cat => ({
+            ...cat,
+            name: cat.name.replace(/^\w+:\s/, '') // Remove prefix
+        }));
+        
+        categorySelect.innerHTML = categories.map(cat => 
+            `<option value="${cat.id}">${cat.name}</option>`
+        ).join('');
     } catch (error) {
         console.error('Using fallback categories:', error);
-        populateCategories(fallbackCategories);
+        // Clean fallback categories too
+        const fallback = [
+            { id: '', name: "All Categories" },
+            { id: 9, name: "General Knowledge" },
+            { id: 10, name: "Books" },
+            { id: 17, name: "Science & Nature" }
+        ].map(cat => ({
+            ...cat,
+            name: cat.name.replace(/^\w+:\s/, '')
+        }));
+        
+        categorySelect.innerHTML = fallback.map(cat => 
+            `<option value="${cat.id}">${cat.name}</option>`
+        ).join('');
     } finally {
-        categorySelect.classList.remove('loading');
+        categorySelect.disabled = false;
     }
 }
 
-/**
- * Populate category select dropdown
- * @param {Array} categories - Array of category objects
- */
-function populateCategories(categories) {
-    categorySelect.innerHTML = categories.map(cat => `
-        <option value="${cat.id}">${cat.name}</option>
-    `).join('');
-}
-
-// ======================
-// Question Handling
-// ======================
-
-/**
- * Fetch questions from Open Trivia DB API
- * @param {string} category - Selected category ID
- * @param {string} difficulty - Selected difficulty
- * @returns {Array} - Array of question objects
- */
-async function fetchQuestions(category, difficulty) {
+async function fetchQuestions(category, difficulty, amount) {
     try {
         const url = new URL('https://opentdb.com/api.php');
-        url.searchParams.append('amount', 10);
+        url.searchParams.append('amount', amount);
         if (category) url.searchParams.append('category', category);
         if (difficulty) url.searchParams.append('difficulty', difficulty);
         url.searchParams.append('type', 'multiple');
 
         const response = await fetch(url);
         const data = await response.json();
-        
+
         return data.results.map(q => ({
             question: decodeHTML(q.question),
             correct: decodeHTML(q.correct_answer),
-            options: shuffle([...q.incorrect_answers.map(decodeHTML), decodeHTML(q.correct_answer)]),
+            options: shuffle([
+                ...q.incorrect_answers.map(decodeHTML), 
+                decodeHTML(q.correct_answer)
+            ]),
             category: q.category
         }));
     } catch (error) {
@@ -119,378 +116,303 @@ async function fetchQuestions(category, difficulty) {
     }
 }
 
-/**
- * Display current question with animations
- */
 function showQuestion() {
-    // Ensure questions exist
-    if (!questions.length) {
-        console.error('No questions loaded');
-        return;
-    }
+    // Clear previous question background
+    const questionElement = document.getElementById('question');
+    questionElement.classList.remove('correct-bg', 'wrong-bg');
 
-    // Validate current question index
-    if (currentQuestion < 0 || currentQuestion >= questions.length) {
-        console.error('Invalid question index:', currentQuestion);
-        return;
-    }
-
-    // Hide next button if last question
-    if (currentQuestion === 9) {
-        nextBtn.classList.add('hidden');
-    } else {
-        nextBtn.classList.add('hidden'); // Ensure hidden initially
-    }
-    // Safely update question text
-    if (questionEl) {
-        questionEl.textContent = questions[currentQuestion].question;
-    } else {
-        console.error('Question element not found');
-        return;
-    }
-    
     // Update question counter
-    //questionCounterEl.textContent = 0
-    questionCounterEl.textContent = `${currentQuestion + 1}/10`;
-    
-    
+    questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
+
+    if (!questions || !questions[currentQuestion]) {
+        console.error('Invalid question index or empty questions array');
+        endGame();
+        return;
+    }
+
     const question = questions[currentQuestion];
+    const questionText = decodeHTML(question?.question || 'Question not available');
+    const category = question?.category || 'General';
+    
     questionEl.innerHTML = `
-        ${question.question}
-        <div class="question-category">${question.category}</div>
+        <div class="question-text">${questionText}</div>
+        <div class="question-category">${category}</div>
     `;
 
-    // Create answer buttons with staggered animation
-    optionsEl.innerHTML = '';
-    question.options.forEach((option, index) => {
-        const button = document.createElement('button');
-        button.innerHTML = option;
-        button.style.animationDelay = `${index * 0.1}s`;
-        button.onclick = () => checkAnswer(option === question.correct);
-        optionsEl.appendChild(button);
-    });
+    optionsEl.innerHTML = question.options.map((option, i) => `
+        <button style="animation-delay: ${i * 0.1}s" 
+                data-correct="${option === question.correct}">
+            ${option}
+        </button>
+    `).join('');
 
-    // Start timers
+    safeClassToggle(setupScreen, 'remove', 'active');
+    safeClassToggle(gameScreen, 'add', 'active');
     startTimer();
 }
 
-// ======================
-// Timer Functions
-// ======================
-
-/**
- * Start both question and total timers
- */
+// Timer System
 function startTimer() {
-    timeLeft = 15;
+    clearInterval(timerId);
+    clearInterval(totalTimerId);
+    
+    timeLeft = selectedTime;
+    totalTimeLeft = selectedQuestions * selectedTime;
+
     questionTimerEl.textContent = timeLeft;
-    
-    // Reset total time when starting new question
-    totalTimeLeft = 150;  // Move this from global scope
-    
-    // Question timer
+    updateTimerDisplay(totalTimeLeft, totalTimerEl);
+
     timerId = setInterval(() => {
-        timeLeft--;
+        timeLeft = Math.max(0, timeLeft - 1);
         questionTimerEl.textContent = timeLeft;
-        
         if (timeLeft <= 0) {
-            checkAnswer(false);
-            if (currentQuestion === 9) endGame();
+            clearInterval(timerId);
+            handleTimeout();
         }
     }, 1000);
 
-    // Total game timer
     totalTimerId = setInterval(() => {
-        totalTimeLeft--;
-        const minutes = Math.floor(totalTimeLeft / 60);
-        const seconds = totalTimeLeft % 60;
-        totalTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        totalTimeLeft = Math.max(0, totalTimeLeft - 1);
+        updateTimerDisplay(totalTimeLeft, totalTimerEl);
+        if (totalTimeLeft <= 0) clearInterval(totalTimerId);
     }, 1000);
 }
 
-/**
- * Reset all timers
- */
-function resetTimer() {
-    clearInterval(timerId);
-    clearInterval(totalTimerId);
-    questionTimerEl.textContent = '15';
-    totalTimerEl.textContent = '2:30';  // Reset total timer display
-    totalTimeLeft = 150;  // Reset total time counter
+function handleTimeout() {
+    const questionEl = document.getElementById('question');
+    questionEl.classList.add('wrong-bg');
+    checkAnswer(false);
 }
 
-
-
-/*function resetTimer() {
-    clearInterval(timerId);
-    clearInterval(totalTimerId);
-    questionTimerEl.textContent = '15';
-    questionCounterEl.textContent = '0'
-}*/
-
 // ======================
-// Game Logic
+// Answer Handling
 // ======================
+let autoProceedTimeout;
 
-/**
- * Check if selected answer is correct
- * @param {boolean} isCorrect - Whether answer is correct
- */
 function checkAnswer(isCorrect) {
+    if (!questions[currentQuestion]) return;
     clearInterval(timerId);
-    const question = questions[currentQuestion];
+    clearTimeout(autoProceedTimeout);
     
+    answersLog.push({ isCorrect });
+    const questionEl = document.getElementById('question');
+    const correctAnswer = questions[currentQuestion].correct;
+
+    questionEl.classList.remove('correct-bg', 'wrong-bg');
+    questionEl.classList.add(isCorrect ? 'correct-bg' : 'wrong-bg');
+
     optionsEl.querySelectorAll('button').forEach(btn => {
         btn.disabled = true;
-        if (btn.textContent === question.correct) {
-            btn.classList.add('correct');
-        } else {
-            btn.classList.add('wrong');
-        }
+        const btnText = decodeHTML(btn.textContent.trim());
+        const isActuallyCorrect = btnText === correctAnswer.trim();
+        btn.classList.add(isActuallyCorrect ? 'correct' : 'wrong');
     });
 
-    // Update answer log
-    answersLog.push({
-        question: question.question,
-        correct: question.correct,
-        selected: isCorrect ? question.correct : '',
-        isCorrect
-    });
+    if (isCorrect) score += timeLeft * 10;
+    scoreEl.textContent = score;
 
-    if (isCorrect) {
-        score += timeLeft * 10;
-        scoreEl.textContent = score;
-    }
-
-    // Modified next button handling
-    if (currentQuestion === 9) { // Last question
-        setTimeout(endGame, 1000); // Show summary after 1 second
+    if (currentQuestion < selectedQuestions - 1) {
+        nextBtn.classList.add('visible');
+        isNextQuestionPending = true; // Track pending state
+        autoProceedTimeout = setTimeout(() => {
+            if (isNextQuestionPending) {
+                handleNextQuestion();
+            }
+        }, 2500);
     } else {
-        nextBtn.classList.remove('hidden');
+        setTimeout(endGame, 1000);
     }
-} // Only ONE closing brace here
+}
 
-/**
- * Handle next question or end game
- */
 function handleNextQuestion() {
-    currentQuestion++;
-    if (currentQuestion < 10) {
+    if (!isNextQuestionPending) return;
+    isNextQuestionPending = false;
+    
+    nextBtn.classList.remove('visible');
+    clearTimeout(autoProceedTimeout);
+
+    if (currentQuestion < selectedQuestions - 1) {
+        currentQuestion++;
         showQuestion();
     } else {
         endGame();
     }
 }
 
-// Ensure clean restart function
-function restartGame() {
-    // Reset game state
-    currentQuestion = 0;
-    score = 0;
-    timeLeft = 15;
-    totalTimeLeft = 150;
-    answersLog = [];
-    isScoreSaved = false;
-
-    // Clear DOM elements safely
-    optionsEl.innerHTML = '';
-    questionEl.innerHTML = '';
-    if (resultEl) resultEl.textContent = ''; // Safe check
-    
-    // Reset UI elements
-    scoreEl.textContent = '0';
-    questionCounterEl.textContent = '0/10';
-    questionTimerEl.textContent = '15';
-    totalTimerEl.textContent = '2:30';
-    
-    // Show setup screen
-    summaryScreen.classList.add('hidden');
-    gameScreen.classList.add('hidden');
-    setupScreen.classList.remove('hidden');
-    
-    // Re-enable interactions
-    document.body.classList.remove('game-ended');
-}
-
-// New summary screen implementation
-function showSummary() {
-    const timeUsed = 150 - totalTimeLeft;  // Calculate actual time used
-    const minutes = Math.floor(timeUsed / 60);
-    const seconds = timeUsed % 60;
-    
-    // Update the time display in the summary
-    const timeDisplay = `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
-    
-    const correctCount = answersLog.filter(a => a.isCorrect).length;
-    const performanceScore = (correctCount * 100) + (150 - timeUsed);
-
-    let message;
-    if (performanceScore >= 1300) {
-        message = `🎉 Legendary! You're a trivia master! 🏆 (Top 1% Performance)`;
-    } else if (performanceScore >= 1000) {
-        message = `👑 Excellent! Your knowledge shines bright! ✨`;
-    } else if (performanceScore >= 700) {
-        message = `👍 Good effort! Room to grow! 📚`;
-    } else {
-        message = `💤 Wake up! Time to hit the books! 📖`;
+// ======================
+// Modified Event Listener
+// ======================
+nextBtn?.addEventListener('click', () => {
+    if (isNextQuestionPending) {
+        handleNextQuestion();
     }
+});
 
-
-    summaryScreen.innerHTML = `
-        <h2>Game Report Card</h2>
-        <div class="performance-card ${performanceScore >= 1000 ? 'gold' : performanceScore >= 700 ? 'silver' : 'bronze'}">
-            <div class="stats-grid">
-                <div class="stat-box correct">
-                    <span class="material-icons">check_circle</span>
-                    <h3>${correctCount}</h3>
-                    <p>Correct Answers</p>
-                </div>
-                <div class="stat-box time">
-                    <span class="material-icons">timer</span>
-                    <h3>${timeDisplay}</h3>
-                    <p>Total Time</p>
-                </div>
-            </div>
-            <div class="performance-message">${message}</div>
-            <div class="affiliate-banner">
-                <p>Love trivia? Check out <a href="[Amazon Affiliate Link]">The World Encyclopedia of Trivia</a></p>
-            </div>
-        </div>
-
-        <button class="btn primary" id="restart-btn">
-            <span class="material-icons">replay</span>
-            Try Again
-        </button>
-    `;
-
-    // Add event listener properly
-    //document.getElementById('restart-btn').addEventListener('click', restartGame);
-
-    // Proper event listener binding
-    const restartButton = document.getElementById('restart-btn');
-    if (restartButton) {
-        restartButton.addEventListener('click', restartGame);
-    } else {
-        console.error('Restart button not found');
-    }
-}
-
-/**
- * End game and show summary
- */
+// In endGame function
 function endGame() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
+    safeClassToggle(gameScreen, 'remove', 'active');
+    safeClassToggle(summaryScreen, 'add', 'active');
+    safeClassToggle(highscores, 'remove', 'hidden');
     
-    // Hide game screen and show summary
-    gameScreen.classList.add('hidden');
-    summaryScreen.classList.remove('hidden'); // Add this line
+    // Hide start button in end game
+    safeClassToggle(startBtn, 'add', 'hidden');
     showSummary();
     saveHighScore();
-    
-    // Disable all interactions
-    optionsEl.querySelectorAll('button').forEach(btn => {
-        btn.disabled = true;
-    });
-}
-/*function endGame() {
-    try {
-        
-        if (isScoreSaved) return;
-    
-        // Add this line
-        document.body.classList.add('game-ended');
-
-
-        // Hide game screen
-        gameScreen.classList.add('hidden');
-        
-        // Clear timers
-        clearInterval(timerId);
-        clearInterval(totalTimerId);
-        
-        // Show summary screen
-        summaryScreen.classList.remove('hidden');
-        summaryScreen.style.display = 'block';
-        
-        // Generate summary content
-        showSummary();
-        
-        // Save high score
-        saveHighScore();
-
-    } catch (error) {
-        console.error('Error ending game:', error);
-        alert('Game ended unexpectedly. Please refresh the page.');
-    }
-} */
-
-// ======================
-// High Score System
-// ======================
-
-/**
- * Save score to localStorage
- */
-function saveHighScore() {
-    try {
-        // Prevent multiple saves
-        if (isScoreSaved) return;
-        isScoreSaved = true;
-
-        // Only save if score > 0 and in top 5
-        const minScore = highScores.length ? 
-            Math.min(...highScores.map(h => h.score)) : 0;
-
-        if (score > 0 && (highScores.length < 5 || score > minScore)) {
-            const name = prompt('Enter your name for the leaderboard:', 'Anonymous') || 'Anonymous';
-            
-            highScores.push({ name, score });
-            highScores.sort((a, b) => b.score - a.score);
-            highScores = highScores.slice(0, 5);
-            
-            localStorage.setItem('highScores', JSON.stringify(highScores));
-            updateHighScores();
-        }
-    } catch (error) {
-        console.error('Error saving high score:', error);
-    }
 }
 
-/**
- * Update high score display
- */
-function updateHighScores() {
-    highscoresList.innerHTML = highScores
-        .map((entry, index) => `
-            <div class="highscore-entry">
-                <span class="rank">${index + 1}.</span>
-                <span class="name">${entry.name}</span>
-                <span class="score">${entry.score}</span>
+// In restartGame function
+function restartGame() {
+    currentQuestion = 0;
+    score = 0;
+    answersLog = [];
+    selectedQuestions = parseInt(numQuestionsSelect.value);
+    
+    scoreEl.textContent = '0';
+    questionCounterEl.textContent = `0/${selectedQuestions}`;
+    updateTimerDisplay(selectedQuestions * selectedTime, totalTimerEl);
+    
+    // Show setup screen and start button
+    safeClassToggle(gameScreen, 'remove', 'active');
+    safeClassToggle(summaryScreen, 'remove', 'active');
+    safeClassToggle(setupScreen, 'add', 'active');
+    safeClassToggle(startBtn, 'remove', 'hidden'); // Show start button
+    safeClassToggle(highscores, 'add', 'hidden');
+}
+
+// Summary Screen
+function showSummary() {
+    const timeUsed = (selectedQuestions * selectedTime) - totalTimeLeft;
+    const correctCount = answersLog.filter(a => a.isCorrect).length;
+
+    summaryScreen.innerHTML = `
+        <h2>Game Report</h2>
+        <div class="performance-card compact">
+            <div class="stats-row">
+                <div class="stat-item correct">
+                    <span class="material-icons">check_circle</span>
+                    <div>
+                        <h3>${correctCount}/${selectedQuestions}</h3>
+                        <small>Correct Answers</small>
+                    </div>
+                </div>
+                <div class="stat-item time">
+                    <span class="material-icons">timer</span>
+                    <div>
+                        <h3>${formatTimeDisplay(timeUsed)}</h3>
+                        <small>Total Time</small>
+                    </div>
+                </div>
             </div>
-        `).join('');
+            ${createPerformanceMessage(correctCount)}
+             <p class="local-disclaimer">Scores are stored locally on this browser</p>
+            <button class="btn primary" id="restart-btn">
+                <span class="material-icons">replay</span>
+                Play Again
+            </button>
+        </div>
+    `;
+
+    document.getElementById('restart-btn')?.addEventListener('click', restartGame);
+}
+
+// High Scores
+function saveHighScore() {
+    if (isScoreSaved || score === 0) return;
+    
+    const minScore = Math.min(...highScores.map(h => h.score));
+    if (highScores.length < 5 || score > minScore) {
+        const name = prompt('Enter your name for local records::', 'Anonymous') || 'Anonymous';
+        highScores = [...highScores, { name, score }]
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5);
+        
+        localStorage.setItem('highScores', JSON.stringify(highScores));
+        updateHighScores();
+    }
+    isScoreSaved = true;
+}
+
+function updateHighScores() {
+    if (!highscoresList) return;
+    
+    highscoresList.innerHTML = highScores
+    .map((entry, index) => `
+        <div class="highscore-entry">
+            <span class="rank">${index + 1}.</span>
+            <span class="name">${entry.name}</span>
+            <span class="score">${entry.score}</span>
+        </div>
+    `).join('');
 }
 
 // ======================
-// Helper Functions
+// Utility Functions
 // ======================
+function safeClassToggle(element, action, className) {
+    element?.classList?.[action]?.(className);
+}
 
-/**
- * Decode HTML entities in questions/answers
- * @param {string} text - Text to decode
- * @returns {string} Decoded text
- */
+function updateTimerDisplay(seconds, element) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    element.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function formatTimeDisplay(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+}
+
+function createPerformanceMessage(correctCount) {
+    const percentage = (correctCount / selectedQuestions) * 100;
+    const messages = {
+        gold: [
+            "🏆 Trivia Deity! The knowledge gods bow before you!",
+            "🧠 Mind = Blown! You're a walking encyclopedia!",
+            "🤯 Unstoppable Genius! Someone call Guinness World Records!",
+            "🎖️ Absolute Legend! You just broke the trivia matrix!"
+        ],
+        silver: [
+            "✨ Brainiac Alert! You're crushing it!",
+            "🚀 Knowledge Rocket! Almost perfect!",
+            "💎 Diamond Mind! You're trivia royalty!",
+            "🧩 Puzzle Master! You've got all the pieces!"
+        ],
+        bronze: [
+            "👍 Solid Effort! You're getting dangerous!",
+            "📚 Bookworm Rising! The library is your dojo!",
+            "💡 Bright Spark! Keep that curiosity lit!",
+            "🏅 Contender Status! The podium is in sight!"
+        ],
+        default: [
+            "🌱 Sprouting Scholar! Every master was once a beginner!",
+            "🦉 Wise Owl in Training! The nest is just the start!",
+            "📖 Chapter 1 Complete! Your knowledge journey begins!",
+            "🧭 Learning Compass Active! New horizons ahead!"
+        ]
+    };
+
+    let category = 'default';
+    if (percentage >= 90) category = 'gold';
+    else if (percentage >= 70) category = 'silver';
+    else if (percentage >= 50) category = 'bronze';
+
+    // Select random message from category
+    const randomIndex = Math.floor(Math.random() * messages[category].length);
+    const message = messages[category][randomIndex];
+
+    return `<div class="performance-message ${category}">${message}</div>`;
+}
+
 function decodeHTML(text) {
     const textArea = document.createElement('textarea');
     textArea.innerHTML = text;
     return textArea.value;
 }
 
-/**
- * Fisher-Yates shuffle algorithm
- * @param {Array} array - Array to shuffle
- * @returns {Array} Shuffled array
- */
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -502,28 +424,79 @@ function shuffle(array) {
 // ======================
 // Event Listeners
 // ======================
-
-// Start game button
 startBtn.addEventListener('click', async () => {
-    // Reset game state
-    questions = await fetchQuestions(categorySelect.value, difficultySelect.value);
-    currentQuestion = 0;
-    //questionCounterEl = 0;
-    score = 0;
-    answersLog = [];
-    
-    if (questions.length > 0) {
-        setupScreen.classList.add('hidden');
-        gameScreen.classList.remove('hidden');
-        showQuestion();
+    try {
+        safeClassToggle(startBtn, 'add', 'hidden');
+        selectedQuestions = parseInt(numQuestionsSelect.value);
+        selectedTime = parseInt(timePerQuestionSelect.value);
+        
+        startBtn.disabled = true;
+        questions = await fetchQuestions(
+            categorySelect.value,
+            selectedDifficulty, // Changed from difficultySelect.value
+            selectedQuestions
+        );
+
+        if (questions.length) {
+            safeClassToggle(highscores, 'add', 'hidden');
+            safeClassToggle(setupScreen, 'remove', 'active');
+            safeClassToggle(gameScreen, 'add', 'active');
+            currentQuestion = 0;
+            score = 0;
+            answersLog = [];
+            showQuestion();
+        }
+    } finally {
+        startBtn.disabled = false;
+        safeClassToggle(startBtn, 'remove', 'hidden');
     }
 });
 
-// Next question button
-nextBtn.addEventListener('click', handleNextQuestion);
+document.addEventListener('DOMContentLoaded', () => {
+    initCategories();
+    updateHighScores();
+    safeClassToggle(setupScreen, 'add', 'active');
+    safeClassToggle(highscores, 'add', 'hidden');
+    nextBtn.classList.remove('visible');
+    nextBtn?.addEventListener('click', handleNextQuestion);
+});
 
-// ======================
-// Initial Setup
-// ======================
-initCategories();
-updateHighScores();
+document.addEventListener('click', (e) => {
+    if (e.target.matches('#options button')) {
+        const isCorrect = e.target.dataset.correct === 'true';
+        checkAnswer(isCorrect);
+    }
+});
+
+document.querySelectorAll('.difficulty-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Remove active state from all buttons
+      document.querySelectorAll('.difficulty-btn').forEach(b => 
+        b.setAttribute('aria-pressed', 'false')
+      );
+      
+      // Set active state and store value
+      btn.setAttribute('aria-pressed', 'true');
+      selectedDifficulty = btn.dataset.difficulty;
+    });
+  });
+
+// Add this event listener in your DOMContentLoaded handler
+document.getElementById('clear-scores')?.addEventListener('click', () => {
+    if (confirm("Permanently delete all your local scores?")) {
+      highScores = [];
+      localStorage.setItem('highScores', JSON.stringify([]));
+      updateHighScores();
+      showToast('All scores cleared!', '⚠️');
+    }
+  });
+  
+  // Optional toast notification
+  function showToast(message, icon = 'ℹ️') {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.innerHTML = `${icon} ${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.remove(), 2000);
+  }  

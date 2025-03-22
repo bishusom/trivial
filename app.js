@@ -441,6 +441,8 @@ startBtn.addEventListener('click', async () => {
             safeClassToggle(highscores, 'add', 'hidden');
             safeClassToggle(setupScreen, 'remove', 'active');
             safeClassToggle(gameScreen, 'add', 'active');
+            //document.querySelector('.setup-screen').classList.remove('active');
+            //document.querySelector('.game-screen').classList.add('active');
             currentQuestion = 0;
             score = 0;
             answersLog = [];

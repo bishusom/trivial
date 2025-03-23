@@ -397,6 +397,22 @@ body {
     position: relative;
 }
 
+.performance-message.zero {
+    color: var(--accent-color);
+    font-size: 1.1em;
+    border: 2px solid var(--secondary-color);
+    padding: 1rem;
+    border-radius: 12px;
+    text-shadow: 0 0 10px rgba(226, 43, 90, 0.4);
+    animation: pulseWarning 1s infinite;
+}
+
+@keyframes pulseWarning {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
 .stats-row {
     display: grid;
     gap: 1rem;
@@ -573,7 +589,18 @@ body {
     text-align: center;
     margin: 1rem 0;
 }
+.btn.icon-btn {
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+}
 
+.btn.icon-btn .material-icons {
+    font-size: 1.2rem;
+}
 /* ====================== */
 /* Mobile Optimization */
 /* ====================== */

@@ -1,6 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+    <head>
+        <!-- Existing meta tags -->
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <!-- Enhanced SEO Meta Tags -->
+        <title>Triviaah: Free Daily Trivia Games | 20+ Categories & Leaderboards</title>
+        <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science. Join our leaderboards and challenge friends!">
+        <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://triviaah.com/">
+        <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
+        <meta property="og:description" content="Play free online trivia games daily with 20+ categories. Compete on leaderboards and challenge friends!">
+        <meta property="og:image" content="https://triviaah.com/social-preview.jpg">
+    
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
+        <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
+        <meta name="twitter:image" content="https://triviaah.com/social-preview.jpg">
+    
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://www.triviaah.com/">
+    
+        <!-- Schema.org Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Quiz",
+            "name": "Daily Trivia Challenge",
+            "description": "Free online trivia game with 20+ categories and leaderboards",
+            "url": "https://www.triviaah.com",
+            "author": {
+                "@type": "Organization",
+                "name": "Triviaah"
+            },
+            "typicalAgeRange": "13-",
+            "category": "Online Game",
+            "question": {
+                "@type": "Question",
+                "name": "Daily trivia questions",
+                "answerCount": 10
+            }
+        }
+        </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Play Trivaah - The ultimate free online trivia game with 10,000+ questions across 20 categories. Compete with friends and climb leaderboards!">
@@ -12,8 +59,16 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-</head>
+
+    </head>
 <body>
+    <nav aria-label="Breadcrumb" class="breadcrumb">
+        <ol class="hidden">
+            <li><a href="/">Home</a></li>
+            <li><a href="/categories">Categories</a></li>
+            <li aria-current="page">Current Category</li>
+        </ol>
+    </nav>
     <div class="container">
         <!-- Setup Screen -->
         <div class="screen setup-screen active">

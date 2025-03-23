@@ -621,3 +621,49 @@ body {
         display: none;
     }
 }
+/* Add/Update these styles in your mobile media query */
+@media (max-width: 480px) {
+    /* Reposition mute button to top-right */
+    #mute-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(2px);
+    }
+  
+    /* Adjust game header layout */
+    .game-screen .game-header {
+      position: relative;
+      padding-top: 40px; /* Make space for mute button */
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+  
+    /* Fix score and timer boxes */
+    .game-screen .score-box,
+    .game-screen .timer-box {
+      width: 48%;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+  
+    /* Ensure question area stays compact */
+    .question {
+      margin: 0.5rem 0;
+      padding: 15px !important;
+    }
+  
+    /* Make next button sticky at bottom */
+    #next-btn {
+      position: sticky;
+      bottom: 10px;
+      margin: 1rem auto 0;
+      width: 90%;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+    }
+  }

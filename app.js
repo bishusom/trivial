@@ -14,7 +14,6 @@ const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
 const categorySelect = document.getElementById('category');
-//const difficultySelect = document.getElementById('difficulty');
 const difficultyPicker = document.getElementById('difficulty');
 const numQuestionsSelect = document.getElementById('num-questions');
 const timePerQuestionSelect = document.getElementById('time-per-question');
@@ -28,10 +27,16 @@ const questionTimerEl = document.getElementById('question-timer');
 const totalTimerEl = document.getElementById('total-timer');
 const highscores = document.querySelector('.highscores');
 const highscoresList = document.getElementById('highscores-list');
+const audioElements = {
+    tick: createAudioElement('tick.mp3'),
+    correct: createAudioElement('correct.mp3'),
+    wrong: createAudioElement('wrong.mp3')
+};
 
 // ======================
 // Game State
 // ======================
+let isMuted = false;
 let selectedQuestions = 10;
 let selectedTime = 15;
 let selectedDifficulty = 'easy'
@@ -159,6 +164,12 @@ function startTimer() {
     timeLeft = selectedTime;
     totalTimeLeft = selectedQuestions * selectedTime;
 
+    // Reset and start sounds
+    if (audioElements.tick) {
+        audioElements.tick.loop = true;
+        if (!isMuted) audioElements.tick.play().catch(() => {});
+    }
+
     questionTimerEl.textContent = timeLeft;
     updateTimerDisplay(totalTimeLeft, totalTimerEl);
 
@@ -176,6 +187,8 @@ function startTimer() {
         updateTimerDisplay(totalTimeLeft, totalTimerEl);
         if (totalTimeLeft <= 0) clearInterval(totalTimerId);
     }, 1000);
+    playSound('tick');
+    audioElements.tick.loop = true;
 }
 
 function handleTimeout() {
@@ -185,11 +198,35 @@ function handleTimeout() {
 }
 
 // ======================
+// Audio Functions
+// ======================
+function playSound(type) {
+    if (isMuted) return;
+    
+    const audio = audioElements[type];
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+    }
+}
+
+function stopSound(type) {
+    const audio = audioElements[type];
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+    }
+}
+
+
+// ======================
 // Answer Handling
 // ======================
 let autoProceedTimeout;
 
 function checkAnswer(isCorrect) {
+    stopSound('tick');
+    playSound(isCorrect ? 'correct' : 'wrong');
     if (!questions[currentQuestion]) return;
     clearInterval(timerId);
     clearTimeout(autoProceedTimeout);
@@ -365,6 +402,12 @@ function formatTimeDisplay(seconds) {
     return `${mins}m ${secs.toString().padStart(2, '0')}s`;
 }
 
+function createAudioElement(src) {
+    const audio = new Audio(src);
+    audio.preload = 'auto';
+    return audio;
+}
+
 function createPerformanceMessage(correctCount) {
     const percentage = (correctCount / selectedQuestions) * 100;
     const messages = {
@@ -386,6 +429,13 @@ function createPerformanceMessage(correctCount) {
             "💡 Bright Spark! Keep that curiosity lit!",
             "🏅 Contender Status! The podium is in sight!"
         ],
+        zero: [
+            "💥 Knowledge Explosion Incoming! The next attempt will be better!",
+            "🎯 Fresh Start! Every master was once a beginner!",
+            "🔥 Fueling Curiosity! Your learning journey begins now!",
+            "🚀 Launch Pad Ready! Next round will be your breakthrough!",
+            "🌱 Seeds of Knowledge Planted! Water them with another try!"
+        ],
         default: [
             "🌱 Sprouting Scholar! Every master was once a beginner!",
             "🦉 Wise Owl in Training! The nest is just the start!",
@@ -395,9 +445,15 @@ function createPerformanceMessage(correctCount) {
     };
 
     let category = 'default';
-    if (percentage >= 90) category = 'gold';
-    else if (percentage >= 70) category = 'silver';
-    else if (percentage >= 50) category = 'bronze';
+    if (correctCount === 0) {
+        category = 'zero';
+    } else if (percentage >= 90) {
+        category = 'gold';
+    } else if (percentage >= 70) {
+        category = 'silver';
+    } else if (percentage >= 50) {
+        category = 'bronze';
+    }
 
     // Select random message from category
     const randomIndex = Math.floor(Math.random() * messages[category].length);
@@ -440,8 +496,6 @@ startBtn.addEventListener('click', async () => {
             safeClassToggle(highscores, 'add', 'hidden');
             safeClassToggle(setupScreen, 'remove', 'active');
             safeClassToggle(gameScreen, 'add', 'active');
-            //document.querySelector('.setup-screen').classList.remove('active');
-            //document.querySelector('.game-screen').classList.add('active');
             currentQuestion = 0;
             score = 0;
             answersLog = [];
@@ -460,6 +514,25 @@ document.addEventListener('DOMContentLoaded', () => {
     safeClassToggle(highscores, 'add', 'hidden');
     nextBtn.classList.remove('visible');
     nextBtn?.addEventListener('click', handleNextQuestion);
+
+    // Mute button handler
+    document.getElementById('mute-btn')?.addEventListener('click', () => {
+        isMuted = !isMuted;
+        const icon = document.querySelector('#mute-btn .material-icons');
+        if (icon) {
+            icon.textContent = isMuted ? 'volume_off' : 'volume_up';
+        }
+        
+        // Toggle all sounds
+        Object.values(audioElements).forEach(audio => {
+            if (!audio) return;
+            if (isMuted) {
+                audio.pause();
+            } else if (audio.loop) {
+                audio.play().catch(() => {});
+            }
+        });
+    });
 });
 
 document.addEventListener('click', (e) => {

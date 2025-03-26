@@ -77,8 +77,10 @@ body {
 /* ================ */
 /* Setup Screen */
 /* ================ */
-/* Add to your styles.css */
 .setup-screen {
+    max-width: 800px; /* Match game screen width */
+    margin: 0 auto; /* Center the screen */
+    padding: 20px 0; /* Add vertical spacing */
     padding-top: 1rem !important; /* Reduced from 2rem */
 }
 
@@ -375,7 +377,12 @@ body {
 /* Start Button Control */
 #start-btn {
     margin-top: 2rem;
-    width: 100%;
+    width: auto;
+    max-width: 300px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.8rem 1.5rem; /* Reduced padding */
 }
 
 #start-btn.hidden {
@@ -497,6 +504,7 @@ body {
         padding: 0.8rem 1.5rem;
         font-size: 0.9rem;
     }
+
 }
 
 /* ================ */
@@ -517,14 +525,16 @@ body {
 /* High Scores Section */
 /* ====================== */
 .highscores {
-    margin-top: 3rem;
+    max-width: 800px;
+    margin: 3rem auto; /* Center align */
     background: rgba(255,255,255,0.05);
     border-radius: 15px;
-    padding: 2rem;
+    padding: 1.5rem;
     position: relative;
 }
 
 .highscores-header {
+
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -620,9 +630,7 @@ body {
     #question-counter {
         display: none;
     }
-}
-/* Add/Update these styles in your mobile media query */
-@media (max-width: 480px) {
+
     /* Reposition mute button to top-right */
     #mute-btn {
       position: absolute;
@@ -631,6 +639,11 @@ body {
       z-index: 1000;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(2px);
+    }
+
+    #start-btn {
+        width: 100%;
+        max-width: none;
     }
   
     /* Adjust game header layout */
@@ -666,4 +679,4 @@ body {
       width: 90%;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
     }
-  }
+}

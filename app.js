@@ -227,6 +227,13 @@ let autoProceedTimeout;
 function checkAnswer(isCorrect) {
     stopSound('tick');
     playSound(isCorrect ? 'correct' : 'wrong');
+
+    gtag('event', 'answer', {
+        category: 'Gameplay',
+        correct: isCorrect,
+        question_number: currentQuestion
+      });
+      
     if (!questions[currentQuestion]) return;
     clearInterval(timerId);
     clearTimeout(autoProceedTimeout);
@@ -316,6 +323,11 @@ function restartGame() {
     safeClassToggle(setupScreen, 'add', 'active');
     safeClassToggle(startBtn, 'remove', 'hidden'); // Show start button
     safeClassToggle(highscores, 'add', 'hidden');
+    gtag('event', 'start_game', {
+        category: 'Gameplay',
+        difficulty: selectedDifficulty,
+        questions: selectedQuestions
+      });
 }
 
 // Summary Screen

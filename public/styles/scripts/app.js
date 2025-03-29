@@ -28,9 +28,9 @@ const totalTimerEl = document.getElementById('total-timer');
 const highscores = document.querySelector('.highscores');
 const highscoresList = document.getElementById('highscores-list');
 const audioElements = {
-    tick: createAudioElement('tick.mp3'),
-    correct: createAudioElement('correct.mp3'),
-    wrong: createAudioElement('wrong.mp3')
+    tick: createAudioElement('/audio/tick.mp3'),
+    correct: createAudioElement('/audio/correct.mp3'),
+    wrong: createAudioElement('/audio/wrong.mp3')
 };
 
 // ======================

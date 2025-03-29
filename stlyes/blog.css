@@ -1,0 +1,65 @@
+/* Blog Styles */
+.blog-header {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.blog-content {
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.8;
+}
+
+.blog-content h2 {
+    color: var(--primary-color);
+    margin-top: 2rem;
+}
+
+.cta {
+    background: rgba(255,255,255,0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+/* Social Sharing */
+.social-share-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    justify-content: center;
+}
+
+.social-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.social-button:hover {
+    transform: translateY(-2px);
+}
+
+.social-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Platform Colors */
+.facebook { background: #1877f2; }
+.twitter { background: #1da1f2; }
+.linkedin { background: #0a66c2; }
+.whatsapp { background: #25d366; }
+
+/* Text Label */
+.blog-footer > p {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}

@@ -1,0 +1,8 @@
+[build]
+  publish = "public" # Explicitly set publish directory
+  command = "echo 'No build needed'" # For static sites
+
+[[redirects]]
+  from = "/blog/trivia-games-history"
+  to = "/blog/trivia-games-history.html"
+  status = 200

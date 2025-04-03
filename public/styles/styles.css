@@ -768,3 +768,13 @@ transition: background 0.2s ease;
     display: block !important;
     opacity: 1 !important;
 }
+.error-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--wrong);
+}
+
+.error-message a {
+    color: var(--accent-color);
+    text-decoration: underline;
+}

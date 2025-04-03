@@ -1,8 +1,8 @@
 const routes = {
-  '/': 'partials/home.html',
-  '/home': 'partials/home.html',
-  '/blog': 'partials/blog/list.html',
-  '/categories': 'partials/categories.html'
+  '/': '/partials/home.html',
+  '/home': '/partials/home.html',
+  '/blog': '/partials/blog/list.html',
+  '/categories': '/partials/categories.html'
 };
 
 async function loadContent(path) {

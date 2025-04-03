@@ -1,43 +1,54 @@
 const routes = {
-    '/': 'partials/home.html',
-    '/blog': 'partials/blog/list.html',
-    '/categories': 'partials/categories.html'
+  '/': 'partials/home.html',
+  '/home': 'partials/home.html',
+  '/blog': 'partials/blog/list.html',
+  '/categories': 'partials/categories.html'
 };
 
 async function loadContent(path) {
-    const contentDiv = document.getElementById('main-content');
-    let templatePath = routes[path];
-    
-    // Handle root path explicitly
-    if (path === '/' || path === '/index.html') {
-        templatePath = routes['/'];
-    }
-    
-    // Handle blog posts
-    if (path.startsWith('/blog/')) {
-        const postName = path.split('/').pop();
-        templatePath = `partials/blog/${postName}.html`;
-    }
+  const contentDiv = document.getElementById('main-content');
+  let templatePath = routes[path];
 
-    try {
-        const response = await fetch(templatePath);
-        if (!response.ok) throw new Error('Not found');
-        contentDiv.innerHTML = await response.text();
-        initGameControls();
-    } catch (error) {
-        contentDiv.innerHTML = `
-            <div class="error-message">
-                <h1>Page not found</h1>
-                <p>Return to <a href="/">home page</a></p>
-            </div>
-        `;
-    }
+  // Handle blog posts
+  if (path.startsWith('/blog/')) {
+    const postName = path.split('/').pop();
+    templatePath = `partials/blog/${postName}.html`;
+  }
+
+  try {
+    const response = await fetch(templatePath);
+    if (!response.ok) throw new Error('Not found');
+    contentDiv.innerHTML = await response.text();
+    initGameControls();
+  } catch (error) {
+    contentDiv.innerHTML = `
+      <div class="error-message">
+        <h1>Content not found</h1>
+        <p>Try these instead:</p>
+        <nav class="error-nav">
+          <a href="/">Home</a>
+          <a href="/blog">Blog</a>
+          <a href="/categories">Categories</a>
+        </nav>
+      </div>
+    `;
+  }
 }
+
+// Handle navigation
+document.addEventListener('click', e => {
+  if (e.target.tagName === 'A' && e.target.href.includes(window.location.origin)) {
+    e.preventDefault();
+    const path = new URL(e.target.href).pathname;
+    loadContent(path);
+    window.history.pushState({}, '', path);
+  }
+});
 
 // Initialize first load
 window.addEventListener('load', () => {
-    const cleanPath = window.location.pathname
-        .replace('/index.html', '/')
-        .replace(/\/$/, '');
-    loadContent(cleanPath || '/');
+  const cleanPath = window.location.pathname
+    .replace('/index.html', '/')
+    .replace(/(\/home|\/blog|\/categories).html/, '$1');
+  loadContent(cleanPath || '/');
 });

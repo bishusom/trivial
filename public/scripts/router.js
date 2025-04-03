@@ -33,8 +33,8 @@ window.addEventListener('popstate', () => {
     loadContent(window.location.pathname);
 });
 
-// Initialize first load
+/* Initialize first load
 window.addEventListener('load', () => {
     const initialPath = window.location.pathname;
     loadContent(initialPath === '/' ? '/home' : initialPath);
-});
+});*/

@@ -8,7 +8,7 @@
         <!-- Enhanced SEO Meta Tags -->
         <title>Triviaah: Free Daily Trivia Games | 20+ Categories & Leaderboards</title>
         <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science, 5000+ questions.No signup required - start playing now!">
-        <meta name="keywords" content="free trivia games, fun trivia questions, random trivia questions, trivia questions for kids, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
+        <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
         
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
@@ -32,7 +32,7 @@
             "@context": "https://schema.org",
             "@type": "Quiz",
             "name": "Daily Trivia Challenge",
-            "description": "Free online trivia game with 10,000+ questions",
+            "description": "Free online trivia game with 5,000+ questions",
             "url": "https://www.triviaah.com",
             "author": {
                 "@type": "Organization",
@@ -48,190 +48,195 @@
         }
         </script>
 
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Play Trivaah - The ultimate free online trivia game with 10,000+ questions across 20 categories. Compete with friends and climb leaderboards!">
-        <meta name="keywords" content="trivia game, online quiz, free trivia, multiplayer quiz">
-        <meta property="og:title" content="Trivaah - Free Online Trivia Game">
-        <meta property="og:image" content="https://triviaah.com/trivia-preview.jpg">
-    
-        <title>Triviaah Master</title>
-        <link rel="stylesheet" href="styles/styles.css">
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [{
+                "@type": "Question",
+                "name": "Where can I find free music trivia questions questions and answers?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Triviaah offers 500+ music trivia questions with instant answers. Play free now!"
+                }
+              }]
+            }
+            </script>
 
-
-        <link rel="icon" type="image/png" href="/imgs/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="/imgs/favicon.svg" />
-        <link rel="shortcut icon" href="/imgs/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/imgs/apple-touch-icon.png" />
-        <meta name="apple-mobile-web-app-title" content="Triviaah" />
-        <link rel="manifest" href="/imgs/site.webmanifest" />    
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="description" content="Play Trivaah - The ultimate free online trivia game with 10,000+ questions across 20 categories. Compete with friends and climb leaderboards!">
+            <meta name="keywords" content="trivia game, online quiz, free trivia, multiplayer quiz">
+            <meta property="og:title" content="Trivaah - Free Online Trivia Game">
+            <meta property="og:image" content="https://triviaah.com/trivia-preview.jpg">
+            
+            <title>Triviaah Master</title>
+            <link rel="stylesheet" href="styles/styles.css">
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">   
     </head>
     <body>
-        <nav aria-label="Breadcrumb" class="breadcrumb hidden" itemscope itemtype="https://schema.org/BreadcrumbList">
-            <ol>
-                <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                    <a href="/" itemprop="item"><span itemprop="name">Home</span></a>
-                    <meta itemprop="position" content="1" />
-                </li>
-                <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                    <span itemprop="name">Play Trivia</span>
-                    <meta itemprop="position" content="2" />
-                </li>
-            </ol>
+        <nav>
+            <div>
+                <a class="link" href="/">Home</a> | 
+                <a class="link" href="blog/list.html">Blog</a> | 
+                <a class="link" href=tbank/list.html>Trivia Bank</a>
+            </div>     
         </nav>
-    <div class="container">
-        <!-- Setup Screen -->
-        <div class="screen setup-screen active">
-            <div class="logo-container">
-                <!--div align="left"><a href="/">Home</a> | <a href="/blog">Blog</a> | <a href="/categories">Categories</a></div-->
-                <svg class="logo" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#e22b5a;stop-opacity:1" />
-                    <stop offset="50%" style="stop-color:#46178f;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#e22b5a;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <path d="M20,50 Q50,20 80,50 T140,50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
-                <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="url(#logoGradient)" 
-                font-family="Poppins" font-weight="700" font-size="40">
-                TRIVIAAH
-                <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
-                </text>
-                <path d="M320,30 L340,50 L360,30" fill="#ffd700" stroke="#fff" stroke-width="2" 
-                  transform="rotate(30 340 40)">
-                <animateTransform attributeName="transform" type="rotate" from="0 340 40" to="360 340 40" 
-                              dur="4s" repeatCount="indefinite"/>
-                </path>
-                </svg>
-        </div>
-            
-            <div class="setup-card">
-                <div class="settings-grid">
-                    <!-- Category Selector -->
-                    <div class="setting-group">
-                        <div class="setting-label">
-                            <span class="material-icons">category</span>
-                            CATEGORY
-                        </div>
-                        <select id="category" class="styled-select">
-                            <option value="">All Categories</option>
-                        </select>
-                    </div>
-
-                    <!-- Difficulty Picker -->
-                    <div class="setting-group">
-                        <div class="setting-label">
-                            <span class="material-icons">speed</span>
-                            DIFFICULTY
-                        </div>
-                        <div class="compact-difficulty">
-                            <button class="difficulty-pill active" data-difficulty="easy">🌱 Easy</button>
-                            <button class="difficulty-pill" data-difficulty="medium">🌟 Medium</button>
-                            <button class="difficulty-pill" data-difficulty="hard">💀 Hard</button>
-                        </div>    
-                    </div>
-
-                    <!-- Questions & Time Settings -->
-                    <div class="dual-settings">
-                        <div class="setting-group compact">
-                            <div class="setting-label">
-                                <span class="material-icons">format_list_numbered</span>
-                                QUESTIONS
+        
+        <div class="container">
+            <div class="content" id="main-content">
+                 <!-- Setup Screen -->
+                <div class="screen setup-screen active">
+                    <div class="logo-container">
+                        <svg class="logo" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#e22b5a;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#46178f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e22b5a;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M20,50 Q50,20 80,50 T140,50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
+                        <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="url(#logoGradient)" 
+                        font-family="Poppins" font-weight="700" font-size="40">
+                        TRIVIAAH
+                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
+                        </text>
+                        <path d="M320,30 L340,50 L360,30" fill="#ffd700" stroke="#fff" stroke-width="2" 
+                        transform="rotate(30 340 40)">
+                        <animateTransform attributeName="transform" type="rotate" from="0 340 40" to="360 340 40" 
+                                    dur="4s" repeatCount="indefinite"/>
+                        </path>
+                        </svg>
+                </div>
+                    
+                    <div class="setup-card">
+                        <div class="settings-grid">
+                            <!-- Category Selector -->
+                            <div class="setting-group">
+                                <div class="setting-label">
+                                    <span class="material-icons">category</span>
+                                    CATEGORY
+                                </div>
+                                <select id="category" class="styled-select">
+                                    <option value="">All Categories</option>
+                                </select>
                             </div>
-                            <select id="num-questions" class="styled-select">
-                                <option value="5">5 (Quick Play)</option>
-                                <option value="10" selected>10 (Standard)</option>
-                                <option value="15">15 (Extended)</option>
-                                <option value="20">20 (Marathon)</option>
-                            </select>
-                        </div>
-
-                        <div class="setting-group compact">
-                            <div class="setting-label">
-                                <span class="material-icons">timer</span>
-                                TIME PER QUESTION
-                            </div>
-                            <select id="time-per-question" class="styled-select">
-                                <option value="5">5 seconds</option>
-                                <option value="10" selected>10 seconds</option>
-                                <option value="15">15 seconds</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-             <!-- Start Button -->
-            <button id="start-btn" class="btn primary launch-btn">
-              <span class="material-icons">rocket_launch</span>
-              START GAME
-            </button>
-        </div>
-
-        <!-- Game Screen -->
-        <div class="screen game-screen">
-            <div class="card">
-                <div class="game-header">
-                    <div class="score-box">
-                        <span class="material-icons">emoji_events</span>
-                        <span id="score">0</span>
-                        <span id="question-counter">0/10</span>
-                    </div>
-                    <div class="timer-box">
-                        <span class="material-icons">timer</span>
-                        <span id="question-timer">15</span>
-                        <span id="total-timer">2:30</span>
-                    </div>
-                    <button id="mute-btn" class="btn icon-btn">
-                        <span class="material-icons">volume_up</span>
-                    </button>
-                </div>
-
-                <div id="question" class="question"></div>
-                <div id="options" class="options-grid"></div>
-                
-                <div class="game-footer">
-                    <button id="next-btn" class="btn primary">
-                        Next Question
-                        <span class="material-icons">arrow_forward</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Summary Screen -->
-        <div class="screen summary-screen">
-            <div class="card performance-card compact">
-                <!-- Content populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- High Scores -->
-        <div class="highscores">
-            <div class="highscores-header">
-                <h3>My Best Scores</h3>
-                <button id="clear-scores" class="btn small danger" title="Delete all local scores">
-                    🗑️ Clear All
-                </button>
-            </div>
-            <p class="local-warning">(Stored on this device only)</p>
-            <div id="highscores-list" class="highscores-list"></div>
-        </div>
-    </div>
-
-    <!-- Analytics -->
-    <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KZ7XR85V"></script>
-        <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-K4KZ7XR85V');
-        </script>
     
-    <script src="/scripts/app.js"></script>
-</body>
+                            <!-- Difficulty Picker -->
+                            <div class="setting-group">
+                                <div class="setting-label">
+                                    <span class="material-icons">speed</span>
+                                    DIFFICULTY
+                                </div>
+                                <div class="compact-difficulty">
+                                    <button class="difficulty-pill active" data-difficulty="easy">🌱 Easy</button>
+                                    <button class="difficulty-pill" data-difficulty="medium">🌟 Medium</button>
+                                    <button class="difficulty-pill" data-difficulty="hard">💀 Hard</button>
+                                </div>    
+                            </div>
+    
+                            <!-- Questions & Time Settings -->
+                            <div class="dual-settings">
+                                <div class="setting-group compact">
+                                    <div class="setting-label">
+                                        <span class="material-icons">format_list_numbered</span>
+                                        QUESTIONS
+                                    </div>
+                                    <select id="num-questions" class="styled-select">
+                                        <option value="5">5 (Quick Play)</option>
+                                        <option value="10" selected>10 (Standard)</option>
+                                        <option value="15">15 (Extended)</option>
+                                        <option value="20">20 (Marathon)</option>
+                                    </select>
+                                </div>
+    
+                                <div class="setting-group compact">
+                                    <div class="setting-label">
+                                        <span class="material-icons">timer</span>
+                                        TIME PER QUESTION
+                                    </div>
+                                    <select id="time-per-question" class="styled-select">
+                                        <option value="5">5 seconds</option>
+                                        <option value="10" selected>10 seconds</option>
+                                        <option value="15">15 seconds</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Start Button -->
+                    <button id="start-btn" class="btn primary launch-btn">
+                    <span class="material-icons">rocket_launch</span>
+                    START GAME
+                    </button>
+                </div>
+    
+                <!-- Game Screen -->
+                <div class="screen game-screen">
+                    <div class="card">
+                        <div class="game-header">
+                            <div class="score-box">
+                                <span class="material-icons">emoji_events</span>
+                                <span id="score">0</span>
+                                <span id="question-counter">0/10</span>
+                            </div>
+                            <div class="timer-box">
+                                <span class="material-icons">timer</span>
+                                <span id="question-timer">15</span>
+                                <span id="total-timer">2:30</span>
+                            </div>
+                            <button id="mute-btn" class="btn icon-btn">
+                                <span class="material-icons">volume_up</span>
+                            </button>
+                        </div>
+    
+                        <div id="question" class="question"></div>
+                        <div id="options" class="options-grid"></div>
+                        
+                        <div class="game-footer">
+                            <button id="next-btn" class="btn primary">
+                                Next Question
+                                <span class="material-icons">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Summary Screen -->
+                <div class="screen summary-screen">
+                    <div class="card performance-card compact">
+                        <!-- Content populated by JavaScript -->
+                    </div>
+                </div>
+    
+                <!-- High Scores -->
+                <div class="highscores">
+                    <div class="highscores-header">
+                        <h3>My Best Scores</h3>
+                        <button id="clear-scores" class="btn small danger" title="Delete all local scores">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+                    <p class="local-warning">(Stored on this device only)</p>
+                    <div id="highscores-list" class="highscores-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KZ7XR85V"></script>
+            <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-K4KZ7XR85V');
+            </script>
+        
+        <script src="/scripts/app.js"></script>
+        <script src="/scripts/router.js"></script>
+    </body>
 </html>

@@ -8,7 +8,7 @@ const routes = {
 async function loadContent(path) {
   const contentDiv = document.getElementById('main-content');
   let templatePath = routes[path];
-
+  console.log(templatePath)
   // Handle blog posts
   if (path.startsWith('/blog/')) {
     const postName = path.split('/').pop();

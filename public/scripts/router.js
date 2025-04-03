@@ -21,30 +21,36 @@ async function loadContent(path) {
     }
 
     try {
-        console.log('Loading:', templatePath);
-        const response = await fetch(templatePath);
-        console.log('Response status:', response.status);
-        console.log('Content length:', (await response.text()).length);
-        const content = await response.text();
+        // Add cache busting and no-cors mode
+        const response = await fetch(`${templatePath}?v=${Date.now()}`, {
+            mode: 'cors',
+            credentials: 'same-origin'
+        });
         
-        // Add content validation
-        if (!response.ok || content.trim() === '') {
-            throw new Error('Empty content');
+        // Verify content structure
+        const content = await response.text();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        if (!tempDiv.querySelector('.setup-screen')) {
+            throw new Error('Invalid content structure');
         }
 
         contentDiv.innerHTML = content;
-        initGameControls();
+        
+        // Delay controls initialization
+        setTimeout(() => {
+            initGameControls();
+            window.scrollTo(0, 0);
+        }, 50);
+
     } catch (error) {
-        console.error('Loading failed:', error);
+        console.error('Content load failed:', error.message);
         contentDiv.innerHTML = `
             <div class="error-message">
-                <h1>Content not found</h1>
-                <p>Try these instead:</p>
-                <nav class="error-nav">
-                    <a href="/">Home</a>
-                    <a href="/blog">Blog</a>
-                    <a href="/categories">Categories</a>
-                </nav>
+                <h1>Content initialization failed</h1>
+                <p>Please refresh or try later</p>
+                <button onclick="window.location.reload()">Reload</button>
             </div>
         `;
     }

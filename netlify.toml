@@ -3,10 +3,6 @@
   command = "echo 'No build needed'" # For static sites
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  
   from = "/blog/trivia-games-history"
   to = "/blog/trivia-games-history.html"
   status = 200

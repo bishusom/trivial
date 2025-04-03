@@ -1,0 +1,25 @@
+<div class="category-browser">
+    <h1>Question Categories</h1>
+    
+    <div class="category-filters">
+        <input type="text" placeholder="Search categories..." class="search-box">
+        <div class="difficulty-filter">
+            <span class="filter-label">Filter by:</span>
+            <button class="difficulty-pill">All</button>
+            <button class="difficulty-pill">Easy</button>
+            <button class="difficulty-pill">Medium</button>
+            <button class="difficulty-pill">Hard</button>
+        </div>
+    </div>
+
+    <div class="category-grid">
+        <!-- Generated dynamically from your categories -->
+        <div class="category-card" data-category="history">
+            <h3>World History</h3>
+            <div class="stats">
+                <span>250 Questions</span>
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,1 +1,114 @@
-
+<div class="game-container">
+    <!--div class="setup-card"-->
+    <div class="screen setup-screen active"> 
+        <div class="settings-grid">
+            <!-- Category Selector -->
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span class="material-icons">category</span>
+                    CATEGORY
+                </div>
+                <select id="category" class="styled-select">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+    
+            <!-- Difficulty Picker -->
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span class="material-icons">speed</span>
+                    DIFFICULTY
+                </div>
+                <div class="compact-difficulty">
+                    <button class="difficulty-pill active" data-difficulty="easy">🌱 Easy</button>
+                    <button class="difficulty-pill" data-difficulty="medium">🌟 Medium</button>
+                    <button class="difficulty-pill" data-difficulty="hard">💀 Hard</button>
+                </div>    
+            </div>
+    
+            <!-- Questions & Time Settings -->
+            <div class="dual-settings">
+                <div class="setting-group compact">
+                    <div class="setting-label">
+                        <span class="material-icons">format_list_numbered</span>
+                        QUESTIONS
+                    </div>
+                    <select id="num-questions" class="styled-select">
+                        <option value="5">5 (Quick Play)</option>
+                        <option value="10" selected>10 (Standard)</option>
+                        <option value="15">15 (Extended)</option>
+                        <option value="20">20 (Marathon)</option>
+                    </select>
+                </div>
+    
+                <div class="setting-group compact">
+                    <div class="setting-label">
+                        <span class="material-icons">timer</span>
+                        TIME PER QUESTION
+                    </div>
+                    <select id="time-per-question" class="styled-select">
+                        <option value="5">5 seconds</option>
+                        <option value="10" selected>10 seconds</option>
+                        <option value="15">15 seconds</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Start Button -->
+    <button id="start-btn" class="btn primary launch-btn">
+    <span class="material-icons">rocket_launch</span>
+    START GAME
+    </button>
+    </div>
+    
+    <!-- Game Screen -->
+    <div class="screen game-screen">
+    <div class="card">
+        <div class="game-header">
+            <div class="score-box">
+                <span class="material-icons">emoji_events</span>
+                <span id="score">0</span>
+                <span id="question-counter">0/10</span>
+            </div>
+            <div class="timer-box">
+                <span class="material-icons">timer</span>
+                <span id="question-timer">15</span>
+                <span id="total-timer">2:30</span>
+            </div>
+            <button id="mute-btn" class="btn icon-btn">
+                <span class="material-icons">volume_up</span>
+            </button>
+        </div>
+    
+        <div id="question" class="question"></div>
+        <div id="options" class="options-grid"></div>
+        
+        <div class="game-footer">
+            <button id="next-btn" class="btn primary">
+                Next Question
+                <span class="material-icons">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Summary Screen -->
+    <div class="screen summary-screen">
+    <div class="card performance-card compact">
+        <!-- Content populated by JavaScript -->
+    </div>
+    </div>
+    
+    <!-- High Scores -->
+    <div class="highscores">
+        <div class="highscores-header">
+            <h3>My Best Scores</h3>
+            <button id="clear-scores" class="btn small danger" title="Delete all local scores">
+                🗑️ Clear All
+            </button>
+        </div>
+        <p class="local-warning">(Stored on this device only)</p>
+        <div id="highscores-list" class="highscores-list"></div>
+    </div>
+</div>

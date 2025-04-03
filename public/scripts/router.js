@@ -1,7 +1,6 @@
 const routes = {
     '/': 'partials/home.html',
     '/blog': 'partials/blog/list.html',
-    '/blog/:post': 'partials/blog/',
     '/categories': 'partials/categories.html'
 };
 
@@ -15,8 +14,25 @@ async function loadContent(path) {
         templatePath = `partials/blog/${postName}.html`;
     }
 
-    const response = await fetch(templatePath);
-    contentDiv.innerHTML = await response.text();
+    // Handle unknown routes
+    if (!templatePath) {
+        contentDiv.innerHTML = '<h1>Page not found</h1>';
+        return;
+    }
+
+    try {
+        const response = await fetch(templatePath);
+        if (!response.ok) throw new Error('Not found');
+        contentDiv.innerHTML = await response.text();
+        initGameControls(); // Reinitialize game controls
+    } catch (error) {
+        contentDiv.innerHTML = `
+            <div class="error-message">
+                <h1>Page not found</h1>
+                <p>Return to <a href="/">home page</a></p>
+            </div>
+        `;
+    }
 }
 
 // Handle navigation
@@ -36,6 +52,5 @@ window.addEventListener('popstate', () => {
 
 // Initialize first load
 window.addEventListener('load', () => {
-    const initialPath = window.location.pathname;
-    loadContent(initialPath === '/' ? '/home' : initialPath);
+    loadContent(window.location.pathname);
 });

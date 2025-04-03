@@ -1,20 +1,19 @@
 const routes = {
-    '/': 'partials/home.html',
-    '/blog': 'partials/blog/list.html',
-    '/blog/:post': 'partials/blog/',
-    '/categories': 'partials/categories.html'
+    '/': '/',
+    '/blog': '/blog/list.html',
+    '/tbank': 'tbank/list.html'
 };
 
 async function loadContent(path) {
     const contentDiv = document.getElementById('main-content');
     let templatePath = routes[path];
     
-    // Handle blog posts
+    /* Handle blog posts
     if(path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
         templatePath = `partials/blog/${postName}.html`;
     }
-
+    */
     const response = await fetch(templatePath);
     contentDiv.innerHTML = await response.text();
 }

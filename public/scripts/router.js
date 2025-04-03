@@ -22,19 +22,13 @@ async function loadContent(path) {
 
     try {
         // Add cache busting and no-cors mode
-        const response = await fetch(`${templatePath}?v=${Date.now()}`, {
+        const response = await fetch(`${templatePath}`, {
             mode: 'cors',
             credentials: 'same-origin'
         });
         
         // Verify content structure
         const content = await response.text();
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
-        
-        if (!tempDiv.querySelector('.setup-screen')) {
-            throw new Error('Invalid content structure');
-        }
 
         contentDiv.innerHTML = content;
         

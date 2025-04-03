@@ -47,8 +47,6 @@ document.addEventListener('click', e => {
 
 // Initialize first load
 window.addEventListener('load', () => {
-  const cleanPath = window.location.pathname
-    .replace('/index.html', '/')
-    .replace(/(\/home|\/blog|\/categories).html/, '$1');
-  loadContent(cleanPath || '/');
+    const initialPath = window.location.pathname;
+    loadContent(initialPath === '/' ? '/home' : initialPath);
 });

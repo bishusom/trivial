@@ -17,6 +17,7 @@ async function loadContent(path) {
 
   try {
     const response = await fetch(templatePath);
+    console.log(response)
     if (!response.ok) throw new Error('Not found');
     contentDiv.innerHTML = await response.text();
     initGameControls();

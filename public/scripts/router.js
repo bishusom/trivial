@@ -6,48 +6,55 @@ const routes = {
 };
 
 async function loadContent(path) {
-  const contentDiv = document.getElementById('main-content');
-  let templatePath = routes[path];
-  console.log(templatePath)
-  // Handle blog posts
-  if (path.startsWith('/blog/')) {
-    const postName = path.split('/').pop();
-    templatePath = `partials/blog/${postName}.html`;
-  }
+    const contentDiv = document.getElementById('main-content');
+    let templatePath = routes[path];
 
-  try {
-    const response = await fetch(templatePath);
-    console.log(response.status)
-    if (response.status != 200 ) throw new Error('Not found');
-    contentDiv.innerHTML = await response.text();
-    initGameControls();
-  } catch (error) {
-    contentDiv.innerHTML = `
-      <div class="error-message">
-        <h1>Content not found</h1>
-        <p>Try these instead:</p>
-        <nav class="error-nav">
-          <a href="/">Home</a>
-          <a href="/blog">Blog</a>
-          <a href="/categories">Categories</a>
-        </nav>
-      </div>
-    `;
-  }
+    // Handle root path
+    if (path === '/' || path === '/index.html') {
+        templatePath = routes['/'];
+    }
+
+    // Handle blog posts
+    if (path.startsWith('/blog/')) {
+        const postName = path.split('/').pop();
+        templatePath = `partials/blog/${postName}.html`;
+    }
+
+    try {
+        console.log('Loading:', templatePath);
+        const response = await fetch(templatePath);
+        console.log('Response status:', response.status);
+        console.log('Content length:', (await response.text()).length);
+        const content = await response.text();
+        
+        // Add content validation
+        if (!response.ok || content.trim() === '') {
+            throw new Error('Empty content');
+        }
+
+        contentDiv.innerHTML = content;
+        initGameControls();
+    } catch (error) {
+        console.error('Loading failed:', error);
+        contentDiv.innerHTML = `
+            <div class="error-message">
+                <h1>Content not found</h1>
+                <p>Try these instead:</p>
+                <nav class="error-nav">
+                    <a href="/">Home</a>
+                    <a href="/blog">Blog</a>
+                    <a href="/categories">Categories</a>
+                </nav>
+            </div>
+        `;
+    }
 }
-
-// Handle navigation
-document.addEventListener('click', e => {
-  if (e.target.tagName === 'A' && e.target.href.includes(window.location.origin)) {
-    e.preventDefault();
-    const path = new URL(e.target.href).pathname;
-    loadContent(path);
-    window.history.pushState({}, '', path);
-  }
-});
 
 // Initialize first load
 window.addEventListener('load', () => {
-    const initialPath = window.location.pathname;
-    loadContent(initialPath === '/' ? '/home' : initialPath);
+    const cleanPath = window.location.pathname
+        .replace('/index.html', '')
+        .replace(/\/$/, '');
+        
+    loadContent(cleanPath || '/');
 });

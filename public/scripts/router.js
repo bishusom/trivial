@@ -1,10 +1,10 @@
 const routes = {
-  '/': '/partials/home.html',
-  '/home': '/partials/home.html',
-  '/blog': '/partials/blog/list.html',
-  '/categories': '/partials/categories.html'
-};
-
+    '/': '/partials/home.html',
+    '/home': '/partials/home.html',
+    '/blog': '/partials/blog/list.html',
+    '/categories': '/partials/categories.html'
+  };
+  
 async function loadContent(path) {
     const contentDiv = document.getElementById('main-content');
     let templatePath = routes[path];
@@ -49,6 +49,53 @@ async function loadContent(path) {
         `;
     }
 }
+  
+function initGameControls() {
+    const startBtn = document.getElementById('start-btn');
+    
+    if (!startBtn) {
+        console.warn('Game controls not found in current view');
+        return;
+    }
+    
+    // Remove existing listeners
+    startBtn.replaceWith(startBtn.cloneNode(true));
+    
+    // Reinitialize listener
+    startBtn.addEventListener('click', async () => {
+        try {
+            safeClassToggle(startBtn, 'add', 'hidden');
+            selectedQuestions = parseInt(numQuestionsSelect.value);
+            selectedTime = parseInt(timePerQuestionSelect.value);
+            
+            startBtn.disabled = true;
+            questions = await fetchQuestions(
+                categorySelect.value,
+                selectedDifficulty, // Changed from difficultySelect.value
+                selectedQuestions
+            );
+    
+            if (questions.length) {
+                safeClassToggle(highscores, 'add', 'hidden');
+                safeClassToggle(setupScreen, 'remove', 'active');
+                safeClassToggle(gameScreen, 'add', 'active');
+                currentQuestion = 0;
+                score = 0;
+                answersLog = [];
+                showQuestion();
+            }
+        } finally {
+            startBtn.disabled = false;
+            safeClassToggle(startBtn, 'remove', 'hidden');
+        }
+    });
+
+}
+
+// Handle back/forward
+window.addEventListener('popstate', () => {
+    loadContent(window.location.pathname);
+});
 
 // Initialize first load
 window.addEventListener('load', () => {
@@ -58,3 +105,4 @@ window.addEventListener('load', () => {
         
     loadContent(cleanPath || '/');
 });
+  

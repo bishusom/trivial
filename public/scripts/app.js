@@ -491,7 +491,7 @@ function shuffle(array) {
 // ======================
 // Event Listeners
 // ======================
-startBtn.addEventListener('click', async () => {
+/* startBtn.addEventListener('click', async () => {
     try {
         safeClassToggle(startBtn, 'add', 'hidden');
         selectedQuestions = parseInt(numQuestionsSelect.value);
@@ -517,7 +517,7 @@ startBtn.addEventListener('click', async () => {
         startBtn.disabled = false;
         safeClassToggle(startBtn, 'remove', 'hidden');
     }
-});
+}); */
 
 document.addEventListener('DOMContentLoaded', () => {
     initCategories();

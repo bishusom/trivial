@@ -491,7 +491,7 @@ function shuffle(array) {
 // ======================
 // Event Listeners
 // ======================
-/* startBtn.addEventListener('click', async () => {
+/*startBtn.addEventListener('click', async () => {
     try {
         safeClassToggle(startBtn, 'add', 'hidden');
         selectedQuestions = parseInt(numQuestionsSelect.value);
@@ -519,33 +519,45 @@ function shuffle(array) {
     }
 }); */
 
-document.addEventListener('DOMContentLoaded', () => {
-    initCategories();
-    updateHighScores();
-    safeClassToggle(setupScreen, 'add', 'active');
-    safeClassToggle(highscores, 'add', 'hidden');
-    nextBtn.classList.remove('visible');
-    nextBtn?.addEventListener('click', handleNextQuestion);
 
-    // Mute button handler
-    document.getElementById('mute-btn')?.addEventListener('click', () => {
-        isMuted = !isMuted;
-        const icon = document.querySelector('#mute-btn .material-icons');
-        if (icon) {
-            icon.textContent = isMuted ? 'volume_off' : 'volume_up';
-        }
+async function initCategories() {
+    if (!categorySelect) {
+        console.warn('Category select not found');
+        return;
+    }
+    
+    try {
+        categorySelect.disabled = true;
+        categorySelect.innerHTML = '<option>Loading categories...</option>';
         
-        // Toggle all sounds
-        Object.values(audioElements).forEach(audio => {
-            if (!audio) return;
-            if (isMuted) {
-                audio.pause();
-            } else if (audio.loop) {
-                audio.play().catch(() => {});
-            }
-        });
-    });
-});
+        const response = await fetch('https://opentdb.com/api_category.php');
+        const data = await response.json();
+        
+        const categories = [{ id: '', name: "All Categories" }, ...data.trivia_categories].map(cat => ({
+            ...cat,
+            name: cat.name.replace(/^\w+:\s/, '')
+        }));
+        
+        categorySelect.innerHTML = categories.map(cat => 
+            `<option value="${cat.id}">${cat.name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Using fallback categories:', error);
+        // Fallback categories implementation
+    } finally {
+        categorySelect.disabled = false;
+    }
+}
+
+// Update safeClassToggle to handle null elements
+function safeClassToggle(element, action, className) {
+    if (!element) {
+        console.warn(`Element not found for ${action} ${className}`);
+        return;
+    }
+    element.classList[action](className);
+}
+
 
 document.addEventListener('click', (e) => {
     if (e.target.matches('#options button')) {

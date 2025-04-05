@@ -50,6 +50,7 @@ async function loadContent(path) {
     }
 }
 
+// Modify initGameComponents function
 function initGameComponents() {
     // Reinitialize all game-related DOM references
     window.setupScreen = document.querySelector('.setup-screen');
@@ -59,17 +60,28 @@ function initGameComponents() {
     window.numQuestionsSelect = document.getElementById('num-questions');
     window.timePerQuestionSelect = document.getElementById('time-per-question');
     window.startBtn = document.getElementById('start-btn');
-    
-    // Reinitialize event listeners
-    if (window.startBtn) {
-        initGameControls();
-        initCategories();
-        safeClassToggle(window.setupScreen, 'add', 'active');
-    }
-    
-    // Reinitialize other game state
     window.highscores = document.querySelector('.highscores');
-    safeClassToggle(window.highscores, 'add', 'hidden');
+    window.highscoresList = document.getElementById('highscores-list');
+
+    // Reinitialize core game state
+    window.questions = [];
+    window.currentQuestion = 0;
+    window.score = 0;
+    window.isScoreSaved = false;
+
+    if (window.startBtn) {
+        // Remove existing listeners
+        const newStartBtn = window.startBtn.cloneNode(true);
+        window.startBtn.replaceWith(newStartBtn);
+        window.startBtn = newStartBtn;
+
+        // Reinitialize controls
+        window.initGameControls();
+        window.initCategories();
+        window.safeClassToggle(window.setupScreen, 'add', 'active');
+        window.safeClassToggle(window.highscores, 'add', 'hidden');
+        window.updateHighScores();
+    }
 }
 
 // Handle navigation

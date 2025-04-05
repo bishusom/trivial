@@ -118,16 +118,24 @@ async function fetchQuestions(category, difficulty, amount) {
 }
 
 function showQuestion() {
-    // Get fresh DOM references
+    // Fresh DOM references
     const questionEl = document.getElementById('question');
     const optionsEl = document.getElementById('options');
     const questionCounterEl = document.getElementById('question-counter');
-
+    
     if (!questionEl || !optionsEl || !questionCounterEl) {
-        console.error('Missing required DOM elements');
+        console.error('Critical elements missing');
+        window.showToast('Game initialization failed', '❌');
         return;
     }
 
+    // Ensure valid question index
+    if (!window.questions || window.currentQuestion >= window.questions.length) {
+        console.error('Invalid question index');
+        window.endGame();
+        return;
+    }
+    
     // Clear previous state
     questionEl.classList.remove('correct-bg', 'wrong-bg');
     questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
@@ -315,28 +323,29 @@ function endGame() {
     saveHighScore();
 }
 
-// In restartGame function
 function restartGame() {
-    currentQuestion = 0;
-    score = 0;
-    answersLog = [];
-    selectedQuestions = parseInt(numQuestionsSelect.value);
+    // Reinitialize critical DOM elements
+    const numQuestionsSelect = document.getElementById('num-questions');
+    const questionCounterEl = document.getElementById('question-counter');
+    const totalTimerEl = document.getElementById('total-timer');
     
-    scoreEl.textContent = '0';
-    questionCounterEl.textContent = `0/${selectedQuestions}`;
-    updateTimerDisplay(selectedQuestions * selectedTime, totalTimerEl);
-    
-    // Show setup screen and start button
-    safeClassToggle(gameScreen, 'remove', 'active');
-    safeClassToggle(summaryScreen, 'remove', 'active');
-    safeClassToggle(setupScreen, 'add', 'active');
-    safeClassToggle(startBtn, 'remove', 'hidden'); // Show start button
-    safeClassToggle(highscores, 'add', 'hidden');
-    gtag('event', 'start_game', {
-        category: 'Gameplay',
-        difficulty: selectedDifficulty,
-        questions: selectedQuestions
-      });
+    if (!numQuestionsSelect || !questionCounterEl || !totalTimerEl) return;
+
+    // Reset game state
+    window.currentQuestion = 0;
+    window.score = 0;
+    window.answersLog = [];
+    window.selectedQuestions = parseInt(numQuestionsSelect.value);
+
+    // Update UI elements
+    questionCounterEl.textContent = `0/${window.selectedQuestions}`;
+    document.getElementById('score').textContent = '0';
+    window.updateTimerDisplay(window.selectedQuestions * window.selectedTime, totalTimerEl);
+
+    // Toggle screens
+    window.safeClassToggle(document.querySelector('.game-screen'), 'remove', 'active');
+    window.safeClassToggle(document.querySelector('.summary-screen'), 'remove', 'active');
+    window.safeClassToggle(document.querySelector('.setup-screen'), 'add', 'active');
 }
 
 function showSummary() {
@@ -606,7 +615,7 @@ function showToast(message, icon = 'ℹ️') {
     setTimeout(() => toast.remove(), 2000);
 }
 
-// In app.js
+// Update initGameControls in app.js
 window.initGameControls = function() {
     const startBtn = document.getElementById('start-btn');
     
@@ -616,35 +625,38 @@ window.initGameControls = function() {
         
         newBtn.addEventListener('click', async () => {
             try {
-                window.safeClassToggle(newBtn, 'add', 'hidden');
-                window.selectedQuestions = parseInt(window.numQuestionsSelect.value);
-                window.selectedTime = parseInt(window.timePerQuestionSelect.value);
+                // Get fresh DOM references
+                const numQuestionsSelect = document.getElementById('num-questions');
+                const timePerQuestionSelect = document.getElementById('time-per-question');
+                const categorySelect = document.getElementById('category');
+
+                window.selectedQuestions = parseInt(numQuestionsSelect.value);
+                window.selectedTime = parseInt(timePerQuestionSelect.value);
                 
                 newBtn.disabled = true;
                 window.questions = await window.fetchQuestions(
-                    window.categorySelect?.value,
+                    categorySelect?.value,
                     window.selectedDifficulty,
                     window.selectedQuestions
                 );
 
-                // Add validation check
+                // Enhanced validation
                 if (!window.questions || window.questions.length === 0) {
-                    throw new Error('Failed to load questions');
+                    throw new Error('Failed to load questions. Check your connection!');
                 }
 
-                window.safeClassToggle(window.setupScreen, 'remove', 'active');
-                window.safeClassToggle(window.gameScreen, 'add', 'active');
+                // Proceed only with valid questions
                 window.currentQuestion = 0;
                 window.score = 0;
                 window.answersLog = [];
                 window.showQuestion();
+                
             } catch (error) {
                 console.error('Game start failed:', error);
-                window.showToast(error.message || 'Failed to start game', '❌');
-                window.safeClassToggle(window.setupScreen, 'add', 'active');
+                window.showToast(error.message, '❌');
+                window.safeClassToggle(document.querySelector('.setup-screen'), 'add', 'active');
             } finally {
                 newBtn.disabled = false;
-                window.safeClassToggle(newBtn, 'remove', 'hidden');
             }
         });
     }

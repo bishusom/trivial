@@ -118,18 +118,19 @@ async function fetchQuestions(category, difficulty, amount) {
 }
 
 function showQuestion() {
-    // Safely update references
-    window.questionCounterEl = document.getElementById('question-counter');
-    window.questionEl = document.getElementById('question');
-    window.optionsEl = document.getElementById('options');
+    // Get fresh DOM references
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const questionCounterEl = document.getElementById('question-counter');
 
-    if (!window.questionCounterEl || !window.questionEl) return;
+    if (!questionEl || !optionsEl || !questionCounterEl) {
+        console.error('Missing required DOM elements');
+        return;
+    }
 
     // Clear previous state
-    window.questionEl.classList.remove('correct-bg', 'wrong-bg');
-    
-    // Rest of your existing showQuestion logic
-    window.questionCounterEl.textContent = `${window.currentQuestion + 1}/${window.selectedQuestions}`;
+    questionEl.classList.remove('correct-bg', 'wrong-bg');
+    questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
 
     if (!questions || !questions[currentQuestion]) {
         console.error('Invalid question index or empty questions array');
@@ -298,12 +299,18 @@ nextBtn?.addEventListener('click', () => {
 function endGame() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
+    
+    // Get fresh references
+    const gameScreen = document.querySelector('.game-screen');
+    const summaryScreen = document.querySelector('.summary-screen');
+    const highscores = document.querySelector('.highscores');
+    const startBtn = document.getElementById('start-btn');
+
     safeClassToggle(gameScreen, 'remove', 'active');
     safeClassToggle(summaryScreen, 'add', 'active');
     safeClassToggle(highscores, 'remove', 'hidden');
-    
-    // Hide start button in end game
     safeClassToggle(startBtn, 'add', 'hidden');
+    
     showSummary();
     saveHighScore();
 }
@@ -332,8 +339,10 @@ function restartGame() {
       });
 }
 
-// Summary Screen
 function showSummary() {
+    const summaryScreen = document.querySelector('.summary-screen');
+    if (!summaryScreen) return;
+    
     const timeUsed = (selectedQuestions * selectedTime) - totalTimeLeft;
     const correctCount = answersLog.filter(a => a.isCorrect).length;
 
@@ -602,7 +611,6 @@ window.initGameControls = function() {
     const startBtn = document.getElementById('start-btn');
     
     if (startBtn) {
-        // Replace with cloned node to clear event listeners
         const newBtn = startBtn.cloneNode(true);
         startBtn.replaceWith(newBtn);
         
@@ -619,17 +627,21 @@ window.initGameControls = function() {
                     window.selectedQuestions
                 );
 
-                if (window.questions.length) {
-                    window.safeClassToggle(window.setupScreen, 'remove', 'active');
-                    window.safeClassToggle(window.gameScreen, 'add', 'active');
-                    window.safeClassToggle(window.highscores, 'add', 'hidden');
-                    window.currentQuestion = 0;
-                    window.score = 0;
-                    window.answersLog = [];
-                    window.showQuestion();
+                // Add validation check
+                if (!window.questions || window.questions.length === 0) {
+                    throw new Error('Failed to load questions');
                 }
+
+                window.safeClassToggle(window.setupScreen, 'remove', 'active');
+                window.safeClassToggle(window.gameScreen, 'add', 'active');
+                window.currentQuestion = 0;
+                window.score = 0;
+                window.answersLog = [];
+                window.showQuestion();
             } catch (error) {
                 console.error('Game start failed:', error);
+                window.showToast(error.message || 'Failed to start game', '❌');
+                window.safeClassToggle(window.setupScreen, 'add', 'active');
             } finally {
                 newBtn.disabled = false;
                 window.safeClassToggle(newBtn, 'remove', 'hidden');

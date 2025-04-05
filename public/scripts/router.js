@@ -51,9 +51,8 @@ async function loadContent(path) {
 }
 
 // Modify initGameComponents function
-// In router.js
 function initGameComponents() {
-    // Reinitialize ALL DOM references after partial loads
+    // Reinitialize ALL game-related DOM elements
     window.setupScreen = document.querySelector('.setup-screen');
     window.gameScreen = document.querySelector('.game-screen');
     window.summaryScreen = document.querySelector('.summary-screen');
@@ -64,12 +63,20 @@ function initGameComponents() {
     window.startBtn = document.getElementById('start-btn');
     window.questionCounterEl = document.getElementById('question-counter');
     window.scoreEl = document.getElementById('score');
+    window.nextBtn = document.getElementById('next-btn');
+    window.highscoresList = document.getElementById('highscores-list');
 
-    // Initialize only if elements exist
-    if (window.categorySelect) window.initCategories();
+    // Initialize game state
+    window.questions = [];
+    window.currentQuestion = 0;
+    window.score = 0;
+    window.isScoreSaved = false;
+
+    // Rebind event listeners
     if (window.startBtn) window.initGameControls();
+    if (window.categorySelect) window.initCategories();
     
-    // Rebind difficulty pills
+    // Update difficulty pills
     window.difficultyPills = document.querySelectorAll('.difficulty-pill');
     window.difficultyPills?.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -80,12 +87,6 @@ function initGameComponents() {
             window.selectedDifficulty = this.dataset.difficulty;
         });
     });
-
-    // Restart game state
-    window.questions = [];
-    window.currentQuestion = 0;
-    window.score = 0;
-    window.isScoreSaved = false;
 }
 
 // Handle navigation

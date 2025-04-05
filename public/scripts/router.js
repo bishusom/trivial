@@ -51,20 +51,26 @@ async function loadContent(path) {
 }
 
 // Modify initGameComponents function
+// In router.js
 function initGameComponents() {
-    // Reinitialize DOM references AFTER partial loads
+    // Reinitialize ALL DOM references after partial loads
+    window.setupScreen = document.querySelector('.setup-screen');
+    window.gameScreen = document.querySelector('.game-screen');
+    window.summaryScreen = document.querySelector('.summary-screen');
+    window.highscores = document.querySelector('.highscores');
     window.categorySelect = document.getElementById('category');
     window.numQuestionsSelect = document.getElementById('num-questions');
     window.timePerQuestionSelect = document.getElementById('time-per-question');
     window.startBtn = document.getElementById('start-btn');
-    window.difficultyPills = document.querySelectorAll('.difficulty-pill');
+    window.questionCounterEl = document.getElementById('question-counter');
+    window.scoreEl = document.getElementById('score');
 
-    // Only initialize if elements exist
-    if (window.categorySelect) {
-        window.initCategories();
-    }
-
+    // Initialize only if elements exist
+    if (window.categorySelect) window.initCategories();
+    if (window.startBtn) window.initGameControls();
+    
     // Rebind difficulty pills
+    window.difficultyPills = document.querySelectorAll('.difficulty-pill');
     window.difficultyPills?.forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.difficulty-pill').forEach(b => 
@@ -75,27 +81,11 @@ function initGameComponents() {
         });
     });
 
-    // Reinitialize start button
-    if (window.startBtn) {
-        window.initGameControls();
-    }   
-
-    // Rebind answer handlers
-    document.addEventListener('click', (e) => {
-        if (e.target.matches('#options button')) {
-            const isCorrect = e.target.dataset.correct === 'true';
-            window.checkAnswer(isCorrect);
-        }
-    });
-
-    // Rebind next question handler
-    if (window.nextBtn) {
-        window.nextBtn.addEventListener('click', () => {
-            if (window.isNextQuestionPending) {
-                window.handleNextQuestion();
-            }
-        });
-    }
+    // Restart game state
+    window.questions = [];
+    window.currentQuestion = 0;
+    window.score = 0;
+    window.isScoreSaved = false;
 }
 
 // Handle navigation

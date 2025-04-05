@@ -13,11 +13,7 @@
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
-//const categorySelect = document.getElementById('category');
 const difficultyPicker = document.getElementById('difficulty');
-//const numQuestionsSelect = document.getElementById('num-questions');
-//const timePerQuestionSelect = document.getElementById('time-per-question');
-//const startBtn = document.getElementById('start-btn');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('next-btn');
@@ -122,12 +118,18 @@ async function fetchQuestions(category, difficulty, amount) {
 }
 
 function showQuestion() {
-    // Clear previous question background
-    const questionElement = document.getElementById('question');
-    questionElement.classList.remove('correct-bg', 'wrong-bg');
+    // Safely update references
+    window.questionCounterEl = document.getElementById('question-counter');
+    window.questionEl = document.getElementById('question');
+    window.optionsEl = document.getElementById('options');
 
-    // Update question counter
-    questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
+    if (!window.questionCounterEl || !window.questionEl) return;
+
+    // Clear previous state
+    window.questionEl.classList.remove('correct-bg', 'wrong-bg');
+    
+    // Rest of your existing showQuestion logic
+    window.questionCounterEl.textContent = `${window.currentQuestion + 1}/${window.selectedQuestions}`;
 
     if (!questions || !questions[currentQuestion]) {
         console.error('Invalid question index or empty questions array');
@@ -399,7 +401,11 @@ function updateHighScores() {
 // Utility Functions
 // ======================
 function safeClassToggle(element, action, className) {
-    element?.classList?.[action]?.(className);
+    if (!element) {
+        console.warn(`Element not found for ${action} ${className}`);
+        return;
+    }
+    element.classList[action](className);
 }
 
 function updateTimerDisplay(seconds, element) {
@@ -549,16 +555,6 @@ async function initCategories() {
     }
 }
 
-// Update safeClassToggle to handle null elements
-function safeClassToggle(element, action, className) {
-    if (!element) {
-        console.warn(`Element not found for ${action} ${className}`);
-        return;
-    }
-    element.classList[action](className);
-}
-
-
 document.addEventListener('click', (e) => {
     if (e.target.matches('#options button')) {
         const isCorrect = e.target.dataset.correct === 'true';
@@ -592,48 +588,51 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
   });
   
   // Optional toast notification
-  function showToast(message, icon = 'ℹ️') {
+function showToast(message, icon = 'ℹ️') {
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.innerHTML = `${icon} ${message}`;
     document.body.appendChild(toast);
     
     setTimeout(() => toast.remove(), 2000);
-  }
+}
 
-  window.initGameControls = function() {
+// In app.js
+window.initGameControls = function() {
     const startBtn = document.getElementById('start-btn');
     
     if (startBtn) {
-        // Remove existing listeners using event delegation instead of cloning
-        startBtn.replaceWith(startBtn.cloneNode(true));
-        const newStartBtn = document.getElementById('start-btn');
+        // Replace with cloned node to clear event listeners
+        const newBtn = startBtn.cloneNode(true);
+        startBtn.replaceWith(newBtn);
         
-        newStartBtn.addEventListener('click', async () => {
+        newBtn.addEventListener('click', async () => {
             try {
-                window.safeClassToggle(newStartBtn, 'add', 'hidden');
+                window.safeClassToggle(newBtn, 'add', 'hidden');
                 window.selectedQuestions = parseInt(window.numQuestionsSelect.value);
                 window.selectedTime = parseInt(window.timePerQuestionSelect.value);
                 
-                newStartBtn.disabled = true;
+                newBtn.disabled = true;
                 window.questions = await window.fetchQuestions(
-                    window.categorySelect.value,
+                    window.categorySelect?.value,
                     window.selectedDifficulty,
                     window.selectedQuestions
                 );
-        
+
                 if (window.questions.length) {
-                    window.safeClassToggle(window.highscores, 'add', 'hidden');
                     window.safeClassToggle(window.setupScreen, 'remove', 'active');
                     window.safeClassToggle(window.gameScreen, 'add', 'active');
+                    window.safeClassToggle(window.highscores, 'add', 'hidden');
                     window.currentQuestion = 0;
                     window.score = 0;
                     window.answersLog = [];
                     window.showQuestion();
                 }
+            } catch (error) {
+                console.error('Game start failed:', error);
             } finally {
-                newStartBtn.disabled = false;
-                window.safeClassToggle(newStartBtn, 'remove', 'hidden');
+                newBtn.disabled = false;
+                window.safeClassToggle(newBtn, 'remove', 'hidden');
             }
         });
     }

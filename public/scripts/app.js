@@ -600,3 +600,10 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
     
     setTimeout(() => toast.remove(), 2000);
   }
+
+
+window.initGameControls = initGameControls;
+window.safeClassToggle = safeClassToggle;
+window.initCategories = initCategories;
+window.restartGame = restartGame;
+window.updateHighScores = updateHighScores;

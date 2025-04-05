@@ -28,6 +28,12 @@ body {
     min-height: 100vh;
 }
 
+.content {
+    width: 90%;
+    /*opacity: 0;*/
+    align-items: center;
+}
+
 /* Logo Styles */
 .logo-container {
     text-align: center;
@@ -45,12 +51,6 @@ body {
 .logo:hover {
     transform: scale(1.05);
     filter: drop-shadow(0 0 15px rgba(226, 43, 90, 0.7));
-}
-
-.content {
-    width: 80%;
-    /*opacity: 0;*/
-    align-items: center;
 }
 
 .screen {

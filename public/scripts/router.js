@@ -29,11 +29,6 @@ async function loadContent(path) {
         
         contentDiv.innerHTML = await response.text();
         
-        // Initialize components based on route
-        if (templatePath.includes('home.html')) {
-            initGameComponents();
-        }
-
     } catch (error) {
         console.error('Loading failed:', error);
         contentDiv.innerHTML = `

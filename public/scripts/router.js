@@ -1,7 +1,7 @@
 const routes = {
     '/': '/',
     '/blog': '/blog/list.html',
-    '/tbank': 'tbank/list.html'
+    '/tbank': '/tbank/list.html'
 };
 
 async function loadContent(path) {
@@ -12,6 +12,12 @@ async function loadContent(path) {
     if(path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
         templatePath = `/blog/${postName}.html`;
+    }
+
+    //Handle tbank posts
+    if(path.startsWith('/tbank/')) {
+        const postName = path.split('/').pop();
+        templatePath = `/tbank/${postName}.html`;
     }
     
     try {

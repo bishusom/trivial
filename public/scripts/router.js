@@ -60,6 +60,7 @@ function initGameComponents() {
     window.numQuestionsSelect = document.getElementById('num-questions');
     window.timePerQuestionSelect = document.getElementById('time-per-question');
     window.startBtn = document.getElementById('start-btn');
+    window.nextBtn = document.getElementById('next-btn');
     window.highscores = document.querySelector('.highscores');
     window.highscoresList = document.getElementById('highscores-list');
 
@@ -70,17 +71,29 @@ function initGameComponents() {
     window.isScoreSaved = false;
 
     if (window.startBtn) {
-        // Remove existing listeners
-        const newStartBtn = window.startBtn.cloneNode(true);
-        window.startBtn.replaceWith(newStartBtn);
-        window.startBtn = newStartBtn;
-
-        // Reinitialize controls
+        // Initialize controls
         window.initGameControls();
         window.initCategories();
         window.safeClassToggle(window.setupScreen, 'add', 'active');
         window.safeClassToggle(window.highscores, 'add', 'hidden');
         window.updateHighScores();
+    }
+
+    // Rebind answer handlers
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('#options button')) {
+            const isCorrect = e.target.dataset.correct === 'true';
+            window.checkAnswer(isCorrect);
+        }
+    });
+
+    // Rebind next question handler
+    if (window.nextBtn) {
+        window.nextBtn.addEventListener('click', () => {
+            if (window.isNextQuestionPending) {
+                window.handleNextQuestion();
+            }
+        });
     }
 }
 

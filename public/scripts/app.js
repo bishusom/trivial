@@ -601,9 +601,50 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
     setTimeout(() => toast.remove(), 2000);
   }
 
+window.initGameControls = function() {
+    const startBtn = document.getElementById('start-btn');
+    
+    if (startBtn) {
+        // Remove existing listeners
+        const newStartBtn = startBtn.cloneNode(true);
+        startBtn.replaceWith(newStartBtn);
+        
+        // Reinitialize listener
+        newStartBtn.addEventListener('click', async () => {
+            try {
+                safeClassToggle(newStartBtn, 'add', 'hidden');
+                selectedQuestions = parseInt(numQuestionsSelect.value);
+                selectedTime = parseInt(timePerQuestionSelect.value);
+                
+                newStartBtn.disabled = true;
+                questions = await fetchQuestions(
+                    categorySelect.value,
+                    selectedDifficulty,
+                    selectedQuestions
+                );
+        
+                if (questions.length) {
+                    safeClassToggle(highscores, 'add', 'hidden');
+                    safeClassToggle(setupScreen, 'remove', 'active');
+                    safeClassToggle(gameScreen, 'add', 'active');
+                    currentQuestion = 0;
+                    score = 0;
+                    answersLog = [];
+                    showQuestion();
+                }
+            } finally {
+                newStartBtn.disabled = false;
+                safeClassToggle(newStartBtn, 'remove', 'hidden');
+            }
+        });
+    }
+};
 
 window.initGameControls = initGameControls;
 window.safeClassToggle = safeClassToggle;
 window.initCategories = initCategories;
 window.restartGame = restartGame;
 window.updateHighScores = updateHighScores;
+window.handleNextQuestion = handleNextQuestion;
+window.checkAnswer = checkAnswer;
+window.showToast = showToast;

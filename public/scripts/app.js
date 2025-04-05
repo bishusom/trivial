@@ -13,11 +13,11 @@
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
-const categorySelect = document.getElementById('category');
+//const categorySelect = document.getElementById('category');
 const difficultyPicker = document.getElementById('difficulty');
-const numQuestionsSelect = document.getElementById('num-questions');
-const timePerQuestionSelect = document.getElementById('time-per-question');
-const startBtn = document.getElementById('start-btn');
+//const numQuestionsSelect = document.getElementById('num-questions');
+//const timePerQuestionSelect = document.getElementById('time-per-question');
+//const startBtn = document.getElementById('start-btn');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('next-btn');
@@ -601,40 +601,39 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
     setTimeout(() => toast.remove(), 2000);
   }
 
-window.initGameControls = function() {
+  window.initGameControls = function() {
     const startBtn = document.getElementById('start-btn');
     
     if (startBtn) {
-        // Remove existing listeners
-        const newStartBtn = startBtn.cloneNode(true);
-        startBtn.replaceWith(newStartBtn);
+        // Remove existing listeners using event delegation instead of cloning
+        startBtn.replaceWith(startBtn.cloneNode(true));
+        const newStartBtn = document.getElementById('start-btn');
         
-        // Reinitialize listener
         newStartBtn.addEventListener('click', async () => {
             try {
-                safeClassToggle(newStartBtn, 'add', 'hidden');
-                selectedQuestions = parseInt(numQuestionsSelect.value);
-                selectedTime = parseInt(timePerQuestionSelect.value);
+                window.safeClassToggle(newStartBtn, 'add', 'hidden');
+                window.selectedQuestions = parseInt(window.numQuestionsSelect.value);
+                window.selectedTime = parseInt(window.timePerQuestionSelect.value);
                 
                 newStartBtn.disabled = true;
-                questions = await fetchQuestions(
-                    categorySelect.value,
-                    selectedDifficulty,
-                    selectedQuestions
+                window.questions = await window.fetchQuestions(
+                    window.categorySelect.value,
+                    window.selectedDifficulty,
+                    window.selectedQuestions
                 );
         
-                if (questions.length) {
-                    safeClassToggle(highscores, 'add', 'hidden');
-                    safeClassToggle(setupScreen, 'remove', 'active');
-                    safeClassToggle(gameScreen, 'add', 'active');
-                    currentQuestion = 0;
-                    score = 0;
-                    answersLog = [];
-                    showQuestion();
+                if (window.questions.length) {
+                    window.safeClassToggle(window.highscores, 'add', 'hidden');
+                    window.safeClassToggle(window.setupScreen, 'remove', 'active');
+                    window.safeClassToggle(window.gameScreen, 'add', 'active');
+                    window.currentQuestion = 0;
+                    window.score = 0;
+                    window.answersLog = [];
+                    window.showQuestion();
                 }
             } finally {
                 newStartBtn.disabled = false;
-                safeClassToggle(newStartBtn, 'remove', 'hidden');
+                window.safeClassToggle(newStartBtn, 'remove', 'hidden');
             }
         });
     }

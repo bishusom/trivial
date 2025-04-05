@@ -52,32 +52,33 @@ async function loadContent(path) {
 
 // Modify initGameComponents function
 function initGameComponents() {
-    // Reinitialize all game-related DOM references
-    window.setupScreen = document.querySelector('.setup-screen');
-    window.gameScreen = document.querySelector('.game-screen');
-    window.summaryScreen = document.querySelector('.summary-screen');
+    // Reinitialize DOM references AFTER partial loads
     window.categorySelect = document.getElementById('category');
     window.numQuestionsSelect = document.getElementById('num-questions');
     window.timePerQuestionSelect = document.getElementById('time-per-question');
     window.startBtn = document.getElementById('start-btn');
-    window.nextBtn = document.getElementById('next-btn');
-    window.highscores = document.querySelector('.highscores');
-    window.highscoresList = document.getElementById('highscores-list');
+    window.difficultyPills = document.querySelectorAll('.difficulty-pill');
 
-    // Reinitialize core game state
-    window.questions = [];
-    window.currentQuestion = 0;
-    window.score = 0;
-    window.isScoreSaved = false;
-
-    if (window.startBtn) {
-        // Initialize controls
-        window.initGameControls();
+    // Only initialize if elements exist
+    if (window.categorySelect) {
         window.initCategories();
-        window.safeClassToggle(window.setupScreen, 'add', 'active');
-        window.safeClassToggle(window.highscores, 'add', 'hidden');
-        window.updateHighScores();
     }
+
+    // Rebind difficulty pills
+    window.difficultyPills?.forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.difficulty-pill').forEach(b => 
+                b.classList.remove('active')
+            );
+            this.classList.add('active');
+            window.selectedDifficulty = this.dataset.difficulty;
+        });
+    });
+
+    // Reinitialize start button
+    if (window.startBtn) {
+        window.initGameControls();
+    }   
 
     // Rebind answer handlers
     document.addEventListener('click', (e) => {

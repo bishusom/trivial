@@ -28,10 +28,6 @@ body {
     min-height: 100vh;
 }
 
-.content {
-    width: 90%;
-}
-
 /* Logo Styles */
 .logo-container {
     text-align: center;

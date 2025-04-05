@@ -8,14 +8,40 @@ async function loadContent(path) {
     const contentDiv = document.getElementById('main-content');
     let templatePath = routes[path];
     
-    /* Handle blog posts
+    //Handle blog posts
     if(path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
-        templatePath = `partials/blog/${postName}.html`;
+        templatePath = `/blog/${postName}.html`;
     }
-    */
-    const response = await fetch(templatePath);
-    contentDiv.innerHTML = await response.text();
+    
+    try {
+        const response = await fetch(templatePath,{
+            mode: 'cors',
+            credentials: 'same-origin'
+        });
+        if (!response.ok) throw new Error('Not found');
+        
+        contentDiv.innerHTML = await response.text();
+        
+        // Initialize components based on route
+        if (templatePath.includes('home.html')) {
+            initGameComponents();
+        }
+
+    } catch (error) {
+        console.error('Loading failed:', error);
+        contentDiv.innerHTML = `
+            <div class="error-message">
+                <h1>Page not found</h1>
+                <p>Try these instead:</p>
+                <nav class="error-nav">
+                    <a href="/">Home</a>
+                    <a href="/blog">Blog</a>
+                    <a href="/categories">Categories</a>
+                </nav>
+            </div>
+        `;
+    }
 }
 
 // Handle navigation

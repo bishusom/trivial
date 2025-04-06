@@ -7,7 +7,13 @@ const routes = {
 async function loadContent(path) {
     const contentDiv = document.getElementById('main-content');
     let templatePath = routes[path];
-    
+
+    // Handle root/home routes differently
+    if (path === '/' || path === '/home') {
+        templatePath = routes['/'];
+        replaceFullBody = true; // Flag for full replacement
+    }
+
     //Handle blog posts
     if(path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
@@ -26,11 +32,15 @@ async function loadContent(path) {
             credentials: 'same-origin'
         });
         if (!response.ok) throw new Error('Not found');
+        const html = await response.text();
         
-        contentDiv.innerHTML = await response.text();
-        //hide the second link
-        if (document.querySelector("#main-content > div > nav")) {
-            document.querySelector("#main-content > div > nav").classList.add('hidden')
+        if (replaceFullBody) {
+            // Replace entire body content
+            document.body.innerHTML = html;
+            // Rebind navigation handlers
+            bindSPALinks();
+        } else {
+            contentDiv.innerHTML = html
         };
         
     } catch (error) {
@@ -49,6 +59,10 @@ async function loadContent(path) {
     }
 }
 
+// New function to rebind SPA links after full replacement
+function bindSPALinks() {
+    document.addEventListener('click', handleNavigation);
+}
 // Handle navigation
 document.addEventListener('click', e => {
     if(e.target.tagName === 'A' && e.target.href.includes(window.location.origin)) {

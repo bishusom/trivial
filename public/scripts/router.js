@@ -4,26 +4,33 @@ const routes = {
     '/tbank': '/tbank/list.html'
 };
 
+const setupScreen = document.querySelector('.setup-screen')
+const contentDiv = document.querySelector('.blog-tbank')
+
 async function loadContent(path) {
-    const contentDiv = document.getElementById('main-content');
     let templatePath = routes[path];
+
 
     // Handle root/home routes differently
     if (path === '/' || path === '/home') {
-        templatePath = routes['/'];
-        replaceFullBody = true; // Flag for full replacement
+        setupScreen.classList.add('active')
+        contentDiv.classList.remove('active')
+        return
     }
 
-    //Handle blog posts
     if(path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
         templatePath = `/blog/${postName}.html`;
+        setupScreen.classList.remove('active')
+        contentDiv.classList.add('active')
     }
 
     //Handle tbank posts
     if(path.startsWith('/tbank/')) {
         const postName = path.split('/').pop();
         templatePath = `/tbank/${postName}.html`;
+        setupScreen.classList.remove('active')
+        contentDiv.classList.add('active')
     }
     
     try {
@@ -32,16 +39,8 @@ async function loadContent(path) {
             credentials: 'same-origin'
         });
         if (!response.ok) throw new Error('Not found');
-        const html = await response.text();
         
-        if (replaceFullBody) {
-            // Replace entire body content
-            document.body.innerHTML = html;
-            // Rebind navigation handlers
-            bindSPALinks();
-        } else {
-            contentDiv.innerHTML = html
-        };
+        contentDiv.innerHTML = await response.text();      
         
     } catch (error) {
         console.error('Loading failed:', error);
@@ -59,10 +58,6 @@ async function loadContent(path) {
     }
 }
 
-// New function to rebind SPA links after full replacement
-function bindSPALinks() {
-    document.addEventListener('click', handleNavigation);
-}
 // Handle navigation
 document.addEventListener('click', e => {
     if(e.target.tagName === 'A' && e.target.href.includes(window.location.origin)) {

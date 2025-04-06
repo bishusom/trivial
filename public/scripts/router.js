@@ -4,8 +4,8 @@ const routes = {
     '/tbank': '/tbank/list.html'
 };
 
-const setupScreen = document.querySelector('.setup-screen')
-const contentDiv = document.querySelector('.blog-tbank')
+const setupScreen = document.querySelector('.setup-screen');
+const contentDiv = document.querySelector('.blog-tbank');
 
 async function loadContent(path) {
     let templatePath = routes[path];
@@ -13,24 +13,24 @@ async function loadContent(path) {
 
     // Handle root/home routes differently
     if (path === '/' || path === '/home') {
-        setupScreen.classList.add('active')
-        contentDiv.classList.remove('active')
-        return
+        setupScreen.classList.add('active');
+        contentDiv.classList.remove('active');
+        return;
     }
 
     if(path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
         templatePath = `/blog/${postName}.html`;
-        setupScreen.classList.remove('active')
-        contentDiv.classList.add('active')
+        setupScreen.classList.remove('active');
+        contentDiv.classList.add('active');
     }
 
     //Handle tbank posts
     if(path.startsWith('/tbank/')) {
         const postName = path.split('/').pop();
         templatePath = `/tbank/${postName}.html`;
-        setupScreen.classList.remove('active')
-        contentDiv.classList.add('active')
+        setupScreen.classList.remove('active');
+        contentDiv.classList.add('active');
     }
     
     try {

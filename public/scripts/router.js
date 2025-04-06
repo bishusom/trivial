@@ -18,7 +18,7 @@ async function loadContent(path) {
         return;
     }
 
-    if(path.startsWith('/blog/')) {
+    if (path.startsWith('/blog/')) {
         const postName = path.split('/').pop();
         templatePath = `/blog/${postName}.html`;
         setupScreen.classList.remove('active');
@@ -26,7 +26,7 @@ async function loadContent(path) {
     }
 
     //Handle tbank posts
-    if(path.startsWith('/tbank/')) {
+    if (path.startsWith('/tbank/')) {
         const postName = path.split('/').pop();
         templatePath = `/tbank/${postName}.html`;
         setupScreen.classList.remove('active');

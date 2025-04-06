@@ -28,6 +28,10 @@ async function loadContent(path) {
         if (!response.ok) throw new Error('Not found');
         
         contentDiv.innerHTML = await response.text();
+        //hide the second link
+        if document.querySelector("#main-content > div > nav") {
+            document.querySelector("#main-content > div > nav").classList.add('hidden')
+        };
         
     } catch (error) {
         console.error('Loading failed:', error);

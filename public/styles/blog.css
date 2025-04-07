@@ -1,65 +1,201 @@
 /* Blog Styles */
+body {
+    background: #f8f9fa;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
 .blog-header {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 1rem;
+    max-width: 1200px;
+    margin: 2rem auto 1rem;
+    padding: 0 2rem;
+    border-bottom: 3px solid #e5e5e5;
+}
+
+.blog-header h1 {
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
+    color: #222;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.post-date {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    display: block;
 }
 
 .blog-content {
-    max-width: 700px;
+    max-width: 760px;
     margin: 0 auto;
-    line-height: 1.8;
+    padding: 0 2rem;
+    font-size: 1.1rem;
 }
 
-.blog-content h2 {
-    color: var(--primary-color);
-    margin-top: 2rem;
+.blog-content p {
+    margin-bottom: 1.5rem;
+}
+
+.blog-content b {
+    font-weight: 600;
+    color: #222;
+}
+
+.blog-content a {
+    color: #1a73e8;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(26, 115, 232, 0.3);
+}
+
+.blog-content a:hover {
+    color: #174ea6;
+    border-bottom-color: #174ea6;
 }
 
 .cta {
-    background: rgba(255,255,255,0.05);
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin: 2rem 0;
+    background: #f1f8ff;
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 3rem 0;
+    border: 1px solid #c2dfff;
     text-align: center;
+}
+
+.cta a {
+    display: inline-block;
+    background: #1a73e8;
+    color: white !important;
+    padding: 0.8rem 2rem;
+    border-radius: 4px;
+    text-decoration: none !important;
+    border-bottom: none !important;
+    transition: background 0.2s ease;
+}
+
+.cta a:hover {
+    background: #174ea6;
 }
 
 /* Social Sharing */
 .social-share-buttons {
     display: flex;
-    gap: 1rem;
-    margin: 1rem 0;
+    gap: 1.5rem;
+    margin: 2rem 0;
     justify-content: center;
+    padding: 1.5rem 0;
+    border-top: 1px solid #eee;
 }
 
 .social-button {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .social-button:hover {
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .social-button svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
+    color: white;
 }
 
-/* Platform Colors */
-.facebook { background: #1877f2; }
-.twitter { background: #1da1f2; }
-.linkedin { background: #0a66c2; }
-.whatsapp { background: #25d366; }
-
-/* Text Label */
-.blog-footer > p {
-    text-align: center;
-    margin-bottom: 1rem;
+/* Typography Enhancements */
+.blog-content h2,
+.blog-content h3 {
+    margin: 2.5rem 0 1.5rem;
+    color: #222;
     font-weight: 600;
+}
+
+.blog-content h2 {
+    font-size: 1.8rem;
+}
+
+.blog-content ul,
+.blog-content ol {
+    margin: 1.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.blog-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .blog-header h1 {
+        font-size: 2rem;
+    }
+    
+    .blog-content {
+        padding: 0 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .cta {
+        padding: 1.5rem;
+        margin: 2rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .blog-header {
+        padding: 0 1rem;
+    }
+    
+    .blog-header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .social-share-buttons {
+        gap: 1rem;
+    }
+}
+
+/* Article Enhancements */
+.blog-content p:first-of-type {
+    font-size: 1.2rem;
+    color: #666;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+/* Meta Information */
+.article-meta {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 1rem 0;
+    display: flex;
+    gap: 1rem;
+}
+
+/* Blockquote Styling */
+.blog-content blockquote {
+    border-left: 4px solid #1a73e8;
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    color: #444;
+    font-style: italic;
+}
+
+/* Code Snippets */
+.blog-content code {
+    font-family: 'Courier New', monospace;
+    background: #f3f4f6;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9rem;
 }

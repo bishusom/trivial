@@ -1,15 +1,25 @@
 [build]
-  publish = "public" # Explicitly set publish directory
-  command = "echo 'No build needed'" # For static sites
+  publish = "public"
+  command = "echo 'No build needed'"
 
-# Redirects for blog posts
+# Redirect root paths to specific HTML files
 [[redirects]]
-  from = "/blog/*"
-  to = "/partials/blog/:splat"
+  from = "/blog"      # Matches domain-name.com/blog
+  to = "/partials/blog/list.html"  # Serve this file
+  status = 200        # Rewrite (no URL change)
+
+[[redirects]]
+  from = "/tbank"     # Matches domain-name.com/tbank
+  to = "/partials/tbank/content.html"
   status = 200
 
-# New redirect for "/tbank/*"
+# Redirect wildcard paths (e.g., /blog/post1 or /tbank/page2)
 [[redirects]]
-  from = "/tbank/*"       # Incoming request path (wildcard)
-  to = "/partials/tbank/:splat"  # Actual file path to serve
-  status = 200            # Rewrite (no URL change)
+  from = "/blog/*"    # Matches domain-name.com/blog/ANY_PATH
+  to = "/partials/blog/:splat"  # Serve files like /partials/blog/post1.html
+  status = 200
+
+[[redirects]]
+  from = "/tbank/*"   # Matches domain-name.com/tbank/ANY_PATH
+  to = "/partials/tbank/:splat"
+  status = 200

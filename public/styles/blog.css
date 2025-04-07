@@ -108,8 +108,15 @@ body {
 .social-button svg {
     width: 24px;
     height: 24px;
-    color: white;
+    /*color: white;*/
 }
+
+/* Platform Colors */
+.facebook { background: #1877f2; }
+.twitter { background: #1da1f2; }
+.linkedin { background: #0a66c2; }
+.whatsapp { background: #25d366; }
+
 
 /* Typography Enhancements */
 .blog-content h2,
@@ -123,16 +130,34 @@ body {
     font-size: 1.8rem;
 }
 
-.blog-content ul,
 .blog-content ol {
-    margin: 1.5rem 0;
-    padding-left: 1.5rem;
+    counter-reset: li;
+    padding-left: 2.5rem;
+    list-style: none;
 }
 
 .blog-content li {
-    margin-bottom: 0.5rem;
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
 }
 
+.blog-content li::before {
+    content: counter(li) ".";
+    counter-increment: li;
+    position: absolute;
+    left: -2.5rem;
+    width: 2rem;
+    text-align: right;
+    font-weight: 600;
+    color: #666;
+}
+
+/* For multi-digit alignment */
+.blog-content li:nth-child(n+10)::before {
+    left: -3rem;
+    width: 2.5rem;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
     .blog-header h1 {

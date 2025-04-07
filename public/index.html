@@ -78,35 +78,36 @@
     </head>
     <body>
         <div class="container">
-            <!--div align="left">
-                <a href="/home">Home</a> | 
-                <a href="/blog">Blog</a> | 
-                <a href="/tbank">Trivia Bank</a>
-            </div-->
+            <div class="main-nav">
+                    <a class="nav-link" href="/home">Home</a> | 
+                    <a class="nav-link" href="/blog">Blog</a> | 
+                    <a class="nav-link" href="/tbank">Trivia Bank</a>
+            </div>
             <!-- Setup Screen -->
             <div class="screen setup-screen active">
-                <div class="logo-container">    
+              
+                <div class="logo-container">
                     <svg class="logo" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#e22b5a;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#46178f;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#e22b5a;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M20,50 Q50,20 80,50 T140,50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
-                    <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="url(#logoGradient)" 
-                    font-family="Poppins" font-weight="700" font-size="40">
-                    TRIVIAAH
-                    <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
-                    </text>
-                    <path d="M320,30 L340,50 L360,30" fill="#ffd700" stroke="#fff" stroke-width="2" 
-                    transform="rotate(30 340 40)">
-                    <animateTransform attributeName="transform" type="rotate" from="0 340 40" to="360 340 40" 
-                                dur="4s" repeatCount="indefinite"/>
-                    </path>
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#e22b5a;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#46178f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e22b5a;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M20,50 Q50,20 80,50 T140,50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
+                        <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="url(#logoGradient)" 
+                        font-family="Poppins" font-weight="700" font-size="40">
+                        TRIVIAAH
+                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
+                        </text>
+                        <path d="M320,30 L340,50 L360,30" fill="#ffd700" stroke="#fff" stroke-width="2" 
+                        transform="rotate(30 340 40)">
+                        <animateTransform attributeName="transform" type="rotate" from="0 340 40" to="360 340 40" 
+                                    dur="4s" repeatCount="indefinite"/>
+                        </path>
                     </svg>
-            </div>
+                </div>
                 
                 <div class="setup-card">
                     <div class="settings-grid">
@@ -234,7 +235,7 @@
             gtag('config', 'G-K4KZ7XR85V');
             </script>
         
-        <script src="/scripts/app.js"></script>
-        <!--script src="/scripts/router.js"></script-->
+        <script src="scripts/app.js"></script>
+        <script src="scripts/router.js"></script>
     </body>
 </html>

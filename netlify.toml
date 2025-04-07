@@ -2,7 +2,14 @@
   publish = "public" # Explicitly set publish directory
   command = "echo 'No build needed'" # For static sites
 
+# Redirects for blog posts
 [[redirects]]
-  from = "/blog/trivia-games-history"
-  to = "/blog/trivia-games-history.html"
+  from = "/blog/*"
+  to = "/partials/blog/:splat"
   status = 200
+
+# New redirect for "/tbank/*"
+[[redirects]]
+  from = "/tbank/*"       # Incoming request path (wildcard)
+  to = "/partials/tbank/:splat"  # Actual file path to serve
+  status = 200            # Rewrite (no URL change)

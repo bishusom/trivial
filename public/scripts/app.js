@@ -10,6 +10,7 @@
 // ======================
 // DOM Element References
 // ======================
+const mainNav = document.querySelector('.main-nav');
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
@@ -294,6 +295,7 @@ nextBtn?.addEventListener('click', () => {
 
 // In endGame function
 function endGame() {
+    safeClassToggle(mainNav, 'add', 'hidden');
     clearInterval(timerId);
     clearInterval(totalTimerId);
     safeClassToggle(gameScreen, 'remove', 'active');
@@ -308,6 +310,7 @@ function endGame() {
 
 // In restartGame function
 function restartGame() {
+    safeClassToggle(mainNav, 'remove', 'hidden'); // Show nav
     currentQuestion = 0;
     score = 0;
     answersLog = [];
@@ -493,6 +496,7 @@ function shuffle(array) {
 // ======================
 startBtn.addEventListener('click', async () => {
     try {
+        safeClassToggle(mainNav, 'add', 'hidden');
         safeClassToggle(startBtn, 'add', 'hidden');
         selectedQuestions = parseInt(numQuestionsSelect.value);
         selectedTime = parseInt(timePerQuestionSelect.value);

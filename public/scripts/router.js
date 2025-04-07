@@ -1,80 +1,95 @@
-const routes = {
-    '/': '/',
-    '/blog': '/blog/list.html',
-    '/tbank': '/tbank/list.html'
-};
+document.addEventListener('DOMContentLoaded', () => {
+    const setupScreen = document.querySelector('.setup-screen');
+    const blogTbankScreen = document.querySelector('.blog-tbank');
+    let currentContentPath = '';
 
-const setupScreen = document.querySelector('.setup-screen');
-const contentDiv = document.querySelector('.blog-tbank');
+    // Path configuration
+    const contentPaths = {
+        blog: {
+            base: '/partials/blog',
+            default: '/partials/blog/list.html'
+        },
+        tbank: {
+            base: '/partials/tbank',
+            default: '/partials/tbank/content.html'
+        }
+    };
 
-async function loadContent(path) {
-    let templatePath = routes[path];
+    // Initial route
+    handleRouting(window.location.pathname);
 
-
-    // Handle root/home routes differently
-    if (path === '/' || path === '/home') {
-        setupScreen.classList.add('active');
-        contentDiv.classList.remove('active');
-        return;
-    }
-
-    if (path.startsWith('/blog/')) {
-        const postName = path.split('/').pop();
-        templatePath = `/blog/${postName}.html`;
-        setupScreen.classList.remove('active');
-        contentDiv.classList.add('active');
-    }
-
-    //Handle tbank posts
-    if (path.startsWith('/tbank/')) {
-        const postName = path.split('/').pop();
-        templatePath = `/tbank/${postName}.html`;
-        setupScreen.classList.remove('active');
-        contentDiv.classList.add('active');
-    }
-    
-    try {
-        const response = await fetch(templatePath,{
-            mode: 'cors',
-            credentials: 'same-origin'
-        });
-        if (!response.ok) throw new Error('Not found');
+    // Event delegation for all links
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href^="/"]');
+        if (!link) return;
         
-        contentDiv.innerHTML = await response.text();      
-        
-    } catch (error) {
-        console.error('Loading failed:', error);
-        contentDiv.innerHTML = `
-            <div class="error-message">
-                <h1>Page not found</h1>
-                <p>Try these instead:</p>
-                <nav class="error-nav">
-                    <a href="/">Home</a>
-                    <a href="/blog">Blog</a>
-                    <a href="/categories">Categories</a>
-                </nav>
-            </div>
-        `;
-    }
-}
-
-// Handle navigation
-document.addEventListener('click', e => {
-    if(e.target.tagName === 'A' && e.target.href.includes(window.location.origin)) {
         e.preventDefault();
-        const path = new URL(e.target.href).pathname;
-        loadContent(path);
+        const path = new URL(link.href).pathname;
         window.history.pushState({}, '', path);
+        handleRouting(path);
+    });
+
+    // History navigation
+    window.addEventListener('popstate', () => handleRouting(window.location.pathname));
+
+    function handleRouting(path) {
+        path = path === '/' ? '/home' : path;
+        
+        if (path === '/home') {
+            showHomeScreen();
+        } else if (path.startsWith('/blog')) {
+            loadContent('blog', path);
+        } else if (path.startsWith('/tbank')) {
+            loadContent('tbank', path);
+        } else {
+            showHomeScreen();
+        }
+    }
+
+    function showHomeScreen() {
+        setupScreen.classList.add('active');
+        blogTbankScreen.classList.remove('active');
+        blogTbankScreen.innerHTML = '';
+        currentContentPath = '';
+    }
+
+    async function loadContent(section, path) {
+        if (currentContentPath === path) return;
+        
+        setupScreen.classList.remove('active');
+        blogTbankScreen.classList.add('active');
+
+        try {
+            const contentPath = path === `/${section}` 
+                ? contentPaths[section].default
+                : `${contentPaths[section].base}${path.replace(`/${section}`, '')}.html`;
+
+            const response = await fetch(contentPath);
+            if (!response.ok) throw new Error('Content not found');
+            
+            blogTbankScreen.innerHTML = await response.text();
+            currentContentPath = path;
+            processSocialSharing();
+        } catch (error) {
+            blogTbankScreen.innerHTML = `
+                <div class="error">
+                    <h3>Content not found</h3>
+                    <p>${error.message}</p>
+                </div>
+            `;
+            currentContentPath = '';
+        }
     }
 });
 
-// Handle back/forward
-window.addEventListener('popstate', () => {
-    loadContent(window.location.pathname);
-});
-
-/* Initialize first load
-window.addEventListener('load', () => {
-    const initialPath = window.location.pathname;
-    loadContent(initialPath === '/' ? '/home' : initialPath);
-});*/
+function processSocialSharing() {
+    const blogTbankScreen = document.querySelector('.blog-tbank');
+    const postUrl = encodeURIComponent(window.location.href);
+    const postTitle = encodeURIComponent(blogTbankScreen.querySelector('h1').textContent);
+    
+    blogTbankScreen.querySelectorAll('.social-button').forEach(link => {
+        link.href = link.href
+            .replace(/POST_URL/g, postUrl)
+            .replace(/POST_TITLE/g, postTitle);
+    });
+}

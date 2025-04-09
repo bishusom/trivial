@@ -1,3 +1,4 @@
+// Updated router.js
 document.addEventListener('DOMContentLoaded', () => {
     const setupScreen = document.querySelector('.setup-screen');
     const blogTbankScreen = document.querySelector('.blog-tbank');
@@ -6,12 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Path configuration
     const contentPaths = {
         blog: {
-            base: '/partials/blog',
-            default: '/partials/blog/list.html'
+            base: '/blog',
+            default: '/blog/list.html'
         },
         tbank: {
-            base: '/partials/tbank',
-            default: '/partials/tbank/content.html'
+            base: '/tbank',
+            default: '/tbank/content.html'
         }
     };
 
@@ -32,15 +33,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // History navigation
     window.addEventListener('popstate', () => handleRouting(window.location.pathname));
 
-    function handleRouting(path) {
+    async function handleRouting(path) {
         path = path === '/' ? '/home' : path;
         
         if (path === '/home') {
             showHomeScreen();
         } else if (path.startsWith('/blog')) {
-            loadContent('blog', path);
+            await loadContent('blog', path);
         } else if (path.startsWith('/tbank')) {
-            loadContent('tbank', path);
+            await loadContent('tbank', path);
+            // Initialize controls after content loads
+            if (blogTbankScreen) {
+                initializeQuizControls();
+                processSocialSharing();
+            }
         } else {
             showHomeScreen();
         }
@@ -69,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             blogTbankScreen.innerHTML = await response.text();
             currentContentPath = path;
-            processSocialSharing();
         } catch (error) {
             blogTbankScreen.innerHTML = `
                 <div class="error">
@@ -82,10 +87,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Initialize quiz controls function
+function initializeQuizControls() {
+    const toggleLink = document.getElementById('toggleAnswers');
+    const printLink = document.getElementById('printPDF');
+    let answersVisible = true;
+    //Nothing to do if /tbank/content.html or /blog/list.html
+    if (!toggleLink) return;
+
+    // Toggle answers
+    toggleLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    answersVisible = !answersVisible;
+    document.querySelectorAll('.answer').forEach(answer => {
+        answer.style.display = answersVisible ? 'block' : 'none';
+    });
+    toggleLink.textContent = '🧙♂️ '
+    toggleLink.textContent += answersVisible ? 'Hide Answers' : 'Show Answers';
+    });
+
+       
+    
+        printLink.addEventListener('click', (e) => {
+        const blogTbankScreen = document.querySelector('.blog-tbank');
+        const printWindow = window.open('', '_blank');
+        printWindow.document.body.innerHTML = `
+            <html>
+                <head>
+                    <title>${blogTbankScreen.querySelector('title').text} - Printable Version'</title>
+                    <style>
+                        .answer { display: block !important; }
+                        .controls, .blog-footer { display: none; }
+                    </style>
+                </head>
+                <body>
+                    ${blogTbankScreen.innerHTML}
+                    <br>©www.triviaah.com
+                </body>
+            </html>
+        `;
+        printWindow.document.close();
+        printWindow.print();
+        printWindow.close();
+    });    
+}                      
+
+
 function processSocialSharing() {
     const blogTbankScreen = document.querySelector('.blog-tbank');
+    if (!blogTbankScreen) return;
+
     const postUrl = encodeURIComponent(window.location.href);
-    const postTitle = encodeURIComponent(blogTbankScreen.querySelector('h1').textContent);
+    const postTitle = encodeURIComponent(blogTbankScreen.querySelector('h1')?.textContent || '');
     
     blogTbankScreen.querySelectorAll('.social-button').forEach(link => {
         link.href = link.href

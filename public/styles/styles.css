@@ -73,44 +73,52 @@ body {
     position: relative;
     z-index: 100;
 }
-
 /* ================ */
-/* Main Navigation */
+/* Compact Navigation */
 /* ================ */
 .main-nav {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1.5rem;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 0.8rem 1rem;
     background: var(--card-bg);
-    border-radius: 12px;
-    margin: 2rem auto;
+    margin: 1rem auto;
     max-width: 800px;
+    border-radius: 8px;
     position: sticky;
-    top: 15px;
+    top: 10px;
     z-index: 1000;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.2);
-    height: 60px;
+    height: 50px;
 }
 
 .nav-link {
-    color: #ffffff !important; /* Force white color */
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    color: var(--text-color) !important;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
     gap: 0.4rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
     .main-nav {
-        padding: 0.5rem 1rem;
-        height: 50px;
-        margin: 1.5rem auto;
+        height: 45px;
+        gap: 1rem;
+        padding: 0.6rem 0.8rem;
+        margin: 0.5rem auto;
     }
     
     .nav-link {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.85rem;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.8rem;
     }
     
     .nav-link span {
@@ -120,19 +128,18 @@ body {
 
 @media (max-width: 480px) {
     .main-nav {
-        height: 45px;
-        margin: 1rem auto;
-        border-radius: 8px;
-        padding: 0.5rem;
+        height: 40px;
+        gap: 0.8rem;
+        border-radius: 6px;
     }
     
     .nav-link {
-        padding: 0.3rem 0.6rem;
+        padding: 0.2rem 0.5rem;
     }
     
     .nav-link svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
     }
 }
 /* ================ */
@@ -301,8 +308,6 @@ body {
         display: inline-block;
     }
 }
-
-
 /* ================ */
 /* Game Elements */
 /* ================ */
@@ -492,10 +497,70 @@ body {
     gap: 1rem;
     align-items: center;
 }
+/* ==================== */
+/* Blog and Trivia Bank */
+/* ==================== */
+.blog-tbank {
+    background: white;
+    color: #333;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    margin: 2rem auto;
+    min-height: calc(100vh - 100px);
+}
 
-/* ================ */
-/* Animations */
-/* ================ */
+.blog-tbank .blog-header,
+.blog-tbank .blog-listing,
+.blog-tbank .blog-post {
+    background: white;
+    color: #333;
+}
+
+.blog-tbank a {
+    color: #1a73e8;
+}
+
+.blog-tbank a:hover {
+    color: #174ea6;
+}
+
+.blog-tbank .blog-preview {
+    background: #fff;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.blog-tbank .social-button {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+/* Maintain dark theme for rest of the app */
+body {
+    background: var(--background);
+    color: var(--text-color);
+}
+
+/* Ensure blog content doesn't inherit dark theme colors */
+.blog-tbank .blog-header h1,
+.blog-tbank .blog-post h1,
+.blog-tbank h2,
+.blog-tbank h3 {
+    color: #222 !important;
+}
+
+.blog-tbank .post-date,
+.blog-tbank .excerpt {
+    color: #666 !important;
+}
+
+.blog-tbank code {
+    background: #f3f4f6 !important;
+    color: #333 !important;
+}
+
+.blog-tbank .level {
+    background: rgba(255,255,255,0.95) !important;
+    border: 1px solid #eee !important;
+}
 /* ================ */
 /* Animations */
 /* ================ */
@@ -578,7 +643,6 @@ body {
     text-align: center;
     margin-top: 1.5rem;
 }
-
 /* ====================== */
 /* High Scores Section */
 /* ====================== */
@@ -668,6 +732,85 @@ body {
 
 .btn.icon-btn .material-icons {
     font-size: 1.2rem;
+}
+/* ============================= */
+/* Blog and Trivia Bank Section  */
+/* ============================= */
+.blog-tbank {
+    background: white;
+    color: #333;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    margin: 2rem auto;
+    min-height: calc(100vh - 100px);
+}
+
+.blog-tbank .blog-header,
+.blog-tbank .blog-listing,
+.blog-tbank .blog-post {
+    background: white;
+    color: #333;
+}
+
+.blog-tbank a {
+    color: #1a73e8;
+}
+
+.blog-tbank a:hover {
+    color: #174ea6;
+}
+
+.blog-tbank .blog-preview {
+    background: #fff;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.blog-tbank .social-button {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Maintain dark theme for rest of the app */
+body {
+    background: var(--background);
+    color: var(--text-color);
+}
+
+/* Ensure blog content doesn't inherit dark theme colors */
+.blog-tbank .blog-header h1,
+.blog-tbank .blog-post h1,
+.blog-tbank h2,
+.blog-tbank h3 {
+    color: #222 !important;
+}
+
+.blog-tbank .blog-preview h2 {
+    color: #222 !important; /* Base h2 color */
+}
+
+.blog-tbank .blog-preview h2 a {
+    color: #1a73e8 !important; /* Link color */
+    text-decoration: none !important;
+}
+
+.blog-tbank .blog-preview h2 a:hover {
+    color: #174ea6 !important;
+    border-bottom-color: currentColor !important;
+}
+
+.blog-tbank .post-date,
+.blog-tbank .excerpt {
+    color: #666 !important;
+}
+
+.blog-tbank code {
+    background: #f3f4f6 !important;
+    color: #333 !important;
+}
+
+.blog-tbank .level {
+    background: rgba(255,255,255,0.95) !important;
+    border: 1px solid #eee !important;
 }
 /* ====================== */
 /* Mobile Optimization */

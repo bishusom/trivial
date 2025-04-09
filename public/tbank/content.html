@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="/styles/blog.css">
+<h1>Trivia Question Bank</h1>
+<!--div class="search-filter">
+    <input type="text" placeholder="Search trivia categories..." class="search-input">
+</div>
+<div class="category-filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="geo-trivia">Earth</button>
+    <button class="filter-btn" data-filter="movie-trivia">Movies</button>
+    <button class="filter-btn" data-filter="music-trivia">Music</button>
+    <button class="filter-btn" data-filter="bible">Bible</button>
+    <button class="filter-btn" data-filter="harry-potter">Harry Potter</button>
+    <button class="filter-btn" data-filter="star-wars">Star Wars</button>
+</div-->
+<div class="blog-listing">
+    <div class="blog-preview" data-post="geo-trivia">
+        <h2><a href="/tbank/geo_top_50_trivia">Top 50 Earth Trivia</a></h2>
+        <div class="excerpt">🌍 Test Your World Knowledge! </div>
+    </div>
+    
+    <div class="blog-preview" data-post="movie-trivia">
+        <h2><a href="/tbank/movie_top_50_trivia">Top 50 Movie Trivia</a></h2>
+        <div class="excerpt">🎬 Lights, Camera, Trivia!!</div>
+    </div>
+
+    <div class="blog-preview" data-post="music-trivia">
+        <h2><a href="/tbank/music_top_50_trivia">Top 50 Music Trivia</a></h2>
+        <div class="excerpt">🎶 Can You Hit the Right Note on These Music Trivias?</div>
+    </div>
+
+    <div class="blog-preview" data-post="bible">
+        <h2><a href="/tbank/bible_top_50_trivia">Top 50 Bible Trivia</a></h2>
+        <div class="excerpt">✝️ How Well you know your Scriptures?</div>
+    </div>
+
+    <div class="blog-preview" data-post="harry-potter">
+        <h2><a href="/tbank/harry_potter_top_trivia">Top 50 Harry Potter Trivia</a></h2>
+        <div class="excerpt">🦸‍♂ Think You Know Everything About Harry Potter? Let's See!</div>
+    </div>
+
+    <div class="blog-preview" data-post="star-wars">
+        <h2><a href="/tbank/star_wars_top_trivia">Top 50  Star Wars Trivia</a></h2>
+        <div class="excerpt">🔦 Unleash Your Inner Jedi: The Ultimate Star Wars Trivia Challenge</div>
+    </div>
+    
+    <!-- Add new preview blocks for weekly posts -->
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const blogPreviews = document.querySelectorAll('.blog-preview');
+    
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Remove active class from all buttons
+                filterBtns.forEach(b => b.classList.remove('active'));
+                
+                // Set clicked button as active
+                e.target.classList.add('active');
+                
+                // Get filter value
+                const filter = e.target.dataset.filter;
+                
+                // Filter blog previews
+                blogPreviews.forEach(preview => {
+                    const show = filter === 'all' || 
+                               preview.dataset.post === filter;
+                    preview.style.display = show ? 'block' : 'none';
+                });
+            });
+        });
+    });
+</script>

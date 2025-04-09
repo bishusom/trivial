@@ -19,7 +19,61 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://triviaah.com/blog/trivia-games-history</loc>
+    <lastmod>2025-03-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/blog/april-fools-day-trivia</loc>
+    <lastmod>2025-03-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/blog/april-fools-day-trivia</loc>
+    <lastmod>2025-04-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
     <loc>https://triviaah.com/tbank</loc>
+    <lastmod>2025-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/tbank/bible_top_50_trivia</loc>
+    <lastmod>2025-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/tbank/geo_top_50_trivia</loc>
+    <lastmod>2025-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/tbank/harry_potter_top_trivia</loc>
+    <lastmod>2025-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/tbank/movie_top_50_trivia</loc>
+    <lastmod>2025-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/tbank/music_top_50_trivia</loc>
+    <lastmod>2025-04-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://triviaah.com/tbank/star_wars_top_trivia</loc>
     <lastmod>2025-04-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>

@@ -31,6 +31,9 @@
         <button class="alpha-btn" data-letter="z">Z</button>
     </div>
 </div>
+<div class="filter-criteria">
+    Showing results for: <span class="criteria-text">All</span>
+</div>
 
 <div class="blog-listing">
     <div class="blog-preview" data-post="animals zoology">
@@ -45,7 +48,7 @@
     
     <div class="blog-preview" data-post="bible religion">
         <h2><a href="/tbank/bible_top_50_trivia">Top 50 Bible Trivia</a></h2>
-        <div class="excerpt">✝️ How Well you know your Scriptures?</div>
+        <div class="excerpt">✝️ How Well you know your Scriptures? #religion</div>
     </div>
 
     <div class="blog-preview" data-post="business finance economics">
@@ -78,6 +81,11 @@
         <div class="excerpt">🦸‍♂ Think You Know Everything About Harry Potter? Let's See!</div>
     </div>
 
+    <div class="blog-preview" data-post="history">
+        <h2><a href="/tbank/history_top_trivia">Top 50 History Trivia</a></h2>
+        <div class="excerpt">📜 ime Travel Challenge! Test Your History Knowledge</div>
+    </div>
+    
     <div class="blog-preview" data-post="health-trivia medicine-trivia">
         <h2><a href="/tbank/health-medicine-top_50_trivia">Top 50 Health & Medicine Trivia</a></h2>
         <div class="excerpt">💊 Diagnose Your Knowledge!</div>
@@ -95,7 +103,12 @@
 
     <div class="blog-preview" data-post="music-trivia entertainment">
         <h2><a href="/tbank/music_top_50_trivia">Top 50 Music Trivia</a></h2>
-        <div class="excerpt">🎶 Can You Hit the Right Note on These Music Trivias?</div>
+        <div class="excerpt">♫ Can You Hit the Right Note on These Music Trivias?</div>
+    </div>
+
+    <div class="blog-preview" data-post="quotes-trivia">
+        <h2><a href="/tbank/quotes_top_50_trivia">Top 50 Quotes Trivia</a></h2>
+        <div class="excerpt">⌞ ⌝ Words of Wisdom! Test Your Quote Knowledge</div>
     </div>
 
     <div class="blog-preview" data-post="religion">
@@ -128,20 +141,38 @@
         const blogPreviews = document.querySelectorAll('.blog-preview');
         const noResultsDiv = document.querySelector('.no-results');
         const selectedLetterSpan = document.querySelector('.selected-letter');
+        const filterCriteria = document.querySelector('.filter-criteria');
+        const criteriaText = document.querySelector('.criteria-text');
 
         function filterPosts(selectedLetter) {
             let visibleCount = 0;
+            let matchingTags = new Set();
             
             blogPreviews.forEach(preview => {
                 const postTags = preview.dataset.post.split(' ');
                 const shouldShow = selectedLetter === 'all' || 
-                    postTags.some(tag => 
-                        tag.toLowerCase().startsWith(selectedLetter)
-                    );
+                    postTags.some(tag => {
+                        const matches = tag.toLowerCase().startsWith(selectedLetter);
+                        if (matches) matchingTags.add(tag);
+                        return matches;
+                    });
                 
                 if(shouldShow) visibleCount++;
                 preview.style.display = shouldShow ? 'block' : 'none';
             });
+
+            // Update filter criteria display
+            if (selectedLetter === 'all') {
+                criteriaText.textContent = 'All';
+            } else {
+                const tagsList = Array.from(matchingTags).map(tag => {
+                    return tag.split('-').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ');
+                }).join(', ');
+                
+                criteriaText.textContent = `"${selectedLetter.toUpperCase()}" (${tagsList})`;
+            }
 
             // Show/hide no results message
             if(visibleCount === 0 && selectedLetter !== 'all') {

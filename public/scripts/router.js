@@ -97,22 +97,40 @@ function initializeAlphabetFilters() {
     const blogPreviews = blogTbankScreen.querySelectorAll('.blog-preview');
     const noResultsDiv = blogTbankScreen.querySelector('.no-results');
     const selectedLetterSpan = blogTbankScreen.querySelector('.selected-letter');
+    const filterCriteria = blogTbankScreen.querySelector('.filter-criteria');
+    const criteriaText = blogTbankScreen.querySelector('.criteria-text');
 
     if (!alphaBtns.length) return;
 
     function filterPosts(selectedLetter) {
         let visibleCount = 0;
+        let matchingTags = new Set();
         
         blogPreviews.forEach(preview => {
             const postTags = preview.dataset.post.split(' ');
             const shouldShow = selectedLetter === 'all' || 
-                postTags.some(tag => 
-                    tag.toLowerCase().startsWith(selectedLetter)
-                );
+                postTags.some(tag => {
+                    const matches = tag.toLowerCase().startsWith(selectedLetter);
+                    if (matches) matchingTags.add(tag);
+                    return matches;
+                });
             
             if(shouldShow) visibleCount++;
             preview.style.display = shouldShow ? 'block' : 'none';
         });
+
+        // Update filter criteria display
+        if (selectedLetter === 'all') {
+            criteriaText.textContent = 'All';
+        } else {
+            const tagsList = Array.from(matchingTags).map(tag => {
+                return tag.split('-').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+            }).join(', ');
+            
+            criteriaText.textContent = `"${selectedLetter.toUpperCase()}" (${tagsList})`;
+        }
 
         // Show/hide no results message
         if(visibleCount === 0 && selectedLetter !== 'all') {

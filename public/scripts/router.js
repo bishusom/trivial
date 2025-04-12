@@ -131,7 +131,7 @@ function initializeAlphabetFilters() {
             
             criteriaText.textContent = `"${selectedLetter.toUpperCase()}" (${tagsList})`;
         }
-
+        filterCriteria.style.display = 'block';
         // Show/hide no results message
         if(visibleCount === 0 && selectedLetter !== 'all') {
             selectedLetterSpan.textContent = selectedLetter.toUpperCase();

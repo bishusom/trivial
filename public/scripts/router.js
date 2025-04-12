@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Initialize controls after content loads
             if (blogTbankScreen) {
                 initializeQuizControls();
+                initializeAlphabetFilters(); // Add this line
                 processSocialSharing();
             }
         } else {
@@ -86,6 +87,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// Update loadContent function to call the initializer
+function initializeAlphabetFilters() {
+    const blogTbankScreen = document.querySelector('.blog-tbank');
+    if (!blogTbankScreen) return;
+
+    const alphaBtns = blogTbankScreen.querySelectorAll('.alpha-btn');
+    const blogPreviews = blogTbankScreen.querySelectorAll('.blog-preview');
+    const noResultsDiv = blogTbankScreen.querySelector('.no-results');
+    const selectedLetterSpan = blogTbankScreen.querySelector('.selected-letter');
+
+    if (!alphaBtns.length) return;
+
+    function filterPosts(selectedLetter) {
+        let visibleCount = 0;
+        
+        blogPreviews.forEach(preview => {
+            const postTags = preview.dataset.post.split(' ');
+            const shouldShow = selectedLetter === 'all' || 
+                postTags.some(tag => 
+                    tag.toLowerCase().startsWith(selectedLetter)
+                );
+            
+            if(shouldShow) visibleCount++;
+            preview.style.display = shouldShow ? 'block' : 'none';
+        });
+
+        // Show/hide no results message
+        if(visibleCount === 0 && selectedLetter !== 'all') {
+            selectedLetterSpan.textContent = selectedLetter.toUpperCase();
+            noResultsDiv.style.display = 'block';
+        } else {
+            noResultsDiv.style.display = 'none';
+        }
+    }
+
+    alphaBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            alphaBtns.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            const letter = e.target.dataset.letter;
+            filterPosts(letter);
+        });
+    });
+}
 
 // Initialize quiz controls function
 function initializeQuizControls() {

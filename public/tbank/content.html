@@ -1,72 +1,163 @@
 <link rel="stylesheet" href="/styles/blog.css">
 <h1>Trivia Question Bank</h1>
-<!--div class="search-filter">
-    <input type="text" placeholder="Search trivia categories..." class="search-input">
+<div class="search-filter">
+    <div class="alphabet-filters">
+        <button class="alpha-btn active" data-letter="all">All</button>
+        <button class="alpha-btn" data-letter="a">A</button>
+        <button class="alpha-btn" data-letter="b">B</button>
+        <button class="alpha-btn" data-letter="c">C</button>
+        <button class="alpha-btn" data-letter="d">D</button>
+        <button class="alpha-btn" data-letter="e">E</button>
+        <button class="alpha-btn" data-letter="f">F</button>
+        <button class="alpha-btn" data-letter="g">G</button>
+        <button class="alpha-btn" data-letter="h">H</button>
+        <button class="alpha-btn" data-letter="i">I</button>
+        <button class="alpha-btn" data-letter="j">J</button>
+        <button class="alpha-btn" data-letter="k">K</button>
+        <button class="alpha-btn" data-letter="l">L</button>
+        <button class="alpha-btn" data-letter="m">M</button>
+        <button class="alpha-btn" data-letter="n">N</button>
+        <button class="alpha-btn" data-letter="o">O</button>
+        <button class="alpha-btn" data-letter="p">P</button>
+        <button class="alpha-btn" data-letter="q">Q</button>
+        <button class="alpha-btn" data-letter="r">R</button>
+        <button class="alpha-btn" data-letter="s">S</button>
+        <button class="alpha-btn" data-letter="t">T</button>
+        <button class="alpha-btn" data-letter="u">U</button>
+        <button class="alpha-btn" data-letter="v">V</button>
+        <button class="alpha-btn" data-letter="w">W</button>
+        <button class="alpha-btn" data-letter="x">X</button>
+        <button class="alpha-btn" data-letter="y">Y</button>
+        <button class="alpha-btn" data-letter="z">Z</button>
+    </div>
 </div>
-<div class="category-filters">
-    <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="geo-trivia">Earth</button>
-    <button class="filter-btn" data-filter="movie-trivia">Movies</button>
-    <button class="filter-btn" data-filter="music-trivia">Music</button>
-    <button class="filter-btn" data-filter="bible">Bible</button>
-    <button class="filter-btn" data-filter="harry-potter">Harry Potter</button>
-    <button class="filter-btn" data-filter="star-wars">Star Wars</button>
-</div-->
+
 <div class="blog-listing">
-    <div class="blog-preview" data-post="geo-trivia">
-        <h2><a href="/tbank/geo_top_50_trivia">Top 50 Earth Trivia</a></h2>
-        <div class="excerpt">🌍 Test Your World Knowledge! </div>
+    <div class="blog-preview" data-post="animals zoology">
+        <h2><a href="/tbank/animals_top_50_trivia">Top 50 Animals Trivia</a></h2>
+        <div class="excerpt">🐆 Test Your Animal Kingdom Knowledge!</div>
+    </div>
+
+    <div class="blog-preview" data-post="arts-architecture">
+        <h2><a href="/tbank/arts_and_architecture_top_50_trivia">Top 50 Arts & Architecture Trivia</a></h2>
+        <div class="excerpt">🎨 Test Your Art & Architecture Knowledge! </div>
     </div>
     
-    <div class="blog-preview" data-post="movie-trivia">
-        <h2><a href="/tbank/movie_top_50_trivia">Top 50 Movie Trivia</a></h2>
-        <div class="excerpt">🎬 Lights, Camera, Trivia!!</div>
-    </div>
-
-    <div class="blog-preview" data-post="music-trivia">
-        <h2><a href="/tbank/music_top_50_trivia">Top 50 Music Trivia</a></h2>
-        <div class="excerpt">🎶 Can You Hit the Right Note on These Music Trivias?</div>
-    </div>
-
-    <div class="blog-preview" data-post="bible">
+    <div class="blog-preview" data-post="bible religion">
         <h2><a href="/tbank/bible_top_50_trivia">Top 50 Bible Trivia</a></h2>
         <div class="excerpt">✝️ How Well you know your Scriptures?</div>
     </div>
 
-    <div class="blog-preview" data-post="harry-potter">
+    <div class="blog-preview" data-post="business finance economics">
+        <h2><a href="/tbank/bible_top_50_trivia">Top 50 Busines Trivia</a></h2>
+        <div class="excerpt">💼 Boardroom Challenge! Test Your Business Knowledge</div>
+    </div>
+    
+    <div class="blog-preview" data-post="countries geography">
+        <h2><a href="/tbank/countries_top_50_trivia">Top 50 Countries Trivia</a></h2>
+        <div class="excerpt">🌍 Global Explorer Challenge! Test Your Geography Knowledge</div>
+    </div>
+    
+    <div class="blog-preview" data-post="dinosaur">
+        <h2><a href="/tbank/dinosaur_top_50_trivia">Top 50 Dinosaur Trivia</a></h2>
+        <div class="excerpt">🦖 Jurassic Challenge! Test Your Dinosaur Knowledge</div>
+    </div>
+
+    <div class="blog-preview" data-post="drinks-trivia food-trivia">
+        <h2><a href="/tbank/food-drinks-top_50_trivia">Top 50 Food & Drinks Trivia</a></h2>
+        <div class="excerpt">🍔 Feast Your Mind!</div>
+    </div>
+
+    <div class="blog-preview" data-post="geo-trivia earth-triva">
+        <h2><a href="/tbank/geo_top_50_trivia">Top 50 Earth/Geography Trivia</a></h2>
+        <div class="excerpt">🌍 Test Your World Knowledge! </div>
+    </div>
+
+    <div class="blog-preview" data-post="harry-potter books">
         <h2><a href="/tbank/harry_potter_top_trivia">Top 50 Harry Potter Trivia</a></h2>
         <div class="excerpt">🦸‍♂ Think You Know Everything About Harry Potter? Let's See!</div>
     </div>
 
-    <div class="blog-preview" data-post="star-wars">
+    <div class="blog-preview" data-post="health-trivia medicine-trivia">
+        <h2><a href="/tbank/health-medicine-top_50_trivia">Top 50 Health & Medicine Trivia</a></h2>
+        <div class="excerpt">💊 Diagnose Your Knowledge!</div>
+    </div>
+    
+    <div class="blog-preview" data-post="literature books">
+        <h2><a href="/tbank/literature_top_50_trivia">Top 50 Literature Trivia</a></h2>
+        <div class="excerpt">📖 Page-Turner Challenge!</div>
+    </div>
+
+    <div class="blog-preview" data-post="movie-trivia cinema-trivia entertainment">
+        <h2><a href="/tbank/movie_top_50_trivia">Top 50 Movie Trivia</a></h2>
+        <div class="excerpt">🎬 Lights, Camera, Trivia!!</div>
+    </div>
+
+    <div class="blog-preview" data-post="music-trivia entertainment">
+        <h2><a href="/tbank/music_top_50_trivia">Top 50 Music Trivia</a></h2>
+        <div class="excerpt">🎶 Can You Hit the Right Note on These Music Trivias?</div>
+    </div>
+
+    <div class="blog-preview" data-post="religion">
+        <h2><a href="/tbank/religon_top_50_trivia">Top 50 Religion Trivia</a></h2>
+        <div class="excerpt">🙏 Divine Challenge! Test Your Religious Knowledge</div>
+    </div>
+    
+    <div class="blog-preview" data-post="star-wars pop-culture">
         <h2><a href="/tbank/star_wars_top_trivia">Top 50  Star Wars Trivia</a></h2>
         <div class="excerpt">🔦 Unleash Your Inner Jedi: The Ultimate Star Wars Trivia Challenge</div>
     </div>
+
+    <div class="blog-preview" data-post="pop-culture">
+        <h2><a href="/tbank/1980_top_50_trivia">Top 50  1980s Trivia</a></h2>
+        <div class="excerpt">🕺 Test Your 1980s Pop Culture Knowledge</div>
+    </div>
+
     
     <!-- Add new preview blocks for weekly posts -->
 </div>
+
+<div class="no-results" style="display: none;">
+    <p>📚 We're busy expanding our trivia collection! </p>
+    <p>Check back soon for new entries starting with "<span class="selected-letter"></span>"</p>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const filterBtns = document.querySelectorAll('.filter-btn');
+        const alphaBtns = document.querySelectorAll('.alpha-btn');
         const blogPreviews = document.querySelectorAll('.blog-preview');
-    
-        filterBtns.forEach(btn => {
+        const noResultsDiv = document.querySelector('.no-results');
+        const selectedLetterSpan = document.querySelector('.selected-letter');
+
+        function filterPosts(selectedLetter) {
+            let visibleCount = 0;
+            
+            blogPreviews.forEach(preview => {
+                const postTags = preview.dataset.post.split(' ');
+                const shouldShow = selectedLetter === 'all' || 
+                    postTags.some(tag => 
+                        tag.toLowerCase().startsWith(selectedLetter)
+                    );
+                
+                if(shouldShow) visibleCount++;
+                preview.style.display = shouldShow ? 'block' : 'none';
+            });
+
+            // Show/hide no results message
+            if(visibleCount === 0 && selectedLetter !== 'all') {
+                selectedLetterSpan.textContent = selectedLetter.toUpperCase();
+                noResultsDiv.style.display = 'block';
+            } else {
+                noResultsDiv.style.display = 'none';
+            }
+        }
+
+        alphaBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Remove active class from all buttons
-                filterBtns.forEach(b => b.classList.remove('active'));
-                
-                // Set clicked button as active
+                alphaBtns.forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
-                
-                // Get filter value
-                const filter = e.target.dataset.filter;
-                
-                // Filter blog previews
-                blogPreviews.forEach(preview => {
-                    const show = filter === 'all' || 
-                               preview.dataset.post === filter;
-                    preview.style.display = show ? 'block' : 'none';
-                });
+                const letter = e.target.dataset.letter;
+                filterPosts(letter);
             });
         });
     });

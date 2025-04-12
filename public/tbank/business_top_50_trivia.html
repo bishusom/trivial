@@ -17,7 +17,7 @@
         <p>From Fortune 500 giants to startup legends, prove you’re CEO material with this high-stakes quiz!</p>   
         <div class="controls">
             <a href="#" id="toggleAnswers" class="btn link-btn" role="button" aria-pressed="false">
-                💼 Hide Answers
+                <span id="show_hide_emoji">💼</span> Hide Answers
             </a>   
             <a href="#" id="printPDF" class="btn link-btn" role="button">
                 📄 Print to PDF
@@ -231,6 +231,7 @@
         function initializeQuizControls() {
             const toggleButton = document.getElementById('toggleAnswers');
             const printButton = document.getElementById('printPDF');
+            const showHideEmoji = document.getElementById('show_hide_emoji');
             
             if(toggleButton && printButton) {
                 let answersVisible = true;
@@ -242,8 +243,8 @@
                     answers.forEach(answer => {
                         answer.style.display = answersVisible ? 'block' : 'none';
                     });
-                    toggleButton.textContent = '🧙♂️ '
-                    toggleButton.textContent += answersVisible ? 'Hide Answers' : 'Show Answers';
+                    toggleButton.textContent = showHideEmoji.textContent
+                    toggleButton.textContent += answersVisible ? ' Hide Answers' : ' Show Answers';
                 });
         
                 // Print handling

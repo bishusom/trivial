@@ -155,6 +155,8 @@ function initializeAlphabetFilters() {
 function initializeQuizControls(hideAnswersByDefault = false) {
     const toggleLink = document.getElementById('toggleAnswers');
     const printLink = document.getElementById('printPDF');
+    const showHideEmoji = document.getElementById('show_hide_emoji');
+
     //Nothing to do if /tbank/content.html or /blog/list.html
     if (!toggleLink) return;
     let answersVisible = !hideAnswersByDefault;
@@ -165,8 +167,8 @@ function initializeQuizControls(hideAnswersByDefault = false) {
     document.querySelectorAll('.answer').forEach(answer => {
         answer.style.display = answersVisible ? 'block' : 'none';
     });
-    toggleLink.textContent = '🧙♂️ '
-    toggleLink.textContent += answersVisible ? 'Hide Answers' : 'Show Answers';
+    toggleLink.textContent = showHideEmoji.textContent
+    toggleLink.textContent += answersVisible ? ' Hide Answers' : ' Show Answers';
     });
 
        

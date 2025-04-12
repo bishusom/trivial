@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadContent('tbank', path);
             // Initialize controls after content loads
             if (blogTbankScreen) {
-                initializeQuizControls();
+                initializeQuizControls(true);
                 initializeAlphabetFilters(); // Add this line
                 processSocialSharing();
             }
@@ -152,13 +152,12 @@ function initializeAlphabetFilters() {
 }
 
 // Initialize quiz controls function
-function initializeQuizControls() {
+function initializeQuizControls(hideAnswersByDefault = false) {
     const toggleLink = document.getElementById('toggleAnswers');
     const printLink = document.getElementById('printPDF');
-    let answersVisible = true;
     //Nothing to do if /tbank/content.html or /blog/list.html
     if (!toggleLink) return;
-
+    let answersVisible = !hideAnswersByDefault;
     // Toggle answers
     toggleLink.addEventListener('click', (e) => {
     e.preventDefault();

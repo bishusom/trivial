@@ -17,7 +17,7 @@
         <p>Ready to time-travel back to the era of leg warmers and cassette tapes? Prove your mastery of all things 80s with our gnarly trivia quiz!</p>   
         <div class="controls">
             <a href="#" id="toggleAnswers" class="btn link-btn" role="button" aria-pressed="false">
-                <span id="show_hide_emoji">🕶️</span>Hide Answers
+                <span id="show_hide_emoji">🕶️</span>Show Answers
             </a>   
             <a href="#" id="printPDF" class="btn link-btn" role="button">
                 📄 Print to PDF
@@ -250,7 +250,7 @@
             const showHideEmoji = document.getElementById('show_hide_emoji');
             
             if(toggleButton && printButton) {
-                let answersVisible = true;
+                let answersVisible = false;
                 const answers = document.querySelectorAll('.answer');
         
                 // Toggle answers

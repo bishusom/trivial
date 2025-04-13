@@ -221,6 +221,7 @@ body {
     border-left: 3px solid #1a73e8;
     border-radius: 4px;
     font-size: 0.95em;
+    display: none;
 }
 
 /* Numbered Lists */

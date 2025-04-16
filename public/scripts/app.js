@@ -58,7 +58,7 @@ let isNextQuestionPending = false;
 // ======================
 
 // Initialization
-async function initCategories() {
+/* async function initCategories() {
     try {
         categorySelect.disabled = true;
         categorySelect.innerHTML = '<option>Loading categories...</option>';
@@ -118,6 +118,105 @@ async function fetchQuestions(category, difficulty, amount) {
         }));
     } catch (error) {
         console.error('Failed to fetch questions:', error);
+        return [];
+    }
+}*/
+async function initCategories() {
+    try {
+        categorySelect.disabled = true;
+        categorySelect.innerHTML = '<option>Loading categories...</option>';
+        
+        // Get unique categories from Firestore
+        const snapshot = await db.collection('questions').get();
+        const categories = new Set();
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.category) {
+                categories.add(data.category);
+            }
+        });
+        
+        // Convert to array and sort
+        const uniqueCategories = ['All Categories', ...Array.from(categories).sort()];
+        
+        categorySelect.innerHTML = uniqueCategories.map(cat => 
+            `<option value="${cat === 'All Categories' ? '' : cat}">${cat}</option>`
+        ).join('');
+        
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        // Fallback categories
+        categorySelect.innerHTML = `
+            <option value="">All Categories</option>
+            <option value="General Knowledge">General Knowledge</option>
+            <option value="Science">Science</option>
+            <option value="History">History</option>
+            <option value="Geography">Geography</option>
+        `;
+    } finally {
+        categorySelect.disabled = false;
+    }
+}
+
+async function fetchQuestions(category, difficulty, amount) {
+    try {
+        let query = db.collection('questions').limit(parseInt(amount));
+        
+        // Add filters if specified
+        if (category && category !== '') {
+            query = query.where('category', '==', category);
+        }
+        if (difficulty && difficulty !== 'any') {
+            query = query.where('difficulty', '==', difficulty);
+        }
+        
+        const snapshot = await query.get();
+        
+        if (snapshot.empty) {
+            console.log('No matching questions.');
+            return [];
+        }
+        
+        // Convert Firestore docs to question objects
+        const questions = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                question: decodeHTML(data.question),
+                correct: decodeHTML(data.correct_answer),
+                options: shuffle([
+                    ...(data.incorrect_answers || []).map(decodeHTML),
+                    decodeHTML(data.correct_answer)
+                ]),
+                category: data.category || 'General'
+            };
+        });
+        
+        // If we got fewer questions than requested, fill with random ones
+        if (questions.length < amount) {
+            const extraNeeded = amount - questions.length;
+            const extraSnapshot = await db.collection('questions')
+                .limit(extraNeeded)
+                .get();
+                
+            extraSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                questions.push({
+                    question: decodeHTML(data.question),
+                    correct: decodeHTML(data.correct_answer),
+                    options: shuffle([
+                        ...(data.incorrect_answers || []).map(decodeHTML),
+                        decodeHTML(data.correct_answer)
+                    ]),
+                    category: data.category || 'General'
+                });
+            });
+        }
+        
+        return shuffle(questions).slice(0, amount);
+        
+    } catch (error) {
+        console.error('Error fetching questions from Firestore:', error);
         return [];
     }
 }

@@ -58,77 +58,43 @@ let isNextQuestionPending = false;
 // ======================
 
 // Initialization
-/* async function initCategories() {
-    try {
-        categorySelect.disabled = true;
-        categorySelect.innerHTML = '<option>Loading categories...</option>';
-        
-        const response = await fetch('https://opentdb.com/api_category.php');
-        const data = await response.json();
-        
-        // Add category name cleaning
-        const categories = [{ id: '', name: "All Categories" }, ...data.trivia_categories].map(cat => ({
-            ...cat,
-            name: cat.name.replace(/^\w+:\s/, '') // Remove prefix
+const CACHE_VERSION = 'v1';
+const QUESTION_CACHE_KEY = `trivia-questions-${CACHE_VERSION}`;
+const CATEGORY_CACHE_KEY = `trivia-categories-${CACHE_VERSION}`;
+
+// Cache expiration (1 hour)
+const CACHE_EXPIRY = 60 * 60 * 1000; 
+
+// Initialize cache
+function initCache() {
+    if (!localStorage.getItem(QUESTION_CACHE_KEY)) {
+        localStorage.setItem(QUESTION_CACHE_KEY, JSON.stringify({
+            data: {},
+            timestamp: 0
         }));
-        
-        categorySelect.innerHTML = categories.map(cat => 
-            `<option value="${cat.id}">${cat.name}</option>`
-        ).join('');
-    } catch (error) {
-        console.error('Using fallback categories:', error);
-        // Clean fallback categories too
-        const fallback = [
-            { id: '', name: "All Categories" },
-            { id: 9, name: "General Knowledge" },
-            { id: 10, name: "Books" },
-            { id: 17, name: "Science & Nature" }
-        ].map(cat => ({
-            ...cat,
-            name: cat.name.replace(/^\w+:\s/, '')
-        }));
-        
-        categorySelect.innerHTML = fallback.map(cat => 
-            `<option value="${cat.id}">${cat.name}</option>`
-        ).join('');
-    } finally {
-        categorySelect.disabled = false;
     }
 }
 
-async function fetchQuestions(category, difficulty, amount) {
-    try {
-        const url = new URL('https://opentdb.com/api.php');
-        url.searchParams.append('amount', amount);
-        if (category) url.searchParams.append('category', category);
-        if (difficulty) url.searchParams.append('difficulty', difficulty);
-        url.searchParams.append('type', 'multiple');
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        return data.results.map(q => ({
-            question: decodeHTML(q.question),
-            correct: decodeHTML(q.correct_answer),
-            options: shuffle([
-                ...q.incorrect_answers.map(decodeHTML), 
-                decodeHTML(q.correct_answer)
-            ]),
-            category: q.category
-        }));
-    } catch (error) {
-        console.error('Failed to fetch questions:', error);
-        return [];
-    }
-}*/
 async function initCategories() {
+    // Check cache first
+    const now = Date.now();
+    const cachedCategories = localStorage.getItem(CATEGORY_CACHE_KEY);
+    
+    if (cachedCategories) {
+        const { data, timestamp } = JSON.parse(cachedCategories);
+        if (now - timestamp < CACHE_EXPIRY) {
+            populateCategorySelect(data);
+            return;
+        }
+    }
+    
+    // If no valid cache, fetch from Firestore
     try {
         categorySelect.disabled = true;
         categorySelect.innerHTML = '<option>Loading categories...</option>';
         
-        // Get unique categories from Firestore
         const snapshot = await db.collection('questions').get();
-        const categories = new Set();
+        const categories = new Set(['All Categories']);
         
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -137,87 +103,106 @@ async function initCategories() {
             }
         });
         
-        // Convert to array and sort
-        const uniqueCategories = ['All Categories', ...Array.from(categories).sort()];
+        const categoryArray = Array.from(categories).sort();
         
-        categorySelect.innerHTML = uniqueCategories.map(cat => 
-            `<option value="${cat === 'All Categories' ? '' : cat}">${cat}</option>`
-        ).join('');
+        // Update cache
+        localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify({
+            data: categoryArray,
+            timestamp: now
+        }));
+        
+        populateCategorySelect(categoryArray);
         
     } catch (error) {
         console.error('Error loading categories:', error);
-        // Fallback categories
-        categorySelect.innerHTML = `
-            <option value="">All Categories</option>
-            <option value="General Knowledge">General Knowledge</option>
-            <option value="Science">Science</option>
-            <option value="History">History</option>
-            <option value="Geography">Geography</option>
-        `;
+        populateCategorySelect([
+            'All Categories',
+            'General Knowledge',
+            'Science',
+            'History',
+            'Geography'
+        ]);
     } finally {
         categorySelect.disabled = false;
     }
 }
 
+function populateCategorySelect(categories) {
+    categorySelect.innerHTML = categories.map(cat => 
+        `<option value="${cat === 'All Categories' ? '' : cat}">${cat}</option>`
+    ).join('');
+}
+
 async function fetchQuestions(category, difficulty, amount) {
+    // Initialize cache if needed
+    initCache();
+    
+    const cache = JSON.parse(localStorage.getItem(QUESTION_CACHE_KEY));
+    const now = Date.now();
+    
+    // Try to get from cache first
+    if (now - cache.timestamp < CACHE_EXPIRY) {
+        const cachedQuestions = Object.values(cache.data);
+        
+        // Filter by category/difficulty if specified
+        let filtered = cachedQuestions;
+        if (category) {
+            filtered = filtered.filter(q => q.category === category);
+        }
+        if (difficulty && difficulty !== 'any') {
+            filtered = filtered.filter(q => q.difficulty === difficulty);
+        }
+        
+        // If we have enough matching questions, return them
+        if (filtered.length >= amount) {
+            return shuffle(filtered).slice(0, amount);
+        }
+    }
+    
+    // Fall back to Firestore if cache is stale or insufficient
     try {
         let query = db.collection('questions').limit(parseInt(amount));
         
-        // Add filters if specified
-        if (category && category !== '') {
-            query = query.where('category', '==', category);
-        }
+        if (category) query = query.where('category', '==', category);
         if (difficulty && difficulty !== 'any') {
             query = query.where('difficulty', '==', difficulty);
         }
         
         const snapshot = await query.get();
-        
-        if (snapshot.empty) {
-            console.log('No matching questions.');
-            return [];
-        }
-        
-        // Convert Firestore docs to question objects
         const questions = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
+                id: doc.id,
                 question: decodeHTML(data.question),
                 correct: decodeHTML(data.correct_answer),
                 options: shuffle([
                     ...(data.incorrect_answers || []).map(decodeHTML),
                     decodeHTML(data.correct_answer)
                 ]),
-                category: data.category || 'General'
+                category: data.category || 'General',
+                difficulty: data.difficulty || 'medium'
             };
         });
         
-        // If we got fewer questions than requested, fill with random ones
-        if (questions.length < amount) {
-            const extraNeeded = amount - questions.length;
-            const extraSnapshot = await db.collection('questions')
-                .limit(extraNeeded)
-                .get();
-                
-            extraSnapshot.docs.forEach(doc => {
-                const data = doc.data();
-                questions.push({
-                    question: decodeHTML(data.question),
-                    correct: decodeHTML(data.correct_answer),
-                    options: shuffle([
-                        ...(data.incorrect_answers || []).map(decodeHTML),
-                        decodeHTML(data.correct_answer)
-                    ]),
-                    category: data.category || 'General'
-                });
-            });
-        }
+        // Update cache
+        const updatedCache = {
+            data: { ...cache.data },
+            timestamp: now
+        };
         
-        return shuffle(questions).slice(0, amount);
+        questions.forEach(q => {
+            updatedCache.data[q.id] = q;
+        });
+        
+        localStorage.setItem(QUESTION_CACHE_KEY, JSON.stringify(updatedCache));
+        
+        return questions;
         
     } catch (error) {
-        console.error('Error fetching questions from Firestore:', error);
-        return [];
+        console.error('Error fetching questions:', error);
+        // If Firestore fails, try to return whatever we have in cache
+        const cachedQuestions = Object.values(cache.data);
+        return shuffle(cachedQuestions).slice(0, amount);
     }
 }
 

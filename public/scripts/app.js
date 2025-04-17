@@ -224,6 +224,12 @@ async function fetchQuestions(category, difficulty, amount) {
     }
 }
 
+function decodeHTML(text) {
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
+}
+
 // Improved shuffle function
 function shuffleArray(array) {
     const shuffled = [...array];

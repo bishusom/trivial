@@ -642,7 +642,6 @@ startBtn.addEventListener('click', async () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    initCategories();
     updateHighScores();
     safeClassToggle(setupScreen, 'add', 'active');
     safeClassToggle(highscores, 'add', 'hidden');

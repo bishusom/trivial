@@ -5,6 +5,7 @@
  * - Compact summary screen
  * - Optimized code structure
  * - Better error handling
+ * - Random questions fetched each game
  */
 
 // ======================
@@ -137,39 +138,20 @@ async function fetchQuestions(category, difficulty, amount) {
     // Initialize cache if needed
     initCache();
     
-    const cache = JSON.parse(localStorage.getItem(QUESTION_CACHE_KEY));
     const now = Date.now();
     
-    // Try to get from cache first
-    if (now - cache.timestamp < CACHE_EXPIRY) {
-        const cachedQuestions = Object.values(cache.data);
-        
-        // Filter by category/difficulty if specified
-        let filtered = cachedQuestions;
-        if (category) {
-            filtered = filtered.filter(q => q.category === category);
-        }
-        if (difficulty && difficulty !== 'any') {
-            filtered = filtered.filter(q => q.difficulty === difficulty);
-        }
-        
-        // If we have enough matching questions, return them
-        if (filtered.length >= amount) {
-            return shuffle(filtered).slice(0, amount);
-        }
-    }
-    
-    // Fall back to Firestore if cache is stale or insufficient
     try {
-        let query = db.collection('questions').limit(parseInt(amount));
+        let query = db.collection('questions');
         
+        // Apply filters for category and difficulty
         if (category) query = query.where('category', '==', category);
         if (difficulty && difficulty !== 'any') {
             query = query.where('difficulty', '==', difficulty);
         }
         
+        // Fetch all matching documents
         const snapshot = await query.get();
-        const questions = snapshot.docs.map(doc => {
+        let allQuestions = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
                 id: doc.id,
@@ -184,25 +166,36 @@ async function fetchQuestions(category, difficulty, amount) {
             };
         });
         
-        // Update cache
+        // Shuffle and limit to the requested amount
+        allQuestions = shuffle(allQuestions);
+        const selectedQuestions = allQuestions.slice(0, parseInt(amount));
+        
+        // Update cache with new questions
+        const cache = JSON.parse(localStorage.getItem(QUESTION_CACHE_KEY));
         const updatedCache = {
             data: { ...cache.data },
             timestamp: now
         };
         
-        questions.forEach(q => {
+        selectedQuestions.forEach(q => {
             updatedCache.data[q.id] = q;
         });
         
         localStorage.setItem(QUESTION_CACHE_KEY, JSON.stringify(updatedCache));
         
-        return questions;
+        return selectedQuestions;
         
     } catch (error) {
         console.error('Error fetching questions:', error);
-        // If Firestore fails, try to return whatever we have in cache
+        // Fallback to cache if Firestore fails
+        const cache = JSON.parse(localStorage.getItem(QUESTION_CACHE_KEY));
         const cachedQuestions = Object.values(cache.data);
-        return shuffle(cachedQuestions).slice(0, amount);
+        let filtered = cachedQuestions;
+        if (category) filtered = filtered.filter(q => q.category === category);
+        if (difficulty && difficulty !== 'any') {
+            filtered = filtered.filter(q => q.difficulty === difficulty);
+        }
+        return shuffle(filtered).slice(0, amount);
     }
 }
 
@@ -302,7 +295,6 @@ function stopSound(type) {
         audio.currentTime = 0;
     }
 }
-
 
 // ======================
 // Answer Handling
@@ -458,7 +450,7 @@ function saveHighScore() {
     
     const minScore = Math.min(...highScores.map(h => h.score));
     if (highScores.length < 5 || score > minScore) {
-        const name = prompt('Enter your name for local records::', 'Anonymous') || 'Anonymous';
+        const name = prompt('Enter your name for local records:', 'Anonymous') || 'Anonymous';
         highScores = [...highScores, { name, score }]
             .sort((a, b) => b.score - a.score)
             .slice(0, 5);
@@ -582,13 +574,13 @@ startBtn.addEventListener('click', async () => {
     try {
         safeClassToggle(mainNav, 'add', 'hidden');
         safeClassToggle(startBtn, 'add', 'hidden');
-        selectedQuestions = parseInt(numQuestionsSelect.value);
+        selectedQuestions = parseInt(numQuestions FramingInterfaceSelect.value);
         selectedTime = parseInt(timePerQuestionSelect.value);
         
         startBtn.disabled = true;
         questions = await fetchQuestions(
             categorySelect.value,
-            selectedDifficulty, // Changed from difficultySelect.value
+            selectedDifficulty,
             selectedQuestions
         );
 
@@ -667,12 +659,12 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
     }
   });
   
-  // Optional toast notification
-  function showToast(message, icon = 'ℹ️') {
+// Optional toast notification
+function showToast(message, icon = 'ℹ️') {
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.innerHTML = `${icon} ${message}`;
     document.body.appendChild(toast);
     
     setTimeout(() => toast.remove(), 2000);
-  }
+}

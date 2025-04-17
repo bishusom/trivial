@@ -17,9 +17,6 @@ const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
 const categorySelect = document.getElementById('category');
-const difficultyPicker = document.getElementById('difficulty');
-const numQuestionsSelect = document.getElementById('num-questions');
-const timePerQuestionSelect = document.getElementById('time-per-question');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('next-btn');
@@ -29,6 +26,10 @@ const questionTimerEl = document.getElementById('question-timer');
 const totalTimerEl = document.getElementById('total-timer');
 const highscores = document.querySelector('.highscores');
 const highscoresList = document.getElementById('highscores-list');
+const timer = {
+    quick: 30,
+    long: 60
+};
 const audioElements = {
     tick: createAudioElement('/audio/tick.mp3'),
     correct: createAudioElement('/audio/correct.mp3'),
@@ -43,8 +44,8 @@ let selectedDifficulty = 'easy';
 let questions = [];
 let currentQuestion = 0;
 let score = 0;
-let timeLeft = 15;
-let totalTimeLeft = 150;
+let timeLeft = timer.long;
+let totalTimeLeft = 10;
 let timerId;
 let totalTimerId;
 let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
@@ -52,7 +53,9 @@ let answersLog = [];
 let isScoreSaved = false;
 let isNextQuestionPending = false;
 let selectedQuestions = 10;
-let selectedTime = 15;
+let selectedTime = timer.long;
+let usedQuestionIds = new Set();
+let questionPool = [];
 
 // ======================
 // Core Functions
@@ -76,92 +79,31 @@ function initCache() {
     }
 }
 
-// Progressive timing based on player skill
-function calculateTimePerQuestion(category) {
-    const progress = getCategoryProgress(category);
-    const plays = progress.plays || 0;
-    
-    // Base time
-    let baseTime = 15; // seconds
-    
-    // Reduce time as player gets better
-    if (plays >= 3) baseTime = 12;
-    if (plays >= 5) baseTime = 10;
-    if (plays >= 10) baseTime = 8;
-    if (plays >= 15) baseTime = 5;
-    
-    return baseTime;
-}
+function initTimeToggle() {
+    const toggle = document.getElementById('quick-mode-toggle');
+    if (!toggle) return;
 
-function updateDifficultyDisplay(category) {
-    const progress = getCategoryProgress(category);
-    const plays = progress.plays || 0;
-    const meter = document.getElementById('difficulty-meter-fill');
-    const levelText = document.getElementById('current-difficulty-level');
-    
-    let level = "Beginner";
-    let percent = 20;
-    
-    if (plays >= 3) {
-        level = "Intermediate";
-        percent = 40;
-    }
-    if (plays >= 5) {
-        level = "Advanced";
-        percent = 60;
-    }
-    if (plays >= 10) {
-        level = "Expert";
-        percent = 80;
-    }
-    if (plays >= 15) {
-        level = "Master";
-        percent = 100;
-    }
-    
-    meter.style.width = `${percent}%`;
-    levelText.textContent = level;
-}
+    // Set default to Normal mode (10s)
+    timeLeft = 15;
+    totalTimeLeft = 15 * timeLeft;
+    toggle.checked = false;
 
-// Track player progress per category
-function getCategoryProgress(category) {
-    const progress = JSON.parse(localStorage.getItem('categoryProgress')) || {};
-    return progress[category] || { plays: 0, highScore: 0 };
-}
-
-function updateCategoryProgress(category, score) {
-    const progress = JSON.parse(localStorage.getItem('categoryProgress')) || {};
-    const current = getCategoryProgress(category);
-    
-    progress[category] = {
-        plays: current.plays + 1,
-        highScore: Math.max(current.highScore, score)
-    };
-    
-    localStorage.setItem('categoryProgress', JSON.stringify(progress));
-    return progress[category];
-}
-
-// Calculate dynamic difficulty mix
-function getDifficultyMix(category) {
-    const progress = getCategoryProgress(category);
-    const plays = progress.plays || 0;
-    
-    // Base mix (60% easy, 30% medium, 10% hard)
-    let mix = { easy: 0.6, medium: 0.3, hard: 0.1 };
-    
-    // Adjust based on plays
-    if (plays >= 3) {
-        mix = { easy: 0.4, medium: 0.4, hard: 0.2 };
-    }
-    if (plays >= 5) {
-        mix = { easy: 0.3, medium: 0.4, hard: 0.3 };
-    }
-    if (plays >= 10) {
-        mix = { easy: 0.2, medium: 0.4, hard: 0.4 };
-    }
-    
-    return mix;
+    toggle.addEventListener('change', function() {
+        if (this.checked) {
+            // Quick mode 
+            timeLeft = timer.quick;
+        } else {
+            // Normal mode
+            timeLeft = timer.long;
+        }
+        totalTimeLeft = 10 * timeLeft;
+        
+        // Update UI immediately if in game
+        if (gameScreen.classList.contains('active')) {
+            questionTimerEl.textContent = timeLeft;
+            updateTimerDisplay(totalTimeLeft, totalTimerEl);
+        }
+    });
 }
 
 function toggleLoading(show) {
@@ -207,38 +149,52 @@ function hideError() {
     document.getElementById('error-message').classList.add('hidden');
 }
 
-async function fetchQuestions(category, difficulty, amount) {
+async function fetchQuestions(category, amount = 10) {
     try {
-        let query = db.collection('questions');
-        
-        // Only apply category filter if it's not 'Mix-n-Match'
-        if (category && category !== 'Mix-n-Match') {
-            query = query.where('category', '==', category);
-        }
-        
-        // Apply difficulty filter if specified
-        if (difficulty && difficulty !== 'any') {
-            query = query.where('difficulty', '==', difficulty);
-        }
+        console.log("Querying for category:", JSON.stringify(category));
+        // If we don't have a pool yet, or it's empty, fetch new questions
+        if (questionPool.length === 0) {
+            if (category == 'General Knowledge') {
+                snapshot = await db.collection('questions')
+                .orderBy('randomField', 'asc')
+                .limit(100)
+                .get();
+            } else {
+                snapshot = await db.collection('questions')
+                .where('category', '==', category)
+                .orderBy('randomField', 'asc')
+                .limit(100)
+                .get();
 
-        // Get the snapshot
-        const snapshot = await query.limit(amount * 3).get();
-        
-        if (snapshot.empty) {
-            // Try a more general query if no results found
-            const fallbackQuery = db.collection('questions')
-                                  .where('category', '==', category)
-                                  .limit(amount * 3);
-            const fallbackSnapshot = await fallbackQuery.get();
-            
-            if (fallbackSnapshot.empty) {
-                throw new Error('No questions available for this category');
             }
+           
+                
+            questionPool = processQuestions(snapshot);
             
-            return processQuestions(fallbackSnapshot);
+            // If we've used most questions, reset the used set
+            if (usedQuestionIds.size > questionPool.length * 0.7) {
+                usedQuestionIds = new Set();
+            }
         }
         
-        return processQuestions(snapshot);
+        // Filter out already used questions
+        const availableQuestions = questionPool.filter(q => !usedQuestionIds.has(q.id));
+        
+        if (availableQuestions.length < amount) {
+            // If not enough, use some repeats but prefer unused ones
+            const needed = amount - availableQuestions.length;
+            const backupQuestions = shuffleArray(questionPool)
+                .filter(q => !availableQuestions.includes(q))
+                .slice(0, needed);
+                
+            availableQuestions.push(...backupQuestions);
+        }
+        
+        // Mark these questions as used
+        const selectedQuestions = shuffleArray(availableQuestions).slice(0, amount);
+        selectedQuestions.forEach(q => usedQuestionIds.add(q.id));
+        
+        return selectedQuestions;
         
     } catch (error) {
         console.error('Error fetching questions:', error);
@@ -247,22 +203,34 @@ async function fetchQuestions(category, difficulty, amount) {
 }
 
 function processQuestions(snapshot) {
-    const questions = snapshot.docs.map(doc => {
+    const seenQuestions = new Set();
+    const questions = [];
+    
+    // First pass - filter duplicates
+    snapshot.docs.forEach(doc => {
         const data = doc.data();
-        return {
-            id: doc.id,
-            question: decodeHTML(data.question),
-            correct: decodeHTML(data.correct_answer),
-            options: shuffleArray([
-                ...(data.incorrect_answers || []).map(decodeHTML),
-                decodeHTML(data.correct_answer)
-            ]),
-            category: data.category || 'General',
-            difficulty: data.difficulty || 'medium'
-        };
+        const questionText = decodeHTML(data.question).trim().toLowerCase();
+        
+        if (!seenQuestions.has(questionText)) {
+            seenQuestions.add(questionText);
+            
+            questions.push({
+                id: doc.id,
+                question: decodeHTML(data.question),
+                correct: decodeHTML(data.correct_answer),
+                options: shuffleArray([
+                    ...(data.incorrect_answers || []).map(decodeHTML),
+                    decodeHTML(data.correct_answer)
+                ]),
+                category: data.category || 'General',
+                subcategory: data.subcategory || '',
+                difficulty: data.difficulty || 'medium',
+                lastUsed: 0 // Timestamp of when last used
+            });
+        }
     });
     
-    return shuffleArray(questions).slice(0, Math.min(questions.length, 10));
+    return questions;
 }
 
 function decodeHTML(text) {
@@ -282,10 +250,7 @@ function shuffleArray(array) {
 }
 
 function showQuestion() {
-    // Clear previous question background
     questionEl.classList.remove('correct-bg', 'wrong-bg');
-
-    // Update question counter
     questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
 
     if (!questions[currentQuestion]) {
@@ -294,14 +259,18 @@ function showQuestion() {
         return;
     }
 
-    const question = questions[currentQuestion];
-    
-    // Shuffle options for THIS question
-    question.options = shuffle(question.options);
+    const question = {...questions[currentQuestion]}; // Create a copy
+    question.options = shuffle([...question.options]); // Shuffle options
     
     questionEl.innerHTML = `
         <div class="question-text">${question.question}</div>
-        <div class="question-category">${question.category}</div>
+        <div class="question-meta">
+             <div class="question-category">
+                ${question.category}
+                ${question.subcategory ? `<span class="question-subcategory">${question.subcategory}</span>` : ''}
+                <span class="question-difficulty ${question.difficulty}">${question.difficulty}</span>    
+             </div>
+        </div>
     `;
 
     optionsEl.innerHTML = question.options.map((option, i) => `
@@ -320,6 +289,11 @@ function showQuestion() {
 function startTimer() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
+
+     // Reset timeLeft to the selected value if it's 0
+     if (timeLeft <= 0) {
+        timeLeft = document.getElementById('quick-mode-toggle').checked ? timer.quick : timer.long;
+    }
     
     // Reset and start sounds
     if (audioElements.tick) {
@@ -461,17 +435,23 @@ function endGame() {
     
     // Get selected category
     const selectedCard = document.querySelector('.category-card.active');
-    const category = selectedCard ? selectedCard.dataset.category : 'Mix-n-Match';
-    
-    // Update category progress
-    updateCategoryProgress(category, score);
+    const category = selectedCard ? selectedCard.dataset.category : 'General Knowledge';
     
     showSummary();
     saveHighScore();
 }
 
+function resetQuestionPool() {
+    // Keep the pool but reset usage tracking
+    usedQuestionIds = new Set();
+    
+    // Optional: shuffle the existing pool for better randomness
+    questionPool = shuffleArray(questionPool);
+}
+
 // In restartGame function
 function restartGame() {
+    resetQuestionPool();
     // Clear the current questions array to force fresh fetch
     questions = [];
     
@@ -479,8 +459,12 @@ function restartGame() {
     currentQuestion = 0;
     score = 0;
     answersLog = [];
-    selectedQuestions = parseInt(numQuestionsSelect.value);
     
+    const quickMode = document.getElementById('quick-mode-toggle').checked;
+    selectedTime = quickMode ? timer.quick : timer.long;
+    timeLeft = selectedTime;
+    totalTimeLeft = 10 * selectedTime;
+
     scoreEl.textContent = '0';
     questionCounterEl.textContent = `0/${selectedQuestions}`;
     updateTimerDisplay(selectedQuestions * selectedTime, totalTimerEl);
@@ -505,10 +489,11 @@ function restartGame() {
 function showSummary() {
     const timeUsed = (selectedQuestions * selectedTime) - totalTimeLeft;
     const correctCount = answersLog.filter(a => a.isCorrect).length;
+    const percentage = Math.round((correctCount / selectedQuestions) * 100);
 
     summaryScreen.innerHTML = `
-        <h2>Game Report</h2>
-        <div class="performance-card compact">
+        <div class="card performance-card compact">
+            <h2>Game Report</h2>
             <div class="stats-row">
                 <div class="stat-item correct">
                     <span class="material-icons">check_circle</span>
@@ -522,6 +507,13 @@ function showSummary() {
                     <div>
                         <h3>${formatTimeDisplay(timeUsed)}</h3>
                         <small>Total Time</small>
+                    </div>
+                </div>
+                <div class="stat-item percentage">
+                    <span class="material-icons">percent</span>
+                    <div>
+                        <h3>${percentage}%</h3>
+                        <small>Success Rate</small>
                     </div>
                 </div>
             </div>
@@ -718,7 +710,6 @@ document.querySelectorAll('.category-card').forEach(card => {
             c.classList.remove('active')
         );
         this.classList.add('active');
-        updateDifficultyDisplay(category);
         
         // Show loading indicator
         toggleLoading(true);
@@ -726,7 +717,7 @@ document.querySelectorAll('.category-card').forEach(card => {
 
         try {
             // Fetch questions
-            questions = await fetchQuestions(category, 'any', 10);
+            questions = await fetchQuestions(category);
             
             if (questions.length === 0) {
                 throw new Error('No questions found for this category');
@@ -740,8 +731,11 @@ document.querySelectorAll('.category-card').forEach(card => {
             currentQuestion = 0;
             score = 0;
             answersLog = [];
-            timeLeft = 15;
-            totalTimeLeft = 10 * 15;
+            
+            // Initialize game state with time from toggle
+            const quickMode = document.getElementById('quick-mode-toggle').checked;
+            timeLeft = quickMode ? timer.quick : timer.long;
+            totalTimeLeft = 10 * timeLeft;
             
             showQuestion();
             

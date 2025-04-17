@@ -82,7 +82,7 @@
     <meta property="og:image" content="https://triviaah.com/trivia-preview.jpg">
     
     <title>Triviaah Master</title>
-    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -98,39 +98,22 @@
             <div class="screen setup-screen active">
               
                 <div class="logo-container">
-                    <svg class="logo" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#e22b5a;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#46178f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e22b5a;stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <path d="M20,50 Q50,20 80,50 T140,50" fill="none" stroke="url(#logoGradient)" stroke-width="2"/>
-                        <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="url(#logoGradient)" 
-                        font-family="Poppins" font-weight="700" font-size="40">
-                        TRIVIAAH
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
-                        </text>
-                        <path d="M320,30 L340,50 L360,30" fill="#ffd700" stroke="#fff" stroke-width="2" 
-                        transform="rotate(30 340 40)">
-                        <animateTransform attributeName="transform" type="rotate" from="0 340 40" to="360 340 40" 
-                                    dur="4s" repeatCount="indefinite"/>
-                        </path>
-                    </svg>
+                   <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
                 </div>
-                
+               
                 <div class="setup-card">
                     <div class="setting-group">
                         <div class="setting-label">
-                            <span class="material-icons">speed</span>
-                            DIFFICULTY LEVEL
+                            <span class="material-icons">timer</span>
+                            QUESTION TIMER
                         </div>
-                        <div class="current-difficulty">
-                            <span id="current-difficulty-level">Beginner</span>
-                            <div class="difficulty-meter">
-                                <div class="meter-fill" id="difficulty-meter-fill"></div>
-                            </div>
+                        <div class="time-toggle-container">
+                            <span id="normal-timer" value="60">Normal (60s)</span>
+                            <label class="time-toggle-switch">
+                                <input type="checkbox" id="quick-mode-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                            <span id="quick-timer" seconds="30">Quick (30s)</span>
                         </div>
                     </div>
                     <!-- Replace the category select section with this -->
@@ -141,13 +124,13 @@
                         </div>
 
                         <div class="setting-label">
-                            <span class="material-icons">category</span>
+                            <span class="material-icons">topic</span>
                             SELECT CATEGORY
                         </div>
                         <div class="category-grid">
-                            <div class="category-card" data-category="Mix-n-Match">
-                                <span class="material-icons">shuffle</span>
-                                <span>Mix-n-Match</span>
+                            <div class="category-card" data-category="General Knowledge">
+                                <span class="material-icons">lightbulb</span>
+                                <span>General Knowledge</span>
                             </div>
                             <div class="category-card" data-category="Geography">
                                 <span class="material-icons">public</span>
@@ -266,7 +249,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         </script>
-        <script src="scripts/app.js"></script>
-        <script src="scripts/router.js"></script>
+        <script src="/scripts/app.js"></script>
+        <script src="/scripts/router.js"></script>
     </body>
 </html>

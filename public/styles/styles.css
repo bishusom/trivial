@@ -124,6 +124,9 @@ body {
     .nav-link span {
         display: none;
     }
+    .category-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 @media (max-width: 480px) {
@@ -140,6 +143,17 @@ body {
     .nav-link svg {
         width: 16px;
         height: 16px;
+    }
+    .category-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .category-card {
+        padding: 1rem 0.5rem;
+    }
+    
+    .category-card .material-icons {
+        font-size: 2rem;
     }
 }
 /* ================ */
@@ -160,7 +174,6 @@ body {
 .setup-card {
     padding: 1.5rem !important; /* Reduced padding */
 }
-
 /* Mobile optimization */
 @media (max-width: 480px) {
     .logo-container {
@@ -216,6 +229,48 @@ body {
     border-radius: 12px;
     color: white;
     font-size: 1rem;
+}
+
+/* Category Cards */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.category-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1.5rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.15);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.category-card.active {
+    border-color: var(--accent-color);
+    background: rgba(255,215,0,0.1);
+}
+
+.category-card .material-icons {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+}
+
+.category-card span:last-child {
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .difficulty-picker {
@@ -297,6 +352,34 @@ body {
     background: rgba(255,255,255,0.2);
 }
 
+/* Difficulty Meter */
+.current-difficulty {
+    background: rgba(255,255,255,0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+.difficulty-meter {
+    height: 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.meter-fill {
+    height: 100%;
+    width: 20%;
+    background: linear-gradient(90deg, #80e6a3, #ffd700);
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+#current-difficulty-level {
+    font-weight: 600;
+    color: var(--accent-color);
+}
 /* Mobile Optimization */
 @media (max-width: 480px) {
     .difficulty-pill {

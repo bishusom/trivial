@@ -38,8 +38,8 @@ const audioElements = {
 // Game State
 // ======================
 let isMuted = false;
-let selectedQuestions = 10;
-let selectedTime = 15;
+//let selectedQuestions = 10;
+//let selectedTime = 15;
 let selectedDifficulty = 'easy'
 let questions = [];
 let currentQuestion = 0;
@@ -75,63 +75,95 @@ function initCache() {
     }
 }
 
-async function initCategories() {
-    // Check cache first
-    const now = Date.now();
-    const cachedCategories = localStorage.getItem(CATEGORY_CACHE_KEY);
+
+// Progressive timing based on player skill
+function calculateTimePerQuestion(category) {
+    const progress = getCategoryProgress(category);
+    const plays = progress.plays || 0;
     
-    if (cachedCategories) {
-        const { data, timestamp } = JSON.parse(cachedCategories);
-        if (now - timestamp < CACHE_EXPIRY) {
-            populateCategorySelect(data);
-            return;
-        }
-    }
+    // Base time
+    let baseTime = 15; // seconds
     
-    // If no valid cache, fetch from Firestore
-    try {
-        categorySelect.disabled = true;
-        categorySelect.innerHTML = '<option>Loading categories...</option>';
-        
-        const snapshot = await db.collection('questions').get();
-        const categories = new Set(['All Categories']);
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.category) {
-                categories.add(data.category);
-            }
-        });
-        
-        const categoryArray = Array.from(categories).sort();
-        
-        // Update cache
-        localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify({
-            data: categoryArray,
-            timestamp: now
-        }));
-        
-        populateCategorySelect(categoryArray);
-        
-    } catch (error) {
-        console.error('Error loading categories:', error);
-        populateCategorySelect([
-            'All Categories',
-            'General Knowledge',
-            'Science',
-            'History',
-            'Geography'
-        ]);
-    } finally {
-        categorySelect.disabled = false;
-    }
+    // Reduce time as player gets better
+    if (plays >= 3) baseTime = 12;
+    if (plays >= 5) baseTime = 10;
+    if (plays >= 10) baseTime = 8;
+    if (plays >= 15) baseTime = 5;
+    
+    return baseTime;
 }
 
-function populateCategorySelect(categories) {
-    categorySelect.innerHTML = categories.map(cat => 
-        `<option value="${cat === 'All Categories' ? '' : cat}">${cat}</option>`
-    ).join('');
+function updateDifficultyDisplay(category) {
+    const progress = getCategoryProgress(category);
+    const plays = progress.plays || 0;
+    const meter = document.getElementById('difficulty-meter-fill');
+    const levelText = document.getElementById('current-difficulty-level');
+    
+    let level = "Beginner";
+    let percent = 20;
+    
+    if (plays >= 3) {
+        level = "Intermediate";
+        percent = 40;
+    }
+    if (plays >= 5) {
+        level = "Advanced";
+        percent = 60;
+    }
+    if (plays >= 10) {
+        level = "Expert";
+        percent = 80;
+    }
+    if (plays >= 15) {
+        level = "Master";
+        percent = 100;
+    }
+    
+    meter.style.width = `${percent}%`;
+    levelText.textContent = level;
 }
+
+// Track player progress per category
+function getCategoryProgress(category) {
+    const progress = JSON.parse(localStorage.getItem('categoryProgress')) || {};
+    return progress[category] || { plays: 0, highScore: 0 };
+}
+
+function updateCategoryProgress(category, score) {
+    const progress = JSON.parse(localStorage.getItem('categoryProgress')) || {};
+    const current = getCategoryProgress(category);
+    
+    progress[category] = {
+        plays: current.plays + 1,
+        highScore: Math.max(current.highScore, score)
+    };
+    
+    localStorage.setItem('categoryProgress', JSON.stringify(progress));
+    return progress[category];
+}
+
+// Calculate dynamic difficulty mix
+function getDifficultyMix(category) {
+    const progress = getCategoryProgress(category);
+    const plays = progress.plays || 0;
+    
+    // Base mix (60% easy, 30% medium, 10% hard)
+    let mix = { easy: 0.6, medium: 0.3, hard: 0.1 };
+    
+    // Adjust based on plays
+    if (plays >= 3) {
+        mix = { easy: 0.4, medium: 0.4, hard: 0.2 };
+    }
+    if (plays >= 5) {
+        mix = { easy: 0.3, medium: 0.4, hard: 0.3 };
+    }
+    if (plays >= 10) {
+        mix = { easy: 0.2, medium: 0.4, hard: 0.4 };
+    }
+    
+    return mix;
+}
+
 
 async function fetchQuestions(category, difficulty, amount) {
     try {
@@ -231,9 +263,8 @@ function startTimer() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
     
-    timeLeft = selectedTime;
-    totalTimeLeft = selectedQuestions * selectedTime;
-
+    // No need to set timeLeft here - it's set before calling this function
+    
     // Reset and start sounds
     if (audioElements.tick) {
         audioElements.tick.loop = true;
@@ -362,7 +393,7 @@ nextBtn?.addEventListener('click', () => {
     }
 });
 
-// In endGame function
+//endGame function
 function endGame() {
     safeClassToggle(mainNav, 'add', 'hidden');
     clearInterval(timerId);
@@ -373,6 +404,14 @@ function endGame() {
     
     // Hide start button in end game
     safeClassToggle(startBtn, 'add', 'hidden');
+    
+    // Get selected category
+    const selectedCard = document.querySelector('.category-card.active');
+    const category = selectedCard ? selectedCard.dataset.category : 'Mix-n-Match';
+    
+    // Update category progress
+    updateCategoryProgress(category, score);
+    
     showSummary();
     saveHighScore();
 }
@@ -637,18 +676,74 @@ document.addEventListener('click', (e) => {
     }
 });
 
-document.querySelectorAll('.difficulty-pill').forEach(btn => {
-    btn.addEventListener('click', function() {
-        // Remove active class from all buttons
-        document.querySelectorAll('.difficulty-pill').forEach(b => 
-            b.classList.remove('active')
+// Replace existing category select initialization with:
+document.querySelectorAll('.category-card').forEach(card => {
+    card.addEventListener('dblclick', async function() {
+        const category = this.dataset.category;
+        const progress = getCategoryProgress(category);
+        
+        // Update UI
+        document.querySelectorAll('.category-card').forEach(c => 
+            c.classList.remove('active')
         );
-        
-        // Add active class to clicked button
         this.classList.add('active');
+        updateDifficultyDisplay(category);
         
-        // Update selected difficulty
-        selectedDifficulty = this.dataset.difficulty;
+        // Set fixed 10 questions
+        const totalQuestions = 10;
+        
+        // Calculate dynamic difficulty mix
+        const difficultyMix = getDifficultyMix(category);
+        
+        // Calculate adaptive timing
+        const timePerQuestion = calculateTimePerQuestion(category);
+        
+        // Prepare game state
+        safeClassToggle(mainNav, 'add', 'hidden');
+        safeClassToggle(startBtn, 'add', 'hidden');
+        startBtn.disabled = true;
+        
+        try {
+            // Fetch questions for each difficulty
+            const easyQuestions = category === 'Mix-n-Match' 
+                ? await fetchQuestions('', 'easy', Math.floor(totalQuestions * difficultyMix.easy))
+                : await fetchQuestions(category, 'easy', Math.floor(totalQuestions * difficultyMix.easy));
+            
+            const mediumQuestions = category === 'Mix-n-Match' 
+                ? await fetchQuestions('', 'medium', Math.floor(totalQuestions * difficultyMix.medium))
+                : await fetchQuestions(category, 'medium', Math.floor(totalQuestions * difficultyMix.medium));
+            
+            const hardQuestions = category === 'Mix-n-Match' 
+                ? await fetchQuestions('', 'hard', Math.floor(totalQuestions * difficultyMix.hard))
+                : await fetchQuestions(category, 'hard', Math.floor(totalQuestions * difficultyMix.hard));
+            
+            // Combine and shuffle all questions
+            questions = shuffleArray([
+                ...easyQuestions,
+                ...mediumQuestions,
+                ...hardQuestions
+            ]).slice(0, totalQuestions);
+            
+            if (questions.length) {
+                safeClassToggle(highscores, 'add', 'hidden');
+                safeClassToggle(setupScreen, 'remove', 'active');
+                safeClassToggle(gameScreen, 'add', 'active');
+                currentQuestion = 0;
+                score = 0;
+                answersLog = [];
+                
+                // Set adaptive timing
+                timeLeft = timePerQuestion;
+                totalTimeLeft = totalQuestions * timePerQuestion;
+                
+                // Shuffle options for the first question
+                questions[0].options = shuffle(questions[0].options);
+                showQuestion();
+            }
+        } finally {
+            startBtn.disabled = false;
+            safeClassToggle(startBtn, 'remove', 'hidden');
+        }
     });
 });
 

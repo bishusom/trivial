@@ -121,17 +121,51 @@
                 </div>
                 
                 <div class="setup-card">
-                    <div class="settings-grid">
-                        <!-- Category Selector -->
-                        <div class="setting-group">
-                            <div class="setting-label">
-                                <span class="material-icons">category</span>
-                                CATEGORY
-                            </div>
-                            <select id="category" class="styled-select">
-                                <option value="">All Categories</option>
-                            </select>
+                    <!-- Replace the category select section with this -->
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span class="material-icons">category</span>
+                            SELECT CATEGORY
                         </div>
+                        <div class="category-grid">
+                            <div class="category-card" data-category="Mix-n-Match">
+                                <span class="material-icons">shuffle</span>
+                                <span>Mix-n-Match</span>
+                            </div>
+                            <div class="category-card" data-category="Geography">
+                                <span class="material-icons">public</span>
+                                <span>Geography</span>
+                            </div>
+                            <div class="category-card" data-category="Science">
+                                <span class="material-icons">science</span>
+                                <span>Science</span>
+                            </div>
+                            <div class="category-card" data-category="Literature">
+                                <span class="material-icons">menu_book</span>
+                                <span>Literature</span>
+                            </div>
+                            <div class="category-card" data-category="History">
+                                <span class="material-icons">history</span>
+                                <span>History</span>
+                            </div>
+                            <div class="category-card" data-category="Movie">
+                                <span class="material-icons">movie</span>
+                                <span>Movie</span>
+                            </div>
+                            <div class="category-card" data-category="Music">
+                                <span class="material-icons">music_note</span>
+                                <span>Music</span>
+                            </div>
+                            <div class="category-card" data-category="Animals">
+                                <span class="material-icons">pets</span>
+                                <span>Animals</span>
+                            </div>
+                            <div class="category-card" data-category="Politics">
+                                <span class="material-icons">gavel</span>
+                                <span>Politics</span>
+                            </div>
+                        </div>
+                    </div>
 
                         <!-- Difficulty Picker -->
                         <div class="setting-group">
@@ -146,35 +180,19 @@
                             </div>    
                         </div>
 
-                        <!-- Questions & Time Settings -->
-                        <div class="dual-settings">
-                            <div class="setting-group compact">
-                                <div class="setting-label">
-                                    <span class="material-icons">format_list_numbered</span>
-                                    QUESTIONS
-                                </div>
-                                <select id="num-questions" class="styled-select">
-                                    <option value="5">5 (Quick Play)</option>
-                                    <option value="10" selected>10 (Standard)</option>
-                                    <option value="15">15 (Extended)</option>
-                                    <option value="20">20 (Marathon)</option>
-                                </select>
+                        <div class="setting-group">
+                            <div class="setting-label">
+                                <span class="material-icons">speed</span>
+                                DIFFICULTY LEVEL
                             </div>
-
-                            <div class="setting-group compact">
-                                <div class="setting-label">
-                                    <span class="material-icons">timer</span>
-                                    TIME PER QUESTION
+                            <div class="current-difficulty">
+                                <span id="current-difficulty-level">Beginner</span>
+                                <div class="difficulty-meter">
+                                    <div class="meter-fill" id="difficulty-meter-fill"></div>
                                 </div>
-                                <select id="time-per-question" class="styled-select">
-                                    <option value="5">5 seconds</option>
-                                    <option value="10" selected>10 seconds</option>
-                                    <option value="15">15 seconds</option>
-                                </select>
                             </div>
                         </div>
-                    </div>
-                </div>
+                        
                 <!-- Start Button -->
                 <button id="start-btn" class="btn primary launch-btn">
                 <span class="material-icons">rocket_launch</span>

@@ -5,7 +5,6 @@
  * - Compact summary screen
  * - Optimized code structure
  * - Better error handling
- * - Random questions fetched each game
  */
 
 // ======================
@@ -135,91 +134,84 @@ function populateCategorySelect(categories) {
 }
 
 async function fetchQuestions(category, difficulty, amount) {
-    // Initialize cache if needed
-    initCache();
-    
-    const now = Date.now();
-    
     try {
         let query = db.collection('questions');
         
-        // Apply filters for category and difficulty
+        // Apply filters if specified
         if (category) query = query.where('category', '==', category);
         if (difficulty && difficulty !== 'any') {
             query = query.where('difficulty', '==', difficulty);
         }
+
+        query = query.orderBy('randomField', 'asc').limit(amount * 3);
         
-        // Fetch all matching documents
+        // Get ALL matching questions first
         const snapshot = await query.get();
-        let allQuestions = snapshot.docs.map(doc => {
+        
+        if (snapshot.empty) {
+            console.log('No matching questions.');
+            return [];
+        }
+        
+        // Convert to array and shuffle
+        let questions = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
                 id: doc.id,
                 question: decodeHTML(data.question),
                 correct: decodeHTML(data.correct_answer),
-                options: shuffle([
+                options: [
                     ...(data.incorrect_answers || []).map(decodeHTML),
                     decodeHTML(data.correct_answer)
-                ]),
+                ],
                 category: data.category || 'General',
                 difficulty: data.difficulty || 'medium'
             };
         });
         
-        // Shuffle and limit to the requested amount
-        allQuestions = shuffle(allQuestions);
-        const selectedQuestions = allQuestions.slice(0, parseInt(amount));
+        // Shuffle the entire question set
+        questions = shuffleArray(questions);
         
-        // Update cache with new questions
-        const cache = JSON.parse(localStorage.getItem(QUESTION_CACHE_KEY));
-        const updatedCache = {
-            data: { ...cache.data },
-            timestamp: now
-        };
-        
-        selectedQuestions.forEach(q => {
-            updatedCache.data[q.id] = q;
-        });
-        
-        localStorage.setItem(QUESTION_CACHE_KEY, JSON.stringify(updatedCache));
-        
-        return selectedQuestions;
+        // Then take the requested amount
+        return questions.slice(0, amount);
         
     } catch (error) {
         console.error('Error fetching questions:', error);
-        // Fallback to cache if Firestore fails
-        const cache = JSON.parse(localStorage.getItem(QUESTION_CACHE_KEY));
-        const cachedQuestions = Object.values(cache.data);
-        let filtered = cachedQuestions;
-        if (category) filtered = filtered.filter(q => q.category === category);
-        if (difficulty && difficulty !== 'any') {
-            filtered = filtered.filter(q => q.difficulty === difficulty);
-        }
-        return shuffle(filtered).slice(0, amount);
+        return [];
     }
+}
+
+// Improved shuffle function
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
 }
 
 function showQuestion() {
     // Clear previous question background
-    const questionElement = document.getElementById('question');
-    questionElement.classList.remove('correct-bg', 'wrong-bg');
+    questionEl.classList.remove('correct-bg', 'wrong-bg');
 
     // Update question counter
     questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
 
-    if (!questions || !questions[currentQuestion]) {
-        console.error('Invalid question index or empty questions array');
+    if (!questions[currentQuestion]) {
+        console.error('Invalid question index');
         endGame();
         return;
     }
 
     const question = questions[currentQuestion];
-    const questionText = decodeHTML(question?.question || 'Question not available');
-    const category = question?.category || 'General';
+    
+    // Shuffle options for THIS question
+    question.options = shuffle(question.options);
     
     questionEl.innerHTML = `
-        <div class="question-text">${questionText}</div>
-        <div class="question-category">${category}</div>
+        <div class="question-text">${question.question}</div>
+        <div class="question-category">${question.category}</div>
     `;
 
     optionsEl.innerHTML = question.options.map((option, i) => `
@@ -295,6 +287,7 @@ function stopSound(type) {
         audio.currentTime = 0;
     }
 }
+
 
 // ======================
 // Answer Handling
@@ -386,7 +379,10 @@ function endGame() {
 
 // In restartGame function
 function restartGame() {
-    safeClassToggle(mainNav, 'remove', 'hidden'); // Show nav
+    // Clear the current questions array to force fresh fetch
+    questions = [];
+    
+    safeClassToggle(mainNav, 'remove', 'hidden');
     currentQuestion = 0;
     score = 0;
     answersLog = [];
@@ -396,17 +392,19 @@ function restartGame() {
     questionCounterEl.textContent = `0/${selectedQuestions}`;
     updateTimerDisplay(selectedQuestions * selectedTime, totalTimerEl);
     
-    // Show setup screen and start button
     safeClassToggle(gameScreen, 'remove', 'active');
     safeClassToggle(summaryScreen, 'remove', 'active');
     safeClassToggle(setupScreen, 'add', 'active');
-    safeClassToggle(startBtn, 'remove', 'hidden'); // Show start button
+    safeClassToggle(startBtn, 'remove', 'hidden');
     safeClassToggle(highscores, 'add', 'hidden');
+    
+    localStorage.removeItem(QUESTION_CACHE_KEY);
+
     gtag('event', 'start_game', {
         category: 'Gameplay',
         difficulty: selectedDifficulty,
         questions: selectedQuestions
-      });
+    });
 }
 
 // Summary Screen
@@ -450,7 +448,7 @@ function saveHighScore() {
     
     const minScore = Math.min(...highScores.map(h => h.score));
     if (highScores.length < 5 || score > minScore) {
-        const name = prompt('Enter your name for local records:', 'Anonymous') || 'Anonymous';
+        const name = prompt('Enter your name for local records::', 'Anonymous') || 'Anonymous';
         highScores = [...highScores, { name, score }]
             .sort((a, b) => b.score - a.score)
             .slice(0, 5);
@@ -574,10 +572,12 @@ startBtn.addEventListener('click', async () => {
     try {
         safeClassToggle(mainNav, 'add', 'hidden');
         safeClassToggle(startBtn, 'add', 'hidden');
-        selectedQuestions = parseInt(numQuestions FramingInterfaceSelect.value);
+        selectedQuestions = parseInt(numQuestionsSelect.value);
         selectedTime = parseInt(timePerQuestionSelect.value);
         
         startBtn.disabled = true;
+        
+        // Force fresh fetch by not reusing existing questions
         questions = await fetchQuestions(
             categorySelect.value,
             selectedDifficulty,
@@ -591,6 +591,9 @@ startBtn.addEventListener('click', async () => {
             currentQuestion = 0;
             score = 0;
             answersLog = [];
+            
+            // Shuffle options for the first question
+            questions[0].options = shuffle(questions[0].options);
             showQuestion();
         }
     } finally {
@@ -659,12 +662,12 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
     }
   });
   
-// Optional toast notification
-function showToast(message, icon = 'ℹ️') {
+  // Optional toast notification
+  function showToast(message, icon = 'ℹ️') {
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.innerHTML = `${icon} ${message}`;
     document.body.appendChild(toast);
     
     setTimeout(() => toast.remove(), 2000);
-}
+  }

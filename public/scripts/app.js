@@ -174,10 +174,33 @@ function toggleLoading(show) {
 }
 
 function showError(message) {
-    const errorDiv = document.getElementById('error-message');
+    // Ensure error element exists
+    let errorDiv = document.getElementById('error-message');
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.id = 'error-message';
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <div id="error-text"></div>
+            <button id="retry-btn" class="btn small primary">Retry</button>
+        `;
+        setupScreen.appendChild(errorDiv);
+    }
+
     const errorText = document.getElementById('error-text');
-    errorText.textContent = message;
+    if (errorText) {
+        errorText.textContent = message;
+    }
+    
     errorDiv.classList.remove('hidden');
+    
+    // Add retry button handler
+    document.getElementById('retry-btn')?.addEventListener('click', () => {
+        const activeCard = document.querySelector('.category-card.active');
+        if (activeCard) {
+            activeCard.dispatchEvent(new Event('dblclick'));
+        }
+    });
 }
 
 function hideError() {
@@ -188,40 +211,58 @@ async function fetchQuestions(category, difficulty, amount) {
     try {
         let query = db.collection('questions');
         
-        if (category) query = query.where('category', '==', category);
+        // Only apply category filter if it's not 'Mix-n-Match'
+        if (category && category !== 'Mix-n-Match') {
+            query = query.where('category', '==', category);
+        }
+        
+        // Apply difficulty filter if specified
         if (difficulty && difficulty !== 'any') {
             query = query.where('difficulty', '==', difficulty);
         }
 
-        query = query.orderBy('randomField', 'asc').limit(amount * 3);
-        
-        const snapshot = await query.get();
+        // Get the snapshot
+        const snapshot = await query.limit(amount * 3).get();
         
         if (snapshot.empty) {
-            throw new Error('No questions found for selected criteria');
+            // Try a more general query if no results found
+            const fallbackQuery = db.collection('questions')
+                                  .where('category', '==', category)
+                                  .limit(amount * 3);
+            const fallbackSnapshot = await fallbackQuery.get();
+            
+            if (fallbackSnapshot.empty) {
+                throw new Error('No questions available for this category');
+            }
+            
+            return processQuestions(fallbackSnapshot);
         }
         
-        const questions = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                question: decodeHTML(data.question),
-                correct: decodeHTML(data.correct_answer),
-                options: [
-                    ...(data.incorrect_answers || []).map(decodeHTML),
-                    decodeHTML(data.correct_answer)
-                ],
-                category: data.category || 'General',
-                difficulty: data.difficulty || 'medium'
-            };
-        });
-        
-        return shuffleArray(questions).slice(0, amount);
+        return processQuestions(snapshot);
         
     } catch (error) {
         console.error('Error fetching questions:', error);
-        throw new Error('Failed to load questions from server');
+        throw error;
     }
+}
+
+function processQuestions(snapshot) {
+    const questions = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            question: decodeHTML(data.question),
+            correct: decodeHTML(data.correct_answer),
+            options: shuffleArray([
+                ...(data.incorrect_answers || []).map(decodeHTML),
+                decodeHTML(data.correct_answer)
+            ]),
+            category: data.category || 'General',
+            difficulty: data.difficulty || 'medium'
+        };
+    });
+    
+    return shuffleArray(questions).slice(0, Math.min(questions.length, 10));
 }
 
 function decodeHTML(text) {
@@ -659,8 +700,19 @@ document.addEventListener('click', (e) => {
 document.querySelectorAll('.category-card').forEach(card => {
     card.addEventListener('dblclick', async function() {
         const category = this.dataset.category;
-        const progress = getCategoryProgress(category);
         
+        // Create error message element if it doesn't exist
+        if (!document.getElementById('error-message')) {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'error-message';
+            errorDiv.className = 'error-message hidden';
+            errorDiv.innerHTML = `
+                <div id="error-text"></div>
+                <button id="retry-btn" class="btn small primary">Retry</button>
+            `;
+            setupScreen.appendChild(errorDiv);
+        }
+
         // Update UI
         document.querySelectorAll('.category-card').forEach(c => 
             c.classList.remove('active')
@@ -668,62 +720,34 @@ document.querySelectorAll('.category-card').forEach(card => {
         this.classList.add('active');
         updateDifficultyDisplay(category);
         
-        // Set fixed 10 questions
-        const totalQuestions = 10;
-        
-        // Calculate dynamic difficulty mix
-        const difficultyMix = getDifficultyMix(category);
-        
-        // Calculate adaptive timing
-        const timePerQuestion = calculateTimePerQuestion(category);
-        
-        // Prepare game state
-        safeClassToggle(mainNav, 'add', 'hidden');
-        
         // Show loading indicator
         toggleLoading(true);
+        hideError();
 
         try {
-            // Fetch questions for each difficulty
-            const easyQuestions = category === 'Mix-n-Match' 
-                ? await fetchQuestions('', 'easy', Math.floor(totalQuestions * difficultyMix.easy))
-                : await fetchQuestions(category, 'easy', Math.floor(totalQuestions * difficultyMix.easy));
+            // Fetch questions
+            questions = await fetchQuestions(category, 'any', 10);
             
-            const mediumQuestions = category === 'Mix-n-Match' 
-                ? await fetchQuestions('', 'medium', Math.floor(totalQuestions * difficultyMix.medium))
-                : await fetchQuestions(category, 'medium', Math.floor(totalQuestions * difficultyMix.medium));
-            
-            const hardQuestions = category === 'Mix-n-Match' 
-                ? await fetchQuestions('', 'hard', Math.floor(totalQuestions * difficultyMix.hard))
-                : await fetchQuestions(category, 'hard', Math.floor(totalQuestions * difficultyMix.hard));
-            
-            // Combine and shuffle all questions
-            questions = shuffleArray([
-                ...easyQuestions,
-                ...mediumQuestions,
-                ...hardQuestions
-            ]).slice(0, totalQuestions);
-            
-            if (questions.length) {
-                safeClassToggle(highscores, 'add', 'hidden');
-                safeClassToggle(setupScreen, 'remove', 'active');
-                safeClassToggle(gameScreen, 'add', 'active');
-                currentQuestion = 0;
-                score = 0;
-                answersLog = [];
-                
-                // Set adaptive timing
-                timeLeft = timePerQuestion;
-                totalTimeLeft = totalQuestions * timePerQuestion;
-                
-                // Shuffle options for the first question
-                questions[0].options = shuffle(questions[0].options);
-                showQuestion();
+            if (questions.length === 0) {
+                throw new Error('No questions found for this category');
             }
+
+            // Initialize game state
+            safeClassToggle(highscores, 'add', 'hidden');
+            safeClassToggle(setupScreen, 'remove', 'active');
+            safeClassToggle(gameScreen, 'add', 'active');
+            
+            currentQuestion = 0;
+            score = 0;
+            answersLog = [];
+            timeLeft = 15;
+            totalTimeLeft = 10 * 15;
+            
+            showQuestion();
+            
         } catch (error) {
-            toggleLoading(false);
-            showError("Failed to load questions. Please try again.");
             console.error('Error starting game:', error);
+            showError(error.message || "Failed to load questions. Please try again.");
         } finally {
             toggleLoading(false);
         }

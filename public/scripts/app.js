@@ -5,6 +5,8 @@
  * - Compact summary screen
  * - Optimized code structure
  * - Better error handling
+ * - Adaptive difficulty
+ * - Performance improvements
  */
 
 // ======================
@@ -18,7 +20,6 @@ const categorySelect = document.getElementById('category');
 const difficultyPicker = document.getElementById('difficulty');
 const numQuestionsSelect = document.getElementById('num-questions');
 const timePerQuestionSelect = document.getElementById('time-per-question');
-const startBtn = document.getElementById('start-btn');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('next-btn');
@@ -38,9 +39,7 @@ const audioElements = {
 // Game State
 // ======================
 let isMuted = false;
-//let selectedQuestions = 10;
-//let selectedTime = 15;
-let selectedDifficulty = 'easy'
+let selectedDifficulty = 'easy';
 let questions = [];
 let currentQuestion = 0;
 let score = 0;
@@ -52,6 +51,8 @@ let highScores = JSON.parse(localStorage.getItem('highScores')) || [];
 let answersLog = [];
 let isScoreSaved = false;
 let isNextQuestionPending = false;
+let selectedQuestions = 10;
+let selectedTime = 15;
 
 // ======================
 // Core Functions
@@ -74,7 +75,6 @@ function initCache() {
         }));
     }
 }
-
 
 // Progressive timing based on player skill
 function calculateTimePerQuestion(category) {
@@ -164,12 +164,30 @@ function getDifficultyMix(category) {
     return mix;
 }
 
+function toggleLoading(show) {
+    const loader = document.getElementById('loading-indicator');
+    if (show) {
+        loader.classList.remove('hidden');
+    } else {
+        loader.classList.add('hidden');
+    }
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    errorText.textContent = message;
+    errorDiv.classList.remove('hidden');
+}
+
+function hideError() {
+    document.getElementById('error-message').classList.add('hidden');
+}
 
 async function fetchQuestions(category, difficulty, amount) {
     try {
         let query = db.collection('questions');
         
-        // Apply filters if specified
         if (category) query = query.where('category', '==', category);
         if (difficulty && difficulty !== 'any') {
             query = query.where('difficulty', '==', difficulty);
@@ -177,16 +195,13 @@ async function fetchQuestions(category, difficulty, amount) {
 
         query = query.orderBy('randomField', 'asc').limit(amount * 3);
         
-        // Get ALL matching questions first
         const snapshot = await query.get();
         
         if (snapshot.empty) {
-            console.log('No matching questions.');
-            return [];
+            throw new Error('No questions found for selected criteria');
         }
         
-        // Convert to array and shuffle
-        let questions = snapshot.docs.map(doc => {
+        const questions = snapshot.docs.map(doc => {
             const data = doc.data();
             return {
                 id: doc.id,
@@ -201,15 +216,11 @@ async function fetchQuestions(category, difficulty, amount) {
             };
         });
         
-        // Shuffle the entire question set
-        questions = shuffleArray(questions);
-        
-        // Then take the requested amount
-        return questions.slice(0, amount);
+        return shuffleArray(questions).slice(0, amount);
         
     } catch (error) {
         console.error('Error fetching questions:', error);
-        return [];
+        throw new Error('Failed to load questions from server');
     }
 }
 
@@ -262,8 +273,6 @@ function showQuestion() {
 function startTimer() {
     clearInterval(timerId);
     clearInterval(totalTimerId);
-    
-    // No need to set timeLeft here - it's set before calling this function
     
     // Reset and start sounds
     if (audioElements.tick) {
@@ -319,7 +328,6 @@ function stopSound(type) {
     }
 }
 
-
 // ======================
 // Answer Handling
 // ======================
@@ -329,11 +337,13 @@ function checkAnswer(isCorrect) {
     stopSound('tick');
     playSound(isCorrect ? 'correct' : 'wrong');
 
-    gtag('event', 'answer', {
-        category: 'Gameplay',
-        correct: isCorrect,
-        question_number: currentQuestion
-      });
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'answer', {
+            category: 'Gameplay',
+            correct: isCorrect,
+            question_number: currentQuestion
+        });
+    }
       
     if (!questions[currentQuestion]) return;
     clearInterval(timerId);
@@ -358,7 +368,7 @@ function checkAnswer(isCorrect) {
 
     if (currentQuestion < selectedQuestions - 1) {
         nextBtn.classList.add('visible');
-        isNextQuestionPending = true; // Track pending state
+        isNextQuestionPending = true;
         autoProceedTimeout = setTimeout(() => {
             if (isNextQuestionPending) {
                 handleNextQuestion();
@@ -402,9 +412,6 @@ function endGame() {
     safeClassToggle(summaryScreen, 'add', 'active');
     safeClassToggle(highscores, 'remove', 'hidden');
     
-    // Hide start button in end game
-    safeClassToggle(startBtn, 'add', 'hidden');
-    
     // Get selected category
     const selectedCard = document.querySelector('.category-card.active');
     const category = selectedCard ? selectedCard.dataset.category : 'Mix-n-Match';
@@ -434,16 +441,17 @@ function restartGame() {
     safeClassToggle(gameScreen, 'remove', 'active');
     safeClassToggle(summaryScreen, 'remove', 'active');
     safeClassToggle(setupScreen, 'add', 'active');
-    safeClassToggle(startBtn, 'remove', 'hidden');
     safeClassToggle(highscores, 'add', 'hidden');
     
     localStorage.removeItem(QUESTION_CACHE_KEY);
 
-    gtag('event', 'start_game', {
-        category: 'Gameplay',
-        difficulty: selectedDifficulty,
-        questions: selectedQuestions
-    });
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'start_game', {
+            category: 'Gameplay',
+            difficulty: selectedDifficulty,
+            questions: selectedQuestions
+        });
+    }
 }
 
 // Summary Screen
@@ -487,7 +495,7 @@ function saveHighScore() {
     
     const minScore = Math.min(...highScores.map(h => h.score));
     if (highScores.length < 5 || score > minScore) {
-        const name = prompt('Enter your name for local records::', 'Anonymous') || 'Anonymous';
+        const name = prompt('Enter your name for local records:', 'Anonymous') || 'Anonymous';
         highScores = [...highScores, { name, score }]
             .sort((a, b) => b.score - a.score)
             .slice(0, 5);
@@ -607,40 +615,6 @@ function shuffle(array) {
 // ======================
 // Event Listeners
 // ======================
-startBtn.addEventListener('click', async () => {
-    try {
-        safeClassToggle(mainNav, 'add', 'hidden');
-        safeClassToggle(startBtn, 'add', 'hidden');
-        selectedQuestions = parseInt(numQuestionsSelect.value);
-        selectedTime = parseInt(timePerQuestionSelect.value);
-        
-        startBtn.disabled = true;
-        
-        // Force fresh fetch by not reusing existing questions
-        questions = await fetchQuestions(
-            categorySelect.value,
-            selectedDifficulty,
-            selectedQuestions
-        );
-
-        if (questions.length) {
-            safeClassToggle(highscores, 'add', 'hidden');
-            safeClassToggle(setupScreen, 'remove', 'active');
-            safeClassToggle(gameScreen, 'add', 'active');
-            currentQuestion = 0;
-            score = 0;
-            answersLog = [];
-            
-            // Shuffle options for the first question
-            questions[0].options = shuffle(questions[0].options);
-            showQuestion();
-        }
-    } finally {
-        startBtn.disabled = false;
-        safeClassToggle(startBtn, 'remove', 'hidden');
-    }
-});
-
 document.addEventListener('DOMContentLoaded', () => {
     updateHighScores();
     safeClassToggle(setupScreen, 'add', 'active');
@@ -675,7 +649,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Replace existing category select initialization with:
+// Category card initialization
 document.querySelectorAll('.category-card').forEach(card => {
     card.addEventListener('dblclick', async function() {
         const category = this.dataset.category;
@@ -699,9 +673,10 @@ document.querySelectorAll('.category-card').forEach(card => {
         
         // Prepare game state
         safeClassToggle(mainNav, 'add', 'hidden');
-        safeClassToggle(startBtn, 'add', 'hidden');
-        startBtn.disabled = true;
         
+        // Show loading indicator
+        toggleLoading(true);
+
         try {
             // Fetch questions for each difficulty
             const easyQuestions = category === 'Mix-n-Match' 
@@ -739,14 +714,17 @@ document.querySelectorAll('.category-card').forEach(card => {
                 questions[0].options = shuffle(questions[0].options);
                 showQuestion();
             }
+        } catch (error) {
+            toggleLoading(false);
+            showError("Failed to load questions. Please try again.");
+            console.error('Error starting game:', error);
         } finally {
-            startBtn.disabled = false;
-            safeClassToggle(startBtn, 'remove', 'hidden');
+            toggleLoading(false);
         }
     });
 });
 
-// Add this event listener in your DOMContentLoaded handler
+// Clear scores button
 document.getElementById('clear-scores')?.addEventListener('click', () => {
     if (confirm("Permanently delete all your local scores?")) {
       highScores = [];
@@ -754,14 +732,23 @@ document.getElementById('clear-scores')?.addEventListener('click', () => {
       updateHighScores();
       showToast('All scores cleared!', '⚠️');
     }
-  });
-  
-  // Optional toast notification
-  function showToast(message, icon = 'ℹ️') {
+});
+
+// Retry button
+document.getElementById('retry-btn')?.addEventListener('click', () => {
+    hideError();
+    const activeCard = document.querySelector('.category-card.active');
+    if (activeCard) {
+        activeCard.dispatchEvent(new Event('dblclick'));
+    }
+});
+
+// Toast notification
+function showToast(message, icon = 'ℹ️') {
     const toast = document.createElement('div');
     toast.className = 'toast-notification';
     toast.innerHTML = `${icon} ${message}`;
     document.body.appendChild(toast);
     
     setTimeout(() => toast.remove(), 2000);
-  }
+}

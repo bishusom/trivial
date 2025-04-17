@@ -121,8 +121,25 @@
                 </div>
                 
                 <div class="setup-card">
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span class="material-icons">speed</span>
+                            DIFFICULTY LEVEL
+                        </div>
+                        <div class="current-difficulty">
+                            <span id="current-difficulty-level">Beginner</span>
+                            <div class="difficulty-meter">
+                                <div class="meter-fill" id="difficulty-meter-fill"></div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Replace the category select section with this -->
                     <div class="setting-group">
+                        <div class="instruction-tooltip">
+                            <span class="material-icons">info</span>
+                            <span class="tooltip-text">Double-click a category to start</span>
+                        </div>
+
                         <div class="setting-label">
                             <span class="material-icons">category</span>
                             SELECT CATEGORY
@@ -164,28 +181,18 @@
                                 <span class="material-icons">gavel</span>
                                 <span>Politics</span>
                             </div>
-                        </div>
-                    </div>
-
-                    
-                    <div class="setting-group">
-                        <div class="setting-label">
-                            <span class="material-icons">speed</span>
-                            DIFFICULTY LEVEL
-                        </div>
-                        <div class="current-difficulty">
-                            <span id="current-difficulty-level">Beginner</span>
-                            <div class="difficulty-meter">
-                                <div class="meter-fill" id="difficulty-meter-fill"></div>
+                            <div class="category-card" data-category="Arts">
+                                <span class="material-icons">palette</span>
+                                <span>Arts</span>
                             </div>
                         </div>
                     </div>
+                    
+                    <div id="loading-indicator" class="loading-indicator hidden">
+                        <div class="loading-spinner"></div>
+                        <p>Loading questions...</p>
+                    </div>
 
-                <!-- Start Button -->
-                <button id="start-btn" class="btn primary launch-btn">
-                <span class="material-icons">rocket_launch</span>
-                START GAME
-                </button>
             </div>
 
             <!-- Game Screen -->

@@ -82,9 +82,11 @@
     <meta property="og:image" content="https://triviaah.com/trivia-preview.jpg">
     
     <title>Triviaah Master</title>
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" >
+
 
     </head>
     <body>
@@ -128,45 +130,94 @@
                             SELECT CATEGORY
                         </div>
                         <div class="category-grid">
+                            <div class="category-card" data-category="Weekly">
+                                <span class="material-icons">event</span>
+                                <span>Weekly Quiz</span>
+                            </div>
+
+                            <div class="category-card" data-category="Monthly">
+                                <span class="material-symbols-outlined">date_range</span>
+                                <span>Monthly Quiz</span>
+                            </div>
+
                             <div class="category-card" data-category="General Knowledge">
-                                <span class="material-icons">lightbulb</span>
+                                <span class="material-symbols-outlined">psychology_alt</span>
                                 <span>General Knowledge</span>
                             </div>
-                            <div class="category-card" data-category="Geography">
-                                <span class="material-icons">public</span>
-                                <span>Geography</span>
-                            </div>
-                            <div class="category-card" data-category="Science">
-                                <span class="material-icons">science</span>
-                                <span>Science</span>
-                            </div>
+
                             <div class="category-card" data-category="Literature">
                                 <span class="material-icons">menu_book</span>
                                 <span>Literature</span>
                             </div>
-                            <div class="category-card" data-category="History">
-                                <span class="material-icons">history</span>
-                                <span>History</span>
+
+                            <div class="category-card" data-category="Arts">
+                                <span class="material-icons">palette</span>
+                                <span>Arts</span>
                             </div>
-                            <div class="category-card" data-category="Movie">
-                                <span class="material-icons">movie</span>
-                                <span>Movie</span>
-                            </div>
-                            <div class="category-card" data-category="Music">
-                                <span class="material-icons">music_note</span>
-                                <span>Music</span>
-                            </div>
+
                             <div class="category-card" data-category="Animals">
                                 <span class="material-icons">pets</span>
                                 <span>Animals</span>
                             </div>
-                            <div class="category-card" data-category="Politics">
-                                <span class="material-icons">gavel</span>
-                                <span>Politics</span>
+                                                        
+                            <div class="category-card" data-category="Science">
+                                <span class="material-icons">science</span>
+                                <span>Science</span>
                             </div>
-                            <div class="category-card" data-category="Arts">
-                                <span class="material-icons">palette</span>
-                                <span>Arts</span>
+                            
+                            <div class="category-card" data-category="Computers">
+                                <span class="material-icons">computer</span>
+                                <span>Computers</span>
+                            </div>
+
+                            <div class="category-card" data-category="History">
+                                <span class="material-icons">history</span>
+                                <span>History</span>
+                            </div>
+                            
+                            <div class="category-card" data-category="Geography">
+                                <span class="material-icons">public</span>
+                                <span>Geography</span>
+                            </div>
+
+                            <div class="category-card" data-category="Movie">
+                                <span class="material-icons">movie</span>
+                                <span>Movie</span>
+                            </div>
+
+                            <div class="category-card" data-category="Music">
+                                <span class="material-icons">music_note</span>
+                                <span>Music</span>
+                            </div>
+                            
+                            <div class="category-card" data-category="TV">
+                                <span class="material-icons">tv</span>
+                                <span>TV</span>
+                            </div>
+
+                            <div class="category-card" data-category="Sports">
+                                <span class="material-symbols-outlined">sports_and_outdoors</span>
+                                <span>Sports</span>
+                            </div>
+
+                            <div class="category-card" data-category="Video Games">
+                                <span class="material-symbols-outlined">stadia_controller</span>
+                                <span>Video Games</span>
+                            </div>
+
+                            <div class="category-card" data-category="Board Games">
+                                <span class="material-symbols-outlined">casino</span>
+                                <span>Board Games</span>
+                            </div>
+
+                            <div class="category-card" data-category="Mythology">
+                                <span class="material-symbols-outlined">castle</span>
+                                <span>Mythology</span>
+                            </div>
+
+                            <div class="category-card" data-category="Comics">
+                                <span class="material-symbols-outlined">comic_bubble</span>
+                                <span>Comics</span>
                             </div>
                         </div>
                     </div>
@@ -249,7 +300,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         </script>
-        <script src="/scripts/app.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+        <script src="/srcipts/app.js"></script>
         <script src="/scripts/router.js"></script>
     </body>
 </html>

@@ -35,7 +35,34 @@ const audioElements = {
     correct: createAudioElement('/audio/correct.mp3'),
     wrong: createAudioElement('/audio/wrong.mp3')
 };
-
+//==========================
+// Open Trivia Category IDs
+//==========================
+const otbdIDs = {
+    'Animals' : 27,
+    'Arts' : 25,
+    'Board Games' : 15,
+    'Computers' : 18,
+    'Cartoons': 32,
+    'General Knowledge': 9,
+    'History': 23,
+    'Geography': 22,
+    'Literature' : 10,
+    'Movies' : 11,
+    'Music' : 12,
+    'Mythology' : 20,
+    'Science': 17,
+    'Sports': 21,
+    'Television' : 14,
+    'Board Games' : 15
+};
+//==========================
+// Firebase Quiz
+//==========================
+const QUIZ_TYPES = {
+    WEEKLY: 'Weekly',
+    MONTHLY: 'Monthly'
+};
 // ======================
 // Game State
 // ======================
@@ -56,7 +83,8 @@ let selectedQuestions = 10;
 let selectedTime = timer.long;
 let usedQuestionIds = new Set();
 let questionPool = [];
-
+let otdbUsedQuestions = JSON.parse(localStorage.getItem('otdbUsedQuestions')) || [];
+let firebaseUsedQuizIds = JSON.parse(localStorage.getItem('firebaseUsedQuizIds')) || [];
 // ======================
 // Core Functions
 // ======================
@@ -65,6 +93,8 @@ let questionPool = [];
 const CACHE_VERSION = 'v1';
 const QUESTION_CACHE_KEY = `trivia-questions-${CACHE_VERSION}`;
 const CATEGORY_CACHE_KEY = `trivia-categories-${CACHE_VERSION}`;
+const OTDB_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours cache
+const FIREBASE_QUIZ_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
 
 // Cache expiration (1 hour)
 const CACHE_EXPIRY = 60 * 60 * 1000; 
@@ -149,53 +179,267 @@ function hideError() {
     document.getElementById('error-message').classList.add('hidden');
 }
 
-async function fetchQuestions(category, amount = 10) {
-    try {
-        console.log("Querying for category:", JSON.stringify(category));
-        // If we don't have a pool yet, or it's empty, fetch new questions
-        if (questionPool.length === 0) {
-            if (category == 'General Knowledge') {
-                snapshot = await db.collection('questions')
-                .orderBy('randomField', 'asc')
-                .limit(100)
-                .get();
-            } else {
-                snapshot = await db.collection('questions')
-                .where('category', '==', category)
-                .orderBy('randomField', 'asc')
-                .limit(100)
-                .get();
+// Helper function to get week number
+function getWeekNumber(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
 
-            }
-           
-                
-            questionPool = processQuestions(snapshot);
-            
-            // If we've used most questions, reset the used set
-            if (usedQuestionIds.size > questionPool.length * 0.7) {
-                usedQuestionIds = new Set();
-            }
+/*async function fetchFirebaseQuiz(quizType) {
+    try {
+        const now = new Date();
+        const periodId = quizType === QUIZ_TYPES.WEEKLY 
+            ? `week-${getWeekNumber(now)}-${now.getFullYear()}`
+            : `month-${now.getMonth()+1}-${now.getFullYear()}`;
+
+        console.log(`Looking for quiz at: quizzes/${quizType.toLowerCase()}/periods/${periodId}`);
+        
+        const quizRef = db.collection('quizzes')
+            .doc(quizType.toLowerCase())
+            .collection('periods')
+            .doc(periodId);
+
+        console.log('Reference path:', quizRef.path);
+
+        const quizDoc = await quizRef.get();
+
+        if (!quizDoc.exists) {
+            console.error('Document does not exist at path:', quizRef.path);
+            throw new Error(`No ${quizType} available yet. Check back soon!`);
         }
+
+        console.log('Found document data:', quizDoc.data());
+
+        const questions = quizDoc.data().questions.map(q => ({
+            id: generateQuestionId(q),
+            question: q.question,
+            correct: q.correct_answer,
+            options: shuffleArray([
+                ...q.incorrect_answers,
+                q.correct_answer
+            ]),
+            category: quizType,
+            difficulty: q.difficulty || 'medium'
+        }));
+
+        return questions;
+    } catch (error) {
+        console.error(`Error fetching ${quizType}:`, error);
+        throw error;
+    }
+} */
+
+async function fetchFirebaseQuiz(quizType) {
+    try {
+        // Get current week/month identifier
+        console.log('Came here');
+        const now = new Date();
+        const periodId = quizType === QUIZ_TYPES.WEEKLY 
+            ? `week-${getWeekNumber(now)}-${now.getFullYear()}`
+            : `month-${now.getMonth()+1}-${now.getFullYear()}`;
         
-        // Filter out already used questions
-        const availableQuestions = questionPool.filter(q => !usedQuestionIds.has(q.id));
+        console.log(periodId);
+
+        // Check if we've already used this quiz
+        const quizCacheKey = `firebase-quiz-${periodId}`;
+        const cachedQuiz = getFirebaseQuizCache(quizCacheKey);
         
-        if (availableQuestions.length < amount) {
-            // If not enough, use some repeats but prefer unused ones
-            const needed = amount - availableQuestions.length;
-            const backupQuestions = shuffleArray(questionPool)
-                .filter(q => !availableQuestions.includes(q))
-                .slice(0, needed);
-                
-            availableQuestions.push(...backupQuestions);
+        if (cachedQuiz && !firebaseUsedQuizIds.includes(quizCacheKey)) {
+            return cachedQuiz.questions;
         }
+
+        // Query Firebase for this period's quiz
+        const quizDoc = await db.collection('quizzes')
+            .doc(quizType.toLowerCase())
+            .collection('periods')
+            .doc(periodId)
+            .get();
+
+        if (!quizDoc.exists) {
+            console.error('Firebase document not found at:', quizRef.path);
+            throw new Error(`No ${quizType} available yet. Check back soon!`);
+        }
+
+        console.log(`Found ${quizDoc.data().questions.length} questions`);
         
-        // Mark these questions as used
-        const selectedQuestions = shuffleArray(availableQuestions).slice(0, amount);
-        selectedQuestions.forEach(q => usedQuestionIds.add(q.id));
+        const questions = quizDoc.data().questions.map(q => ({
+            id: generateQuestionId(q), // Generate unique ID for each question
+            question: q.question,
+            correct: q.correct_answer,
+            options: shuffleArray([
+                ...q.incorrect_answers,
+                q.correct_answer
+            ]),
+            category: quizType,
+            difficulty: q.difficulty || 'medium'
+        }));
+
+        // Cache these questions
+        setFirebaseQuizCache(quizCacheKey, questions);
         
-        return selectedQuestions;
-        
+        // Mark this quiz as used
+        firebaseUsedQuizIds.push(quizCacheKey);
+        localStorage.setItem('firebaseUsedQuizIds', JSON.stringify(firebaseUsedQuizIds));
+
+        return questions;
+    } catch (error) {
+        console.error(`Error fetching ${quizType}:`, error);
+        throw error;
+    }
+}
+
+// Add these cache management functions
+function getFirebaseQuizCache(key) {
+    const cache = JSON.parse(localStorage.getItem('firebaseQuizCache')) || {};
+    const entry = cache[key];
+    
+    if (entry && Date.now() - entry.timestamp < FIREBASE_QUIZ_CACHE_EXPIRY) {
+        return entry;
+    }
+    return null;
+}
+
+function setFirebaseQuizCache(key, questions) {
+    const cache = JSON.parse(localStorage.getItem('firebaseQuizCache')) || {};
+    cache[key] = {
+        questions,
+        timestamp: Date.now()
+    };
+    localStorage.setItem('firebaseQuizCache', JSON.stringify(cache));
+}
+
+// Add to your DOMContentLoaded event listener
+if (!localStorage.getItem('firebaseUsedQuizIds')) {
+    localStorage.setItem('firebaseUsedQuizIds', JSON.stringify([]));
+}
+if (!localStorage.getItem('firebaseQuizCache')) {
+    localStorage.setItem('firebaseQuizCache', JSON.stringify({}));
+}
+
+
+async function fetchOTdbQuestions(category, amount = 10) {
+  try {
+    // Check cache first
+    const cacheKey = `otdb-${category}`;
+    const cached = getOtdbCache(cacheKey);
+    
+    if (cached && cached.questions.length >= amount) {
+      return processOtdbQuestions(cached.questions, amount);
+    }
+
+    // Not enough in cache, fetch fresh
+    const url = new URL('https://opentdb.com/api.php');
+    url.searchParams.append('amount', 50); // Fetch more to have buffer
+    if (category && otbdIDs[category]) {
+      url.searchParams.append('category', otbdIDs[category]);
+    }
+    url.searchParams.append('type', 'multiple');
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.response_code !== 0) {
+      throw new Error('OpenTriviaDB API error');
+    }
+
+    // Process and cache the new questions
+    const newQuestions = data.results.map(q => ({
+      id: generateQuestionId(q), // Generate unique ID for each question
+      question: decodeHTML(q.question),
+      correct: decodeHTML(q.correct_answer),
+      options: [
+        ...q.incorrect_answers.map(decodeHTML), 
+        decodeHTML(q.correct_answer)
+      ],
+      category: q.category,
+      difficulty: q.difficulty || 'medium' 
+    }));
+
+    // Update cache
+    setOtdbCache(cacheKey, newQuestions);
+    
+    return processOtdbQuestions(newQuestions, amount);
+  } catch (error) {
+    console.error('Failed to fetch OTDB questions:', error);
+    return [];
+  }
+}
+
+// Helper to generate unique ID for OTDB questions
+function generateQuestionId(q) {
+  return CryptoJS.MD5(q.question + q.correct_answer).toString();
+}
+
+// Cache management functions
+function getOtdbCache(key) {
+  const cache = JSON.parse(localStorage.getItem('otdbCache')) || {};
+  const entry = cache[key];
+  
+  if (entry && Date.now() - entry.timestamp < OTDB_CACHE_EXPIRY) {
+    return entry;
+  }
+  return null;
+}
+
+function setOtdbCache(key, questions) {
+  const cache = JSON.parse(localStorage.getItem('otdbCache')) || {};
+  cache[key] = {
+    questions,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('otdbCache', JSON.stringify(cache));
+}
+
+// Process OTDB questions with repeat prevention
+function processOtdbQuestions(questions, amount) {
+    // Filter out used questions
+    const availableQuestions = questions.filter(q => 
+        !otdbUsedQuestions.includes(q.id)
+    );
+
+    // If not enough, use some repeats but prefer unused ones
+    const selected = [];
+    const needed = Math.min(amount, availableQuestions.length + questions.length);
+    
+    // First add all available unique questions
+    selected.push(...shuffleArray(availableQuestions).slice(0, needed));
+
+    // If still need more, add from the full pool (including repeats)
+    if (selected.length < needed) {
+        const remaining = needed - selected.length;
+        selected.push(...shuffleArray(questions)
+        .filter(q => !selected.includes(q))
+        .slice(0, remaining));
+    }
+
+    // Mark these questions as used
+    otdbUsedQuestions = [
+        ...otdbUsedQuestions,
+        ...selected.map(q => q.id)
+    ].slice(-500); // Keep last 500 to prevent memory issues
+    
+    localStorage.setItem('otdbUsedQuestions', JSON.stringify(otdbUsedQuestions));
+
+    // Format for game
+    return selected.map(q => ({
+        ...q,
+        options: shuffleArray([...q.options]) // Shuffle options
+    }));
+}
+
+async function fetchQuestions(category) {
+    try {
+        // Exact match for special quizzes
+        if (category === QUIZ_TYPES.WEEKLY || category === QUIZ_TYPES.MONTHLY) {
+            return await fetchFirebaseQuiz(category);
+        } 
+        // All other categories go to OpenTriviaDB
+        else {
+            return await fetchOTdbQuestions(category);
+        }
     } catch (error) {
         console.error('Error fetching questions:', error);
         throw error;
@@ -223,7 +467,7 @@ function processQuestions(snapshot) {
                     decodeHTML(data.correct_answer)
                 ]),
                 category: data.category || 'General',
-                subcategory: data.subcategory || '',
+                //subcategory: data.subcategory || '',
                 difficulty: data.difficulty || 'medium',
                 lastUsed: 0 // Timestamp of when last used
             });
@@ -267,7 +511,6 @@ function showQuestion() {
         <div class="question-meta">
              <div class="question-category">
                 ${question.category}
-                ${question.subcategory ? `<span class="question-subcategory">${question.subcategory}</span>` : ''}
                 <span class="question-difficulty ${question.difficulty}">${question.difficulty}</span>    
              </div>
         </div>
@@ -679,6 +922,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    if (!localStorage.getItem('otdbUsedQuestions')) {
+        localStorage.setItem('otdbUsedQuestions', JSON.stringify([]));
+      }
+      if (!localStorage.getItem('otdbCache')) {
+        localStorage.setItem('otdbCache', JSON.stringify({}));
+      }
 });
 
 document.addEventListener('click', (e) => {

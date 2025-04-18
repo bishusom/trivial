@@ -291,6 +291,12 @@ input:checked + .slider:before {
     margin-bottom: 0.2rem; /* Reduced spacing */
 }
 
+.category-card .material-symbols-outlined {
+    font-size: 1.8rem; /* Reduced from 2.5rem */
+    color: var(--accent-color);
+    margin-bottom: 0.2rem; /* Reduced spacing */
+}
+
 .category-card span:last-child {
     font-size: 0.8rem; /* Reduced from 0.9rem */
     text-align: center;

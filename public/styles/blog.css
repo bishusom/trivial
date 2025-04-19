@@ -148,6 +148,7 @@ body {
 }
 
 .blog-content {
+    background: #ffffff;
     max-width: 760px;
     margin: 0 auto;
     padding: 0 2rem;

@@ -13,7 +13,7 @@
 // DOM Element References
 // ======================
 const mainNav = document.querySelector('.main-nav');
-const navLinks = document.querySelectorAll('nav-link')
+const navLinks = document.querySelectorAll('.nav-link')
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
@@ -218,50 +218,6 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
         throw error;
     }
 }
-
-/*async function fetchFirebaseQuiz(quizType) {
-    try {
-        const now = new Date();
-        const periodId = quizType === QUIZ_TYPES.WEEKLY 
-            ? `week-${getWeekNumber(now)}-${now.getFullYear()}`
-            : `month-${now.getMonth()+1}-${now.getFullYear()}`;
-
-        console.log(`Looking for quiz at: quizzes/${quizType.toLowerCase()}/periods/${periodId}`);
-        
-        const quizRef = db.collection('quizzes')
-            .doc(quizType.toLowerCase())
-            .collection('periods')
-            .doc(periodId);
-
-        console.log('Reference path:', quizRef.path);
-
-        const quizDoc = await quizRef.get();
-
-        if (!quizDoc.exists) {
-            console.error('Document does not exist at path:', quizRef.path);
-            throw new Error(`No ${quizType} available yet. Check back soon!`);
-        }
-
-        console.log('Found document data:', quizDoc.data());
-
-        const questions = quizDoc.data().questions.map(q => ({
-            id: generateQuestionId(q),
-            question: q.question,
-            correct: q.correct_answer,
-            options: shuffleArray([
-                ...q.incorrect_answers,
-                q.correct_answer
-            ]),
-            category: quizType,
-            difficulty: q.difficulty || 'medium'
-        }));
-
-        return questions;
-    } catch (error) {
-        console.error(`Error fetching ${quizType}:`, error);
-        throw error;
-    }
-} */
 
 async function fetchFirebaseQuiz(quizType) {
     try {
@@ -956,12 +912,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('continue-game').addEventListener('click', () => {
+    // Add modal button handlers
+    document.getElementById('continue-game')?.addEventListener('click', () => {
         document.getElementById('nav-warning-modal').classList.add('hidden');
         startTimer(); // Resume the game
     });
     
-    document.getElementById('end-game').addEventListener('click', () => {
+    document.getElementById('end-game')?.addEventListener('click', () => {
         // Clean up game state
         questions = [];
         currentQuestion = 0;
@@ -969,11 +926,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Hide modal and navigate
         document.getElementById('nav-warning-modal').classList.add('hidden');
-        window.location.href = pendingNavigationUrl;
+        if (pendingNavigationUrl) {
+            window.location.href = pendingNavigationUrl;
+        }
     });
     
     // Add navigation handlers
-    navLinks.forEach(link => {
+    document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', handleNavClick);
     });
 

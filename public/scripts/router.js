@@ -1,6 +1,7 @@
 // Updated router.js
 document.addEventListener('DOMContentLoaded', () => {
     const setupScreen = document.querySelector('.setup-screen');
+    const gameScreen = document.querySelector('.game-screen');
     const blogTbankScreen = document.querySelector('.blog-tbank');
     let currentContentPath = '';
 
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showHomeScreen() {
         setupScreen.classList.add('active');
+        gameScreen.classList.remove('active');
         blogTbankScreen.classList.remove('active');
         blogTbankScreen.innerHTML = '';
         currentContentPath = '';
@@ -82,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentContentPath === path) return;
         
         setupScreen.classList.remove('active');
+        gameScreen.classList.remove('active');
         blogTbankScreen.classList.add('active');
 
         try {

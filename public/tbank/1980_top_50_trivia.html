@@ -4,7 +4,7 @@
 <meta property="og:image" content="https://triviaah.com/social-preview.jpg">
 <link rel="stylesheet" href="/styles/blog.css">
 
-<div  class="blog-content">
+<div class="blog-content">
     <header class="blog-header">
         <h1>Radical Retro Challenge! Test Your 1980s Pop Culture Knowledge: Top 50 Trivia!</h1>
     </header>
@@ -290,5 +290,9 @@
     // Re-initialize if content is loaded dynamically
     if(window.QuizContentLoaded) {
         initializeQuizControls();
+        // Signal to SPA that content is loaded
+        if (window.parent.QuizContentLoaded) {
+            window.parent.QuizContentLoaded();
+        }
     }
 </script>

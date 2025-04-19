@@ -917,6 +917,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nav-warning-modal').classList.add('hidden');
         pendingNavigationUrl = null; // Clear the pending navigation
         startTimer(); // Resume the game
+        safeClassToggle(gameScreen, 'add', 'active'); // Ensure game screen stays visible
+        safeClassToggle(blogTbankScreen, 'remove', 'active'); // Hide other content
+        safeClassToggle(setupScreen, 'remove', 'active'); // Hide other content
+
     });
     
     document.getElementById('end-game')?.addEventListener('click', () => {
@@ -927,6 +931,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Hide modal and navigate
         document.getElementById('nav-warning-modal').classList.add('hidden');
+        safeClassToggle(gameScreen, 'remove', 'active');
+        
         if (pendingNavigationUrl) {
             window.history.pushState({}, '', pendingNavigationUrl);
             handleRouting(pendingNavigationUrl); // Use the router's handling

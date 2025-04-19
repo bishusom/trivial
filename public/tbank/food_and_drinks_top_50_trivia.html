@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top 50 Food & Drinks Trivia</title>
-    <meta name="description" content="Test your culinary knowledge with our top 50 trivia questions and answers, divided into easy, medium, and hard levels. Perfect for foodies and chefs!">
-    <meta name="keywords" content="Food Trivia, Drinks Quiz, Cuisine, Recipes, Culinary History, Cooking, Beverages">
-    <meta property="og:image" content="https://triviaah.com/social-preview.jpg">
-    <link rel="stylesheet" href="/styles/blog.css">
-</head>
-<body>
+<title>Top 50 Food & Drinks Trivia</title>
+<meta name="description" content="Test your culinary knowledge with our top 50 trivia questions and answers, divided into easy, medium, and hard levels. Perfect for foodies and chefs!">
+<meta name="keywords" content="Food Trivia, Drinks Quiz, Cuisine, Recipes, Culinary History, Cooking, Beverages">
+<meta property="og:image" content="https://triviaah.com/social-preview.jpg">
+<link rel="stylesheet" href="/styles/blog.css">
+<div class="blog-content">
     <header class="blog-header">
         <h1>Feast Your Mind! Test Your Food & Drinks Knowledge: Top 50 Trivia!</h1>
     </header>
-    <article class="blog-content">
+    <article>
         <p>From global cuisines to cocktail secrets, prove your palate for trivia with this delectable quiz!</p>   
         <div class="controls">
             <a href="#" id="toggleAnswers" class="btn link-btn" role="button" aria-pressed="false">
@@ -242,59 +236,62 @@
                 </a>
             </div>
     </footer>
-    <script>
-        // Modified script to work within dynamic content
-        function initializeQuizControls() {
-            const toggleButton = document.getElementById('toggleAnswers');
-            const printButton = document.getElementById('printPDF');
-            const showHideEmoji = document.getElementById('show_hide_emoji');
-            
-            if(toggleButton && printButton) {
-                let answersVisible = true;
-                const answers = document.querySelectorAll('.answer');
+</div>
+<script>
+    // Modified script to work within dynamic content
+    function initializeQuizControls() {
+        const toggleButton = document.getElementById('toggleAnswers');
+        const printButton = document.getElementById('printPDF');
+        const showHideEmoji = document.getElementById('show_hide_emoji');
         
-                // Toggle answers
-                toggleButton.addEventListener('click', () => {
-                    answersVisible = !answersVisible;
-                    answers.forEach(answer => {
-                        answer.style.display = answersVisible ? 'block' : 'none';
-                    });
-                    toggleButton.textContent = showHideEmoji.textContent
-                    toggleButton.textContent += answersVisible ? ' Hide Answers' : ' Show Answers';
+        if(toggleButton && printButton) {
+            let answersVisible = true;
+            const answers = document.querySelectorAll('.answer');
+    
+            // Toggle answers
+            toggleButton.addEventListener('click', () => {
+                answersVisible = !answersVisible;
+                answers.forEach(answer => {
+                    answer.style.display = answersVisible ? 'block' : 'none';
                 });
-        
-                // Print handling
-                printButton.addEventListener('click', () => {
-                    const printWindow = window.open('', '_blank');
-                    printWindow.document.write(`
-                        <html>
-                            <head>
-                                <title>${document.querySelector('title').text} - Printable Version</title>
-                                <style>
-                                    .answer { display: block !important; }
-                                    .controls, .blog-footer { display: none; }
-                                </style>
-                            </head>
-                            <body>
-                                ${document.querySelector('body').innerHTML}
-                                <br>©www.triviaah.com
-                            </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
-                    printWindow.print();
-                    printWindow.close();
-                });
-            }
+                toggleButton.textContent = showHideEmoji.textContent
+                toggleButton.textContent += answersVisible ? ' Hide Answers' : ' Show Answers';
+            });
+    
+            // Print handling
+            printButton.addEventListener('click', () => {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>${document.querySelector('title').text} - Printable Version</title>
+                            <style>
+                                .answer { display: block !important; }
+                                .controls, .blog-footer { display: none; }
+                            </style>
+                        </head>
+                        <body>
+                            ${document.querySelector('body').innerHTML}
+                            <br>©www.triviaah.com
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+                printWindow.close();
+            });
         }
-        
-        // Initialize when content loads
-        document.addEventListener('DOMContentLoaded', initializeQuizControls);
-        
-        // Re-initialize if content is loaded dynamically
-        if(window.QuizContentLoaded) {
-            initializeQuizControls();
+    }
+    
+    // Initialize when content loads
+    document.addEventListener('DOMContentLoaded', initializeQuizControls);
+    
+    // Re-initialize if content is loaded dynamically
+    if(window.QuizContentLoaded) {
+        initializeQuizControls();
+        // Signal to SPA that content is loaded
+        if (window.parent.QuizContentLoaded) {
+            window.parent.QuizContentLoaded();
         }
-    </script>
-</body>
-</html>
+    }
+</script>

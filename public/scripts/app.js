@@ -17,6 +17,7 @@ const navLinks = document.querySelectorAll('.nav-link')
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
+const blogTbankScreen = document.querySelector('.blog-tbank');
 const categorySelect = document.getElementById('category');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');

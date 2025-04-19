@@ -13,6 +13,7 @@
 // DOM Element References
 // ======================
 const mainNav = document.querySelector('.main-nav');
+const navLinks = document.querySelectorAll('nav-link')
 const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
@@ -83,6 +84,7 @@ let selectedQuestions = 10;
 let selectedTime = timer.long;
 let usedQuestionIds = new Set();
 let questionPool = [];
+let pendingNavigationUrl = null;
 let otdbUsedQuestions = JSON.parse(localStorage.getItem('otdbUsedQuestions')) || [];
 let firebaseUsedQuizIds = JSON.parse(localStorage.getItem('firebaseUsedQuizIds')) || [];
 // ======================
@@ -145,6 +147,21 @@ function toggleLoading(show) {
     }
 }
 
+function handleNavClick(e) {
+    if (gameScreen.classList.contains('active')) {
+        e.preventDefault();
+        pendingNavigationUrl = e.target.href;
+        
+        // Pause the game
+        clearInterval(timerId);
+        clearInterval(totalTimerId);
+        stopSound('tick');
+        
+        // Show warning modal
+        document.getElementById('nav-warning-modal').classList.remove('hidden');
+    }
+}
+
 function showError(message) {
     // Ensure error element exists
     let errorDiv = document.getElementById('error-message');
@@ -186,6 +203,20 @@ function getWeekNumber(date) {
     d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
     const week1 = new Date(d.getFullYear(), 0, 4);
     return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
+
+async function fetchWithRetry(url, retries = 3, delay = 1000) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response; // Return the response object, not the JSON
+    } catch (error) {
+        if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return fetchWithRetry(url, retries - 1, delay * 2);
+        }
+        throw error;
+    }
 }
 
 /*async function fetchFirebaseQuiz(quizType) {
@@ -235,7 +266,6 @@ function getWeekNumber(date) {
 async function fetchFirebaseQuiz(quizType) {
     try {
         // Get current week/month identifier
-        console.log('Came here');
         const now = new Date();
         const periodId = quizType === QUIZ_TYPES.WEEKLY 
             ? `week-${getWeekNumber(now)}-${now.getFullYear()}`
@@ -311,62 +341,61 @@ function setFirebaseQuizCache(key, questions) {
     localStorage.setItem('firebaseQuizCache', JSON.stringify(cache));
 }
 
-// Add to your DOMContentLoaded event listener
-if (!localStorage.getItem('firebaseUsedQuizIds')) {
-    localStorage.setItem('firebaseUsedQuizIds', JSON.stringify([]));
-}
-if (!localStorage.getItem('firebaseQuizCache')) {
-    localStorage.setItem('firebaseQuizCache', JSON.stringify({}));
-}
-
 
 async function fetchOTdbQuestions(category, amount = 10) {
-  try {
-    // Check cache first
-    const cacheKey = `otdb-${category}`;
-    const cached = getOtdbCache(cacheKey);
+    try {
+      // Check cache first
+      const cacheKey = `otdb-${category}`;
+      const cached = getOtdbCache(cacheKey);
+      
+      // If we have enough cached questions that haven't been used recently
+      if (cached && cached.questions.length >= amount) {
+          const available = cached.questions.filter(q => 
+            !otdbUsedQuestions.includes(q.id)
+          );
+          if (available.length >= amount) {
+            return processOtdbQuestions(cached.questions, amount);
+          }
+      }
     
-    if (cached && cached.questions.length >= amount) {
-      return processOtdbQuestions(cached.questions, amount);
+      // Not enough in cache, fetch fresh
+      const url = new URL('https://opentdb.com/api.php');
+      url.searchParams.append('amount', 30); // Fetch more to have buffer
+      if (category && otbdIDs[category]) {
+        url.searchParams.append('category', otbdIDs[category]);
+      }
+      url.searchParams.append('type', 'multiple');
+  
+      const response = await fetchWithRetry(url);
+      const data = await response.json(); // Parse JSON here
+  
+      if (data.response_code !== 0) {
+        throw new Error('OpenTriviaDB API error');
+      }
+  
+      // Process and cache the new questions
+      const newQuestions = data.results.map(q => ({
+        id: generateQuestionId(q), // Generate unique ID for each question
+        question: decodeHTML(q.question),
+        correct: decodeHTML(q.correct_answer),
+        options: [
+          ...q.incorrect_answers.map(decodeHTML), 
+          decodeHTML(q.correct_answer)
+        ],
+        category: q.category,
+        difficulty: q.difficulty || 'medium' 
+      }));
+  
+      // Update cache
+      setOtdbCache(cacheKey, newQuestions);
+      
+      return processOtdbQuestions(newQuestions, amount);
+    } catch (error) {
+      console.error('Failed to fetch OTDB questions:', error);
+      throw error; // Re-throw the error to be caught by the calling function
     }
-
-    // Not enough in cache, fetch fresh
-    const url = new URL('https://opentdb.com/api.php');
-    url.searchParams.append('amount', 50); // Fetch more to have buffer
-    if (category && otbdIDs[category]) {
-      url.searchParams.append('category', otbdIDs[category]);
-    }
-    url.searchParams.append('type', 'multiple');
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.response_code !== 0) {
-      throw new Error('OpenTriviaDB API error');
-    }
-
-    // Process and cache the new questions
-    const newQuestions = data.results.map(q => ({
-      id: generateQuestionId(q), // Generate unique ID for each question
-      question: decodeHTML(q.question),
-      correct: decodeHTML(q.correct_answer),
-      options: [
-        ...q.incorrect_answers.map(decodeHTML), 
-        decodeHTML(q.correct_answer)
-      ],
-      category: q.category,
-      difficulty: q.difficulty || 'medium' 
-    }));
-
-    // Update cache
-    setOtdbCache(cacheKey, newQuestions);
-    
-    return processOtdbQuestions(newQuestions, amount);
-  } catch (error) {
-    console.error('Failed to fetch OTDB questions:', error);
-    return [];
-  }
 }
+  
 
 // Helper to generate unique ID for OTDB questions
 function generateQuestionId(q) {
@@ -438,7 +467,11 @@ async function fetchQuestions(category) {
         } 
         // All other categories go to OpenTriviaDB
         else {
-            return await fetchOTdbQuestions(category);
+            const questions = await fetchOTdbQuestions(category);
+            if (questions.length === 0) {
+                throw new Error('No questions available for this category. Please try another one.');
+            }
+            return questions;
         }
     } catch (error) {
         console.error('Error fetching questions:', error);
@@ -923,12 +956,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.getElementById('continue-game').addEventListener('click', () => {
+        document.getElementById('nav-warning-modal').classList.add('hidden');
+        startTimer(); // Resume the game
+    });
+    
+    document.getElementById('end-game').addEventListener('click', () => {
+        // Clean up game state
+        questions = [];
+        currentQuestion = 0;
+        score = 0;
+        
+        // Hide modal and navigate
+        document.getElementById('nav-warning-modal').classList.add('hidden');
+        window.location.href = pendingNavigationUrl;
+    });
+    
+    // Add navigation handlers
+    navLinks.forEach(link => {
+        link.addEventListener('click', handleNavClick);
+    });
+
     if (!localStorage.getItem('otdbUsedQuestions')) {
         localStorage.setItem('otdbUsedQuestions', JSON.stringify([]));
       }
-      if (!localStorage.getItem('otdbCache')) {
+    if (!localStorage.getItem('otdbCache')) {
         localStorage.setItem('otdbCache', JSON.stringify({}));
-      }
+    }
+    
+    if (!localStorage.getItem('firebaseUsedQuizIds')) {
+    localStorage.setItem('firebaseUsedQuizIds', JSON.stringify([]));
+    }
+    if (!localStorage.getItem('firebaseQuizCache')) {
+    localStorage.setItem('firebaseQuizCache', JSON.stringify({}));
+    }
 });
 
 document.addEventListener('click', (e) => {
@@ -951,8 +1012,15 @@ document.querySelectorAll('.category-card').forEach(card => {
             errorDiv.innerHTML = `
                 <div id="error-text"></div>
                 <button id="retry-btn" class="btn small primary">Retry</button>
+                <button id="try-another-btn" class="btn small secondary">Try Another</button>
             `;
             setupScreen.appendChild(errorDiv);
+            
+            // Add try another button handler
+            document.getElementById('try-another-btn')?.addEventListener('click', () => {
+                hideError();
+                document.querySelector('.category-card.active')?.classList.remove('active');
+            });
         }
 
         // Update UI
@@ -969,10 +1037,6 @@ document.querySelectorAll('.category-card').forEach(card => {
             // Fetch questions
             questions = await fetchQuestions(category);
             
-            if (questions.length === 0) {
-                throw new Error('No questions found for this category');
-            }
-
             // Initialize game state
             safeClassToggle(highscores, 'add', 'hidden');
             safeClassToggle(setupScreen, 'remove', 'active');

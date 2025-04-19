@@ -4,15 +4,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const blogTbankScreen = document.querySelector('.blog-tbank');
     let currentContentPath = '';
 
-    // Path configuration
+    // Path configuration - match your file structure
     const contentPaths = {
         blog: {
             base: '/blog',
-            default: '/blog/list.html'
+            default: '/blog/list.html',
+            contentPath: (path) => {
+                if (path === '/blog' || path === '/blog/') return '/blog/list.html';
+                return `/blog${path.replace('/blog', '')}.html`;
+            }
         },
         tbank: {
             base: '/tbank',
-            default: '/tbank/content.html'
+            default: '/tbank/content.html',
+            contentPath: (path) => {
+                if (path === '/tbank' || path === '/tbank/') return '/tbank/content.html';
+                return `/tbank${path.replace('/tbank', '')}.html`;
+            }
         }
     };
 
@@ -21,8 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event delegation for all links
     document.addEventListener('click', (e) => {
-        const link = e.target.closest('a[href^="/"]');
+        const link = e.target.closest('a[href]');
         if (!link) return;
+        
+        // Skip if it's an external link, has a target, or is a non-HTML link
+        if (link.hostname !== window.location.hostname || 
+            link.target ||
+            link.href.includes('.pdf') || 
+            link.href.includes('.jpg') ||
+            link.href.includes('.png')) return;
         
         e.preventDefault();
         const path = new URL(link.href).pathname;
@@ -36,19 +51,22 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleRouting(path) {
         path = path === '/' ? '/home' : path;
         
+        // Remove trailing slash
+        path = path.replace(/\/$/, '');
+        
         if (path === '/home') {
             showHomeScreen();
         } else if (path.startsWith('/blog')) {
             await loadContent('blog', path);
         } else if (path.startsWith('/tbank')) {
             await loadContent('tbank', path);
-            // Initialize controls after content loads
             if (blogTbankScreen) {
                 initializeQuizControls(true);
-                initializeAlphabetFilters(); // Add this line
+                initializeAlphabetFilters();
                 processSocialSharing();
             }
         } else {
+            // Handle 404
             showHomeScreen();
         }
     }
@@ -67,20 +85,26 @@ document.addEventListener('DOMContentLoaded', () => {
         blogTbankScreen.classList.add('active');
 
         try {
-            const contentPath = path === `/${section}` 
-                ? contentPaths[section].default
-                : `${contentPaths[section].base}${path.replace(`/${section}`, '')}.html`;
-
+            // Use the contentPath function from the configuration
+            const contentPath = contentPaths[section].contentPath(path);
+            
             const response = await fetch(contentPath);
             if (!response.ok) throw new Error('Content not found');
             
             blogTbankScreen.innerHTML = await response.text();
             currentContentPath = path;
+            
+            // Update page title
+            const title = blogTbankScreen.querySelector('title')?.textContent || 
+                         `${section.charAt(0).toUpperCase() + section.slice(1)} Content`;
+            document.title = title;
+            
         } catch (error) {
             blogTbankScreen.innerHTML = `
                 <div class="error">
                     <h3>Content not found</h3>
-                    <p>${error.message}</p>
+                    <p>The requested page could not be found.</p>
+                    <a href="/" class="btn primary">Return Home</a>
                 </div>
             `;
             currentContentPath = '';

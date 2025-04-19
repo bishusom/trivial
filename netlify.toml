@@ -1,25 +1,8 @@
 [build]
   publish = "public"
-  command = "echo 'No build needed'"
-
-# Redirect root paths to specific HTML files
-[[redirects]]
-  from = "/blog"      # Matches domain-name.com/blog
-  to = "/blog/list.html"  # Serve this file
-  status = 200        # Rewrite (no URL change)
+  command = "npm run build" # if you have a build process
 
 [[redirects]]
-  from = "/tbank"     # Matches domain-name.com/tbank
-  to = "/tbank/content.html"
-  status = 200
-
-# Redirect wildcard paths (e.g., /blog/post1 or /tbank/page2)
-[[redirects]]
-  from = "/blog/*"    # Matches domain-name.com/blog/ANY_PATH
-  to = "/blog/:splat"  # Serve files like /blog/post1.html
-  status = 200
-
-[[redirects]]
-  from = "/tbank/*"   # Matches domain-name.com/tbank/ANY_PATH
-  to = "/tbank/:splat"
+  from = "/*"
+  to = "/index.html"
   status = 200

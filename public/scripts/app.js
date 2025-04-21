@@ -55,8 +55,7 @@ const otbdIDs = {
     'Mythology' : 20,
     'Science': 17,
     'Sports': 21,
-    'Television' : 14,
-    'Board Games' : 15
+    'Television' : 14
 };
 //==========================
 // Firebase Quiz
@@ -970,6 +969,17 @@ document.addEventListener('click', (e) => {
 
 // Category card initialization
 document.querySelectorAll('.category-card').forEach(card => {
+    let lastTap = 0;
+    
+    card.addEventListener('click', function(e) {
+        // Prevent if it's part of a double-tap
+        if (Date.now() - lastTap < 300) {
+            e.preventDefault();
+            return;
+        }
+        lastTap = Date.now();
+    });
+
     card.addEventListener('dblclick', async function() {
         const category = this.dataset.category;
         
@@ -1037,6 +1047,17 @@ document.querySelectorAll('.category-card').forEach(card => {
         } finally {
             toggleLoading(false);
         }
+    });
+
+    // Mobile touch handler
+    card.addEventListener('touchend', function(e) {
+        const currentTime = Date.now();
+        if (currentTime - lastTap < 300) {
+            e.preventDefault();
+            // Trigger double-click action
+            this.dispatchEvent(new Event('dblclick'));
+        }
+        lastTap = currentTime;
     });
 });
 

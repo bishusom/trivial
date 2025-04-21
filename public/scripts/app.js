@@ -973,6 +973,15 @@ document.querySelectorAll('.category-card').forEach(card => {
     card.addEventListener('dblclick', async function() {
         const category = this.dataset.category;
         
+        // Track the game start event
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'game_start', {
+                'event_category': 'Gameplay',
+                'event_label': category,
+                'value': 1
+            });
+        }
+        
         // Create error message element if it doesn't exist
         if (!document.getElementById('error-message')) {
             const errorDiv = document.createElement('div');

@@ -7,6 +7,7 @@
     --accent-color: #ffd700;
     --background: #1a1a2e;
     --card-bg: #2a2a4a;
+    --card-color: #eb4ce0;
     --text-color: #ffffff;
     --correct: #80e6a3;  /* Soft green */
     --wrong: #ff7d7d;    /* Coral red */
@@ -280,15 +281,15 @@ input:checked + .slider:before {
 }
 
 .category-card.active {
-    border-color: var(--accent-color);
+    border-color: var(--card-color);
     background: rgba(255,215,0,0.1);
-    box-shadow: 0 0 0 2px var(--accent-color); /* More subtle active state */
+    box-shadow: 0 0 0 2px var(--card-color); /* More subtle active state */
 }
 
 .category-card .material-icons,
 .category-card .material-symbols-outlined {
     font-size: 1.8rem;
-    color: var(--accent-color);
+    color: var(--card-color);
     margin-bottom: 0.2rem;
     user-select: none;
     -webkit-user-select: none;

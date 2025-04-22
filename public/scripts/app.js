@@ -184,6 +184,12 @@ function getWeekNumber(date) {
     return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
+function toInitCaps(str) {
+    return str.replace(/\w\S*/g, function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  }
+
 async function fetchfbQuiz(quizType) {
     try {
         // Get current week/month identifier
@@ -461,7 +467,7 @@ function showQuestion() {
 
     // Get selected category from active card
     const selectedCard = document.querySelector('.category-card.active');
-    const selectedCategory = selectedCard ? selectedCard.dataset.category : 'General Knowledge';
+    const selectedCategory = selectedCard ? toInitCaps(selectedCard.dataset.category) : 'General Knowledge';
 
     const question = {...questions[currentQuestion]}; // Create a copy
     question.options = shuffle([...question.options]); // Shuffle options

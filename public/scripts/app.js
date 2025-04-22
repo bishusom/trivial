@@ -1027,75 +1027,109 @@ document.addEventListener('click', (e) => {
 
 
 // Category card initialization - mobile friendly
+// Category card initialization - simplified mobile/desktop handling
 document.querySelectorAll('.category-card').forEach(card => {
-    let clickTimeout = null;
+    let lastTap = 0;
     let touchStartY = 0;
-    let touchMoved = false;
+    let isScrolling = false;
     
     // Touch start - record initial position
     card.addEventListener('touchstart', function(e) {
         touchStartY = e.touches[0].clientY;
-        touchMoved = false;
+        isScrolling = false;
     });
     
     // Touch move - detect if user is scrolling
     card.addEventListener('touchmove', function(e) {
-        if (Math.abs(e.touches[0].clientY - touchStartY) > 10) {
-            touchMoved = true;
-            if (clickTimeout) {
-                clearTimeout(clickTimeout);
-                clickTimeout = null;
-            }
+        if (Math.abs(e.touches[0].clientY - touchStartY) > 5) {
+            isScrolling = true;
         }
     });
     
     // Touch end - handle tap if not scrolling
     card.addEventListener('touchend', function(e) {
-        if (!touchMoved) {
+        if (!isScrolling) {
             e.preventDefault();
-            handleCategoryTap.call(this);
+            handleCategorySelection.call(this);
         }
     });
     
     // Click handler for desktop
     card.addEventListener('click', function(e) {
-        // Only handle click if not from touch device
+        // Skip if this is a touch device (let touch events handle it)
         if ('ontouchstart' in window) return;
         
-        if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-            return;
-        }
-        
-        clickTimeout = setTimeout(() => {
-            clickTimeout = null;
-            handleCategorySelection.call(this);
-        }, 300);
-    });
-
-    // Double click handler for desktop
-    card.addEventListener('dblclick', function(e) {
-        if ('ontouchstart' in window) return;
-        if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-        }
         handleCategorySelection.call(this);
     });
 });
 
-// Handle mobile taps (separate from desktop clicks)
-function handleCategoryTap() {
-    if (clickTimeout) {
-        clearTimeout(clickTimeout);
-        clickTimeout = null;
-        handleCategorySelection.call(this);
-    } else {
-        clickTimeout = setTimeout(() => {
-            clickTimeout = null;
-            handleCategorySelection.call(this);
-        }, 300);
+// Keep the existing handleCategorySelection function as is
+async function handleCategorySelection() {
+    const category = this.dataset.category;
+
+    // Track the game start event
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'game_start', {
+            'event_category': 'Gameplay',
+            'event_label': category,
+            'value': 1
+        });
+    }
+    
+    // Create error message element if it doesn't exist
+    if (!document.getElementById('error-message')) {
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'error-message';
+        errorDiv.className = 'error-message hidden';
+        errorDiv.innerHTML = `
+            <div id="error-text"></div>
+            <button id="retry-btn" class="btn small primary">Retry</button>
+            <button id="try-another-btn" class="btn small secondary">Try Another</button>
+        `;
+        setupScreen.appendChild(errorDiv);
+        
+        // Add try another button handler
+        document.getElementById('try-another-btn')?.addEventListener('click', () => {
+            hideError();
+            document.querySelector('.category-card.active')?.classList.remove('active');
+        });
+    }
+
+    // Update UI
+    document.querySelectorAll('.category-card').forEach(c => 
+        c.classList.remove('active')
+    );
+    this.classList.add('active');
+    
+    // Show loading indicator
+    toggleLoading(true);
+    hideError();
+
+    try {
+        // Fetch questions
+        questions = await fetchQuestions(category);
+        
+        // Initialize game state
+        safeClassToggle(highscores, 'add', 'hidden');
+        safeClassToggle(setupScreen, 'remove', 'active');
+        safeClassToggle(gameScreen, 'add', 'active');
+        
+        currentQuestion = 0;
+        score = 0;
+        answersLog = [];
+        
+        // Initialize game state with time from toggle
+        const quickMode = document.getElementById('quick-mode-toggle').checked;
+        timeLeft = quickMode ? timer.quick : timer.long;
+        totalTimeLeft = 10 * timeLeft;
+        
+        showQuestion();
+        
+    } catch (error) {
+        console.error('Error starting game:', error);
+        showError(error.message || "Failed to load questions. Please try again.");
+    } finally {
+        toggleLoading(false);
     }
 }
 

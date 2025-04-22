@@ -18,7 +18,6 @@ const setupScreen = document.querySelector('.setup-screen');
 const gameScreen = document.querySelector('.game-screen');
 const summaryScreen = document.querySelector('.summary-screen');
 const blogTbankScreen = document.querySelector('.blog-tbank');
-const categorySelect = document.getElementById('category');
 const questionEl = document.getElementById('question');
 const optionsEl = document.getElementById('options');
 const nextBtn = document.getElementById('next-btn');
@@ -37,33 +36,15 @@ const audioElements = {
     correct: createAudioElement('/audio/correct.mp3'),
     wrong: createAudioElement('/audio/wrong.mp3')
 };
+
 //==========================
-// Open Trivia Category IDs
-//==========================
-const otbdIDs = {
-    'Animals' : 27,
-    'Arts' : 25,
-    'Board Games' : 15,
-    'Computers' : 18,
-    'Cartoons': 32,
-    'General Knowledge': 9,
-    'History': 23,
-    'Geography': 22,
-    'Literature' : 10,
-    'Movies' : 11,
-    'Music' : 12,
-    'Mythology' : 20,
-    'Science': 17,
-    'Sports': 21,
-    'Television' : 14
-};
-//==========================
-// Firebase Quiz
+// fb Quiz
 //==========================
 const QUIZ_TYPES = {
     WEEKLY: 'Weekly',
     MONTHLY: 'Monthly'
 };
+
 // ======================
 // Game State
 // ======================
@@ -85,21 +66,19 @@ let selectedTime = timer.long;
 let usedQuestionIds = new Set();
 let questionPool = [];
 let pendingNavigationUrl = null;
-let otdbUsedQuestions = JSON.parse(localStorage.getItem('otdbUsedQuestions')) || [];
-let firebaseUsedQuizIds = JSON.parse(localStorage.getItem('firebaseUsedQuizIds')) || [];
+let fbUsedQuestions = JSON.parse(localStorage.getItem('fbUsedQuestions')) || [];
+let fbUsedQuizIds = JSON.parse(localStorage.getItem('fbUsedQuizIds')) || [];
 // ======================
 // Core Functions
 // ======================
 
 // Initialization
+const QUESTION_COLLECTION = 'triviaMaster/questions';
+const CATEGORIES_DOC = 'triviaMaster/categories';
 const CACHE_VERSION = 'v1';
 const QUESTION_CACHE_KEY = `trivia-questions-${CACHE_VERSION}`;
-const CATEGORY_CACHE_KEY = `trivia-categories-${CACHE_VERSION}`;
-const OTDB_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours cache
-const FIREBASE_QUIZ_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
-
-// Cache expiration (1 hour)
-const CACHE_EXPIRY = 60 * 60 * 1000; 
+const fb_QUESTIONS_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours cache
+const fb_QUIZ_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
 
 // Initialize cache
 function initCache() {
@@ -205,21 +184,7 @@ function getWeekNumber(date) {
     return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
-async function fetchWithRetry(url, retries = 3, delay = 1000) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response; // Return the response object, not the JSON
-    } catch (error) {
-        if (retries > 0) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-            return fetchWithRetry(url, retries - 1, delay * 2);
-        }
-        throw error;
-    }
-}
-
-async function fetchFirebaseQuiz(quizType) {
+async function fetchfbQuiz(quizType) {
     try {
         // Get current week/month identifier
         const now = new Date();
@@ -230,14 +195,14 @@ async function fetchFirebaseQuiz(quizType) {
         console.log(periodId);
 
         // Check if we've already used this quiz
-        const quizCacheKey = `firebase-quiz-${periodId}`;
-        const cachedQuiz = getFirebaseQuizCache(quizCacheKey);
+        const quizCacheKey = `fb-quiz-${periodId}`;
+        const cachedQuiz = getfbQuizCache(quizCacheKey);
         
-        if (cachedQuiz && !firebaseUsedQuizIds.includes(quizCacheKey)) {
-            return cachedQuiz.questions;
+        if (cachedQuiz && !fbUsedQuizIds.includes(quizCacheKey)) {
+            return shuffleArray(cachedQuiz.questions); // Shuffle cached questions
         }
 
-        // Query Firebase for this period's quiz
+        // Query fb for this period's quiz
         const quizDoc = await db.collection('quizzes')
             .doc(quizType.toLowerCase())
             .collection('periods')
@@ -245,13 +210,13 @@ async function fetchFirebaseQuiz(quizType) {
             .get();
 
         if (!quizDoc.exists) {
-            console.error('Firebase document not found at:', quizRef.path);
+            console.error('fb document not found at:', quizRef.path);
             throw new Error(`No ${quizType} available yet. Check back soon!`);
         }
-
+        
         console.log(`Found ${quizDoc.data().questions.length} questions`);
         
-        const questions = quizDoc.data().questions.map(q => ({
+        let questions = quizDoc.data().questions.map(q => ({
             id: generateQuestionId(q), // Generate unique ID for each question
             question: q.question,
             correct: q.correct_answer,
@@ -260,15 +225,19 @@ async function fetchFirebaseQuiz(quizType) {
                 q.correct_answer
             ]),
             category: quizType,
+            subcategory: q.subcategory || '', // Add subcategory if available
             difficulty: q.difficulty || 'medium'
         }));
 
+        // Shuffle the questions array before returning
+        questions = shuffleArray(questions);
+
         // Cache these questions
-        setFirebaseQuizCache(quizCacheKey, questions);
+        setfbQuizCache(quizCacheKey, questions);
         
         // Mark this quiz as used
-        firebaseUsedQuizIds.push(quizCacheKey);
-        localStorage.setItem('firebaseUsedQuizIds', JSON.stringify(firebaseUsedQuizIds));
+        fbUsedQuizIds.push(quizCacheKey);
+        localStorage.setItem('fbUsedQuizIds', JSON.stringify(fbUsedQuizIds));
 
         return questions;
     } catch (error) {
@@ -278,111 +247,109 @@ async function fetchFirebaseQuiz(quizType) {
 }
 
 // Add these cache management functions
-function getFirebaseQuizCache(key) {
-    const cache = JSON.parse(localStorage.getItem('firebaseQuizCache')) || {};
+function getfbQuizCache(key) {
+    const cache = JSON.parse(localStorage.getItem('fbQuizCache')) || {};
     const entry = cache[key];
     
-    if (entry && Date.now() - entry.timestamp < FIREBASE_QUIZ_CACHE_EXPIRY) {
+    if (entry && Date.now() - entry.timestamp < fb_QUIZ_CACHE_EXPIRY) {
         return entry;
     }
     return null;
 }
 
-function setFirebaseQuizCache(key, questions) {
-    const cache = JSON.parse(localStorage.getItem('firebaseQuizCache')) || {};
+function setfbQuizCache(key, questions) {
+    const cache = JSON.parse(localStorage.getItem('fbQuizCache')) || {};
     cache[key] = {
         questions,
         timestamp: Date.now()
     };
-    localStorage.setItem('firebaseQuizCache', JSON.stringify(cache));
+    localStorage.setItem('fbQuizCache', JSON.stringify(cache));
 }
 
-
-async function fetchOTdbQuestions(category, amount = 10) {
+async function fetchfbQuestions(category, amount = 10) {
     try {
       // Check cache first
-      const cacheKey = `otdb-${category}`;
-      const cached = getOtdbCache(cacheKey);
+      const cacheKey = `fb_questions-${category}`;
+      const cached = getfbQuestionsCache(cacheKey);
       
-      // If we have enough cached questions that haven't been used recently
       if (cached && cached.questions.length >= amount) {
-          const available = cached.questions.filter(q => 
-            !otdbUsedQuestions.includes(q.id)
-          );
-          if (available.length >= amount) {
-            return processOtdbQuestions(cached.questions, amount);
-          }
+        const available = cached.questions.filter(q => !fbUsedQuestions.includes(q.id));
+        if (available.length >= amount) {
+          return processfbQuestions(available, amount);
+        }
+      }
+  
+      // Fetch from Firestore using nested collection
+      const randomIndex = Math.floor(Math.random() * 900);
+      let query = db.collection('triviaMaster').doc('questions').collection('items')
+
+      if (category && category !== 'General Knowledge') {
+        query = query.where('category', '==', category);
       }
     
-      // Not enough in cache, fetch fresh
-      const url = new URL('https://opentdb.com/api.php');
-      url.searchParams.append('amount', 30); // Fetch more to have buffer
-      if (category && otbdIDs[category]) {
-        url.searchParams.append('category', otbdIDs[category]);
-      }
-      url.searchParams.append('type', 'multiple');
+        query = query.where('randomIndex', '>=', randomIndex)
+                .orderBy('randomIndex')
+                .limit(amount * 2);
   
-      const response = await fetchWithRetry(url);
-      const data = await response.json(); // Parse JSON here
-  
-      if (data.response_code !== 0) {
-        throw new Error('OpenTriviaDB API error');
+      const snapshot = await query.get();
+      
+      if (snapshot.empty) {
+        throw new Error('No questions found for this category');
       }
   
-      // Process and cache the new questions
-      const newQuestions = data.results.map(q => ({
-        id: generateQuestionId(q), // Generate unique ID for each question
-        question: decodeHTML(q.question),
-        correct: decodeHTML(q.correct_answer),
-        options: [
-          ...q.incorrect_answers.map(decodeHTML), 
-          decodeHTML(q.correct_answer)
-        ],
-        category: q.category,
-        difficulty: q.difficulty || 'medium' 
+      const newQuestions = snapshot.docs.map(doc => ({
+        id: doc.id,
+        question: decodeHTML(doc.data().question),
+        correct: decodeHTML(doc.data().correct_answer),
+        options: shuffleArray([
+          ...doc.data().incorrect_answers.map(decodeHTML),
+          decodeHTML(doc.data().correct_answer)
+        ]),
+        category: doc.data().category,
+        subcategory: doc.data().subcategory || '',
+        difficulty: doc.data().difficulty || 'medium'
       }));
   
       // Update cache
-      setOtdbCache(cacheKey, newQuestions);
+      setfbQuestionsCache(cacheKey, newQuestions);
       
-      return processOtdbQuestions(newQuestions, amount);
+      return processfbQuestions(newQuestions, amount);
     } catch (error) {
-      console.error('Failed to fetch OTDB questions:', error);
-      throw error; // Re-throw the error to be caught by the calling function
+      console.error('Failed to fetch questions:', error);
+      throw error;
     }
-}
-  
+}  
 
-// Helper to generate unique ID for OTDB questions
+// Helper to generate unique ID for fb_questions questions
 function generateQuestionId(q) {
   return CryptoJS.MD5(q.question + q.correct_answer).toString();
 }
 
 // Cache management functions
-function getOtdbCache(key) {
-  const cache = JSON.parse(localStorage.getItem('otdbCache')) || {};
+function getfbQuestionsCache(key) {
+  const cache = JSON.parse(localStorage.getItem('fbQuestionsCache')) || {};
   const entry = cache[key];
   
-  if (entry && Date.now() - entry.timestamp < OTDB_CACHE_EXPIRY) {
+  if (entry && Date.now() - entry.timestamp < fb_QUESTIONS_CACHE_EXPIRY) {
     return entry;
   }
   return null;
 }
 
-function setOtdbCache(key, questions) {
-  const cache = JSON.parse(localStorage.getItem('otdbCache')) || {};
+function setfbQuestionsCache(key, questions) {
+  const cache = JSON.parse(localStorage.getItem('fbQuestionsCache')) || {};
   cache[key] = {
     questions,
     timestamp: Date.now()
   };
-  localStorage.setItem('otdbCache', JSON.stringify(cache));
+  localStorage.setItem('fbQuestionsCache', JSON.stringify(cache));
 }
 
-// Process OTDB questions with repeat prevention
-function processOtdbQuestions(questions, amount) {
+// Process fb_questions questions with repeat prevention
+function processfbQuestions(questions, amount) {
     // Filter out used questions
     const availableQuestions = questions.filter(q => 
-        !otdbUsedQuestions.includes(q.id)
+        !fbUsedQuestions.includes(q.id)
     );
 
     // If not enough, use some repeats but prefer unused ones
@@ -396,19 +363,19 @@ function processOtdbQuestions(questions, amount) {
     if (selected.length < needed) {
         const remaining = needed - selected.length;
         selected.push(...shuffleArray(questions)
-        .filter(q => !selected.includes(q))
-        .slice(0, remaining));
+            .filter(q => !selected.includes(q))
+            .slice(0, remaining));
     }
 
     // Mark these questions as used
-    otdbUsedQuestions = [
-        ...otdbUsedQuestions,
+    fbUsedQuestions = [
+        ...fbUsedQuestions,
         ...selected.map(q => q.id)
     ].slice(-500); // Keep last 500 to prevent memory issues
     
-    localStorage.setItem('otdbUsedQuestions', JSON.stringify(otdbUsedQuestions));
+    localStorage.setItem('fbUsedQuestions', JSON.stringify(fbUsedQuestions));
 
-    // Format for game
+    // Format for game (preserve all properties including subcategory)
     return selected.map(q => ({
         ...q,
         options: shuffleArray([...q.options]) // Shuffle options
@@ -419,11 +386,11 @@ async function fetchQuestions(category) {
     try {
         // Exact match for special quizzes
         if (category === QUIZ_TYPES.WEEKLY || category === QUIZ_TYPES.MONTHLY) {
-            return await fetchFirebaseQuiz(category);
+            return await fetchfbQuiz(category);
         } 
         // All other categories go to OpenTriviaDB
         else {
-            const questions = await fetchOTdbQuestions(category);
+            const questions = await fetchfbQuestions(category);
             if (questions.length === 0) {
                 throw new Error('No questions available for this category. Please try another one.');
             }
@@ -492,16 +459,34 @@ function showQuestion() {
         return;
     }
 
+    // Get selected category from active card
+    const selectedCard = document.querySelector('.category-card.active');
+    const selectedCategory = selectedCard ? selectedCard.dataset.category : 'General Knowledge';
+
     const question = {...questions[currentQuestion]}; // Create a copy
     question.options = shuffle([...question.options]); // Shuffle options
     
+    // Build the question meta HTML
+    let questionMetaHTML = `
+        <div class="question-category">
+            ${selectedCategory === 'General Knowledge' ? 'General Knowledge' : question.category}
+            <span class="question-difficulty ${question.difficulty}">${question.difficulty}</span>    
+        </div>
+    `;
+    
+    // Add subcategory if available (for both regular questions and quizzes)
+    if (question.subcategory) {
+        questionMetaHTML += `
+            <div class="question-subcategory">
+                ${question.subcategory}
+            </div>
+        `;
+    }
+
     questionEl.innerHTML = `
         <div class="question-text">${question.question}</div>
         <div class="question-meta">
-             <div class="question-category">
-                ${question.category}
-                <span class="question-difficulty ${question.difficulty}">${question.difficulty}</span>    
-             </div>
+            ${questionMetaHTML}
         </div>
     `;
 
@@ -717,46 +702,98 @@ function restartGame() {
     }
 }
 
+async function getGlobalCategoryHighScore(category) {
+    try {
+      const snapshot = await db.collection('scores')
+        .where('category', '==', category)
+        .orderBy('score', 'desc')
+        .limit(1)
+        .get();
+      
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        return {
+          score: data.score,
+          name: data.name
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching global category high score:', error);
+      return null;
+    }
+}
+
 // Summary Screen
-function showSummary() {
+async function showSummary() {
     const timeUsed = (selectedQuestions * selectedTime) - totalTimeLeft;
     const correctCount = answersLog.filter(a => a.isCorrect).length;
     const percentage = Math.round((correctCount / selectedQuestions) * 100);
-
+  
+    // Get current category
+    const selectedCard = document.querySelector('.category-card.active');
+    const category = selectedCard ? selectedCard.dataset.category : 'General Knowledge';
+    
+    // Get global high score for this category
+    const globalHigh = await getGlobalCategoryHighScore(category);
+    
     summaryScreen.innerHTML = `
-        <div class="card performance-card compact">
-            <h2>Game Report</h2>
-            <div class="stats-row">
-                <div class="stat-item correct">
-                    <span class="material-icons">check_circle</span>
-                    <div>
-                        <h3>${correctCount}/${selectedQuestions}</h3>
-                        <small>Correct Answers</small>
-                    </div>
-                </div>
-                <div class="stat-item time">
-                    <span class="material-icons">timer</span>
-                    <div>
-                        <h3>${formatTimeDisplay(timeUsed)}</h3>
-                        <small>Total Time</small>
-                    </div>
-                </div>
-                <div class="stat-item percentage">
-                    <span class="material-icons">percent</span>
-                    <div>
-                        <h3>${percentage}%</h3>
-                        <small>Success Rate</small>
-                    </div>
-                </div>
+      <div class="card performance-card compact">
+        <h2>Game Report</h2>
+        <div class="stats-row">
+          <div class="stat-item correct">
+            <span class="material-icons">check_circle</span>
+            <div>
+              <h3>${correctCount}/${selectedQuestions}</h3>
+              <small>Correct Answers</small>
             </div>
-            ${createPerformanceMessage(correctCount)}
-            <button class="btn primary" id="restart-btn">
-                <span class="material-icons">replay</span>
-                Play Again
-            </button>
+          </div>
+          <div class="stat-item time">
+            <span class="material-icons">timer</span>
+            <div>
+              <h3>${formatTimeDisplay(timeUsed)}</h3>
+              <small>Total Time</small>
+            </div>
+          </div>
+          <div class="stat-item percentage">
+            <span class="material-icons">percent</span>
+            <div>
+              <h3>${percentage}%</h3>
+              <small>Success Rate</small>
+            </div>
+          </div>
         </div>
+        ${createPerformanceMessage(correctCount)}
+        
+        ${globalHigh ? `
+          <div class="global-high-score">
+            <div class="trophy-icon">🏆</div>
+            <div class="global-high-details">
+              <div class="global-high-text">Global High Score in ${category}:</div>
+              <div class="global-high-value">${globalHigh.score} by ${globalHigh.name}</div>
+            </div>
+          </div>
+        ` : ''}
+        
+        <button class="btn primary" id="restart-btn">
+          <span class="material-icons">replay</span>
+          ${globalHigh && globalHigh.score > score ? 
+            `Chase ${globalHigh.name}'s ${globalHigh.score}!` : 
+            'Play Again'}
+        </button>
+        
+        ${globalHigh && globalHigh.score > score ? 
+          `<div class="motivation-text">
+            You're ${globalHigh.score - score} points behind the leader!
+          </div>` : 
+          globalHigh && globalHigh.score <= score ?
+          `<div class="global-champion-message">
+            🎉 You beat the global high score! Submit your score to claim the crown!
+          </div>` :
+          ''}
+      </div>
     `;
-
+  
     document.getElementById('restart-btn')?.addEventListener('click', restartGame);
 }
 
@@ -764,15 +801,22 @@ function showSummary() {
 function saveHighScore() {
     if (isScoreSaved || score === 0) return;
     
+    const selectedCard = document.querySelector('.category-card.active');
+    const category = selectedCard ? selectedCard.dataset.category : 'General Knowledge';
+    
+    // Save to localStorage (existing functionality)
     const minScore = Math.min(...highScores.map(h => h.score));
     if (highScores.length < 5 || score > minScore) {
-        const name = prompt('Enter your name for local records:', 'Anonymous') || 'Anonymous';
-        highScores = [...highScores, { name, score }]
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5);
-        
-        localStorage.setItem('highScores', JSON.stringify(highScores));
-        updateHighScores();
+      const name = prompt('Enter your name for records:', 'Anonymous') || 'Anonymous';
+      highScores = [...highScores, { name, score }]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      
+      localStorage.setItem('highScores', JSON.stringify(highScores));
+      updateHighScores();
+      
+      // Also save to Firebase
+      saveScoreToFirebase(name, score, category, selectedDifficulty);
     }
     isScoreSaved = true;
 }
@@ -788,6 +832,21 @@ function updateHighScores() {
             <span class="score">${entry.score}</span>
         </div>
     `).join('');
+}
+
+async function saveScoreToFirebase(name, score, category, difficulty) {
+    try {
+      await db.collection('scores').add({
+        name: name,
+        score: score,
+        category: category,
+        difficulty: difficulty,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      console.log('Score saved to Firebase');
+    } catch (error) {
+      console.error('Error saving score to Firebase:', error);
+    }
 }
 
 // ======================
@@ -819,35 +878,35 @@ function createPerformanceMessage(correctCount) {
     const percentage = (correctCount / selectedQuestions) * 100;
     const messages = {
         gold: [
-            "🏆 Trivia Deity! The knowledge gods bow before you!",
-            "🧠 Mind = Blown! You're a walking encyclopedia!",
-            "🤯 Unstoppable Genius! Someone call Guinness World Records!",
-            "🎖️ Absolute Legend! You just broke the trivia matrix!"
+            "🏆 Trivia Deity! The knowledge gods bow before you! Can you maintain your reign?",
+            "🧠 Mind = Blown! Think you can top this perfect score? Try again!",
+            "🤯 Unstoppable Genius! Ready for an even bigger challenge next round?",
+            "🎖️ Absolute Legend! The leaderboard needs your name again!"
         ],
         silver: [
-            "✨ Brainiac Alert! You're crushing it!",
-            "🚀 Knowledge Rocket! Almost perfect!",
-            "💎 Diamond Mind! You're trivia royalty!",
-            "🧩 Puzzle Master! You've got all the pieces!"
+            "✨ Brainiac Alert! One more round could push you to perfection!",
+            "🚀 Knowledge Rocket! You're just one launch away from trivia greatness!",
+            "💎 Diamond Mind! Polish your skills further with another game!",
+            "🧩 Puzzle Master! Can you complete the picture perfectly next time?"
         ],
         bronze: [
-            "👍 Solid Effort! You're getting dangerous!",
-            "📚 Bookworm Rising! The library is your dojo!",
-            "💡 Bright Spark! Keep that curiosity lit!",
-            "🏅 Contender Status! The podium is in sight!"
+            "👍 Solid Effort! Your next attempt could be your breakthrough!",
+            "📚 Bookworm Rising! Every replay makes you wiser - try again!",
+            "💡 Bright Spark! Your knowledge is growing - fuel it with another round!",
+            "🏅 Contender Status! The podium is within reach - one more try!"
         ],
         zero: [
-            "💥 Knowledge Explosion Incoming! The next attempt will be better!",
-            "🎯 Fresh Start! Every master was once a beginner!",
-            "🔥 Fueling Curiosity! Your learning journey begins now!",
-            "🚀 Launch Pad Ready! Next round will be your breakthrough!",
+            "💥 Knowledge Explosion Incoming! Stick around - the next attempt will be better!",
+            "🎯 Fresh Start! Now that you've warmed up, the real game begins!",
+            "🔥 Fueling Curiosity! Your learning journey starts here - play again!",
+            "🚀 Launch Pad Ready! First attempts are just practice - try for real now!",
             "🌱 Seeds of Knowledge Planted! Water them with another try!"
         ],
         default: [
-            "🌱 Sprouting Scholar! Every master was once a beginner!",
-            "🦉 Wise Owl in Training! The nest is just the start!",
-            "📖 Chapter 1 Complete! Your knowledge journey begins!",
-            "🧭 Learning Compass Active! New horizons ahead!"
+            "🌱 Sprouting Scholar! Every replay makes you stronger - continue your journey!",
+            "🦉 Wise Owl in Training! The more you play, the wiser you become!",
+            "📖 Chapter 1 Complete! Turn the page to your next knowledge adventure!",
+            "🧭 Learning Compass Active! Your next game could be your true north!"
         ]
     };
 
@@ -866,7 +925,13 @@ function createPerformanceMessage(correctCount) {
     const randomIndex = Math.floor(Math.random() * messages[category].length);
     const message = messages[category][randomIndex];
 
-    return `<div class="performance-message ${category}">${message}</div>`;
+    // Add a consistent call-to-action that appears with all messages
+    const cta = "<div class='replay-cta'>Ready for another challenge? The next round awaits!</div>";
+    
+    return `
+        <div class="performance-message ${category}">${message}</div>
+        ${cta}
+    `;
 }
 
 function decodeHTML(text) {
@@ -945,18 +1010,18 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', handleNavClick);
     });
 
-    if (!localStorage.getItem('otdbUsedQuestions')) {
-        localStorage.setItem('otdbUsedQuestions', JSON.stringify([]));
+    if (!localStorage.getItem('fbUsedQuestions')) {
+        localStorage.setItem('fbUsedQuestions', JSON.stringify([]));
       }
-    if (!localStorage.getItem('otdbCache')) {
-        localStorage.setItem('otdbCache', JSON.stringify({}));
+    if (!localStorage.getItem('fbQuestionsCache')) {
+        localStorage.setItem('fbQuestionsCache', JSON.stringify({}));
     }
     
-    if (!localStorage.getItem('firebaseUsedQuizIds')) {
-    localStorage.setItem('firebaseUsedQuizIds', JSON.stringify([]));
+    if (!localStorage.getItem('fbUsedQuizIds')) {
+    localStorage.setItem('fbUsedQuizIds', JSON.stringify([]));
     }
-    if (!localStorage.getItem('firebaseQuizCache')) {
-    localStorage.setItem('firebaseQuizCache', JSON.stringify({}));
+    if (!localStorage.getItem('fbQuizCache')) {
+    localStorage.setItem('fbQuizCache', JSON.stringify({}));
     }
 });
 
@@ -982,7 +1047,7 @@ document.querySelectorAll('.category-card').forEach(card => {
 
     card.addEventListener('dblclick', async function() {
         const category = this.dataset.category;
-        
+
         // Track the game start event
         if (typeof gtag !== 'undefined') {
             gtag('event', 'game_start', {

@@ -55,7 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Remove trailing slash
         path = path.replace(/\/$/, '');
         
-        if (path === '/home') {
+        // Hide all screens first
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+    
+        // Show the appropriate screen based on route
+        if (path.includes('/privacy')) {
+            document.querySelector('.privacy-screen').classList.add('active');
+        } else if (path.includes('/contact')) {
+            document.querySelector('.contact-screen').classList.add('active');
+        } else if (path === '/home') {
             showHomeScreen();
         } else if (path.startsWith('/blog')) {
             await loadContent('blog', path);

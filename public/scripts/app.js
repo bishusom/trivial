@@ -1029,38 +1029,75 @@ document.addEventListener('click', (e) => {
 // Category card initialization - mobile friendly
 document.querySelectorAll('.category-card').forEach(card => {
     let clickTimeout = null;
+    let touchStartY = 0;
+    let touchMoved = false;
     
+    // Touch start - record initial position
+    card.addEventListener('touchstart', function(e) {
+        touchStartY = e.touches[0].clientY;
+        touchMoved = false;
+    });
+    
+    // Touch move - detect if user is scrolling
+    card.addEventListener('touchmove', function(e) {
+        if (Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+            touchMoved = true;
+            if (clickTimeout) {
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }
+        }
+    });
+    
+    // Touch end - handle tap if not scrolling
+    card.addEventListener('touchend', function(e) {
+        if (!touchMoved) {
+            e.preventDefault();
+            handleCategoryTap.call(this);
+        }
+    });
+    
+    // Click handler for desktop
     card.addEventListener('click', function(e) {
-        // Clear any pending single click timeout
+        // Only handle click if not from touch device
+        if ('ontouchstart' in window) return;
+        
         if (clickTimeout) {
             clearTimeout(clickTimeout);
             clickTimeout = null;
-            return; // This was part of a double click, so we'll let the dblclick handle it
+            return;
         }
         
-        // Set a timeout to handle single click after a delay
         clickTimeout = setTimeout(() => {
             clickTimeout = null;
             handleCategorySelection.call(this);
-        }, 300); // 300ms delay to wait for potential double click
+        }, 300);
     });
 
+    // Double click handler for desktop
     card.addEventListener('dblclick', function(e) {
-        // Clear any pending single click
+        if ('ontouchstart' in window) return;
         if (clickTimeout) {
             clearTimeout(clickTimeout);
             clickTimeout = null;
         }
         handleCategorySelection.call(this);
     });
-
-    // Mobile touch handler
-    card.addEventListener('touchend', function(e) {
-        // Prevent default to avoid double events
-        e.preventDefault();
-        handleCategorySelection.call(this);
-    });
 });
+
+// Handle mobile taps (separate from desktop clicks)
+function handleCategoryTap() {
+    if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+        handleCategorySelection.call(this);
+    } else {
+        clickTimeout = setTimeout(() => {
+            clickTimeout = null;
+            handleCategorySelection.call(this);
+        }, 300);
+    }
+}
 
 // Extract the game start logic into a separate function
 async function handleCategorySelection() {

@@ -937,14 +937,15 @@ body {
 }
 
 .global-high-value {
-    color: var(--accent-color);
+    color: #d4af37; /* A darker gold color */
     font-weight: bold;
     font-size: 1.1em;
     margin-top: 3px;
 }
 
 .global-champion-message {
-    background: linear-gradient(135deg, #fff9c4 0%, #ffeb3b 100%);
+    background: linear-gradient(135deg, #f8e587 0%, #e6c200 100%); /* Darker gold gradient */
+    color: #5a4a00; /* Dark brown text for contrast */
     padding: 10px;
     border-radius: 5px;
     margin-top: 15px;

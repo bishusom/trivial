@@ -755,13 +755,6 @@ async function showSummary() {
               <small>Total Time</small>
             </div>
           </div>
-          <div class="stat-item percentage">
-            <span class="material-icons">percent</span>
-            <div>
-              <h3>${percentage}%</h3>
-              <small>Success Rate</small>
-            </div>
-          </div>
         </div>
         ${createPerformanceMessage(correctCount)}
         
@@ -1032,99 +1025,112 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Category card initialization
+
+// Category card initialization - mobile friendly
 document.querySelectorAll('.category-card').forEach(card => {
-    let lastTap = 0;
+    let clickTimeout = null;
     
     card.addEventListener('click', function(e) {
-        // Prevent if it's part of a double-tap
-        if (Date.now() - lastTap < 300) {
-            e.preventDefault();
-            return;
+        // Clear any pending single click timeout
+        if (clickTimeout) {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
+            return; // This was part of a double click, so we'll let the dblclick handle it
         }
-        lastTap = Date.now();
+        
+        // Set a timeout to handle single click after a delay
+        clickTimeout = setTimeout(() => {
+            clickTimeout = null;
+            handleCategorySelection.call(this);
+        }, 300); // 300ms delay to wait for potential double click
     });
 
-    card.addEventListener('dblclick', async function() {
-        const category = this.dataset.category;
-
-        // Track the game start event
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'game_start', {
-                'event_category': 'Gameplay',
-                'event_label': category,
-                'value': 1
-            });
+    card.addEventListener('dblclick', function(e) {
+        // Clear any pending single click
+        if (clickTimeout) {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
         }
-        
-        // Create error message element if it doesn't exist
-        if (!document.getElementById('error-message')) {
-            const errorDiv = document.createElement('div');
-            errorDiv.id = 'error-message';
-            errorDiv.className = 'error-message hidden';
-            errorDiv.innerHTML = `
-                <div id="error-text"></div>
-                <button id="retry-btn" class="btn small primary">Retry</button>
-                <button id="try-another-btn" class="btn small secondary">Try Another</button>
-            `;
-            setupScreen.appendChild(errorDiv);
-            
-            // Add try another button handler
-            document.getElementById('try-another-btn')?.addEventListener('click', () => {
-                hideError();
-                document.querySelector('.category-card.active')?.classList.remove('active');
-            });
-        }
-
-        // Update UI
-        document.querySelectorAll('.category-card').forEach(c => 
-            c.classList.remove('active')
-        );
-        this.classList.add('active');
-        
-        // Show loading indicator
-        toggleLoading(true);
-        hideError();
-
-        try {
-            // Fetch questions
-            questions = await fetchQuestions(category);
-            
-            // Initialize game state
-            safeClassToggle(highscores, 'add', 'hidden');
-            safeClassToggle(setupScreen, 'remove', 'active');
-            safeClassToggle(gameScreen, 'add', 'active');
-            
-            currentQuestion = 0;
-            score = 0;
-            answersLog = [];
-            
-            // Initialize game state with time from toggle
-            const quickMode = document.getElementById('quick-mode-toggle').checked;
-            timeLeft = quickMode ? timer.quick : timer.long;
-            totalTimeLeft = 10 * timeLeft;
-            
-            showQuestion();
-            
-        } catch (error) {
-            console.error('Error starting game:', error);
-            showError(error.message || "Failed to load questions. Please try again.");
-        } finally {
-            toggleLoading(false);
-        }
+        handleCategorySelection.call(this);
     });
 
     // Mobile touch handler
     card.addEventListener('touchend', function(e) {
-        const currentTime = Date.now();
-        if (currentTime - lastTap < 300) {
-            e.preventDefault();
-            // Trigger double-click action
-            this.dispatchEvent(new Event('dblclick'));
-        }
-        lastTap = currentTime;
+        // Prevent default to avoid double events
+        e.preventDefault();
+        handleCategorySelection.call(this);
     });
 });
+
+// Extract the game start logic into a separate function
+async function handleCategorySelection() {
+    const category = this.dataset.category;
+
+    // Track the game start event
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'game_start', {
+            'event_category': 'Gameplay',
+            'event_label': category,
+            'value': 1
+        });
+    }
+    
+    // Create error message element if it doesn't exist
+    if (!document.getElementById('error-message')) {
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'error-message';
+        errorDiv.className = 'error-message hidden';
+        errorDiv.innerHTML = `
+            <div id="error-text"></div>
+            <button id="retry-btn" class="btn small primary">Retry</button>
+            <button id="try-another-btn" class="btn small secondary">Try Another</button>
+        `;
+        setupScreen.appendChild(errorDiv);
+        
+        // Add try another button handler
+        document.getElementById('try-another-btn')?.addEventListener('click', () => {
+            hideError();
+            document.querySelector('.category-card.active')?.classList.remove('active');
+        });
+    }
+
+    // Update UI
+    document.querySelectorAll('.category-card').forEach(c => 
+        c.classList.remove('active')
+    );
+    this.classList.add('active');
+    
+    // Show loading indicator
+    toggleLoading(true);
+    hideError();
+
+    try {
+        // Fetch questions
+        questions = await fetchQuestions(category);
+        
+        // Initialize game state
+        safeClassToggle(highscores, 'add', 'hidden');
+        safeClassToggle(setupScreen, 'remove', 'active');
+        safeClassToggle(gameScreen, 'add', 'active');
+        
+        currentQuestion = 0;
+        score = 0;
+        answersLog = [];
+        
+        // Initialize game state with time from toggle
+        const quickMode = document.getElementById('quick-mode-toggle').checked;
+        timeLeft = quickMode ? timer.quick : timer.long;
+        totalTimeLeft = 10 * timeLeft;
+        
+        showQuestion();
+        
+    } catch (error) {
+        console.error('Error starting game:', error);
+        showError(error.message || "Failed to load questions. Please try again.");
+    } finally {
+        toggleLoading(false);
+    }
+}
 
 // Clear scores button
 document.getElementById('clear-scores')?.addEventListener('click', () => {

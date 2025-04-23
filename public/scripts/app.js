@@ -456,6 +456,9 @@ function shuffleArray(array) {
 }
 
 function showQuestion() {
+    document.querySelector('.privacy-screen').classList.add('hidden');
+    document.querySelector('.contact-screen').classList.add('hidden');
+    
     questionEl.classList.remove('correct-bg', 'wrong-bg');
     questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
 
@@ -794,6 +797,8 @@ async function showSummary() {
     `;
   
     document.getElementById('restart-btn')?.addEventListener('click', restartGame);
+    document.querySelector('.privacy-screen').classList.remove('hidden');
+    document.querySelector('.contact-screen').classList.remove('hidden');
 }
 
 // High Scores
@@ -997,6 +1002,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nav-warning-modal').classList.add('hidden');
         safeClassToggle(gameScreen, 'remove', 'active');
         
+        document.querySelector('.privacy-screen').classList.remove('hidden');
+        document.querySelector('.contact-screen').classList.remove('hidden');
+
         if (pendingNavigationUrl) {
             window.history.pushState({}, '', pendingNavigationUrl);
             handleRouting(pendingNavigationUrl); // Use the router's handling

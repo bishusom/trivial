@@ -188,7 +188,7 @@ function toInitCaps(str) {
     return str.replace(/\w\S*/g, function(txt) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
-  }
+}
 
 async function fetchfbQuiz(quizType) {
     try {
@@ -469,7 +469,7 @@ function showQuestion() {
 
     // Get selected category from active card
     const selectedCard = document.querySelector('.category-card.active');
-    const selectedCategory = selectedCard ? toInitCaps(selectedCard.dataset.category) : 'General Knowledge';
+    const selectedCategory = selectedCard ? selectedCard.dataset.category : 'General Knowledge';
 
     const question = {...questions[currentQuestion]}; // Create a copy
     question.options = shuffle([...question.options]); // Shuffle options
@@ -477,7 +477,7 @@ function showQuestion() {
     // Build the question meta HTML
     let questionMetaHTML = `
         <div class="question-category">
-            ${selectedCategory === 'General Knowledge' ? 'General Knowledge' : question.category}
+            ${selectedCategory === 'General Knowledge' ? 'General Knowledge' : toInitCaps(question.category)}
             <span class="question-difficulty ${question.difficulty}">${question.difficulty}</span>    
         </div>
     `;

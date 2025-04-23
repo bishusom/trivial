@@ -126,6 +126,25 @@ function toggleLoading(show) {
     }
 }
 
+function saveMuteState() {
+    localStorage.setItem('triviaMasterMuteState', JSON.stringify(isMuted));
+}
+
+function loadMuteState() {
+    const savedState = localStorage.getItem('triviaMasterMuteState');
+    if (savedState !== null) {
+        isMuted = JSON.parse(savedState);
+    }
+    updateMuteIcon();
+}
+
+function updateMuteIcon() {
+    const icon = document.querySelector('#mute-btn .material-icons');
+    if (icon) {
+        icon.textContent = isMuted ? 'volume_off' : 'volume_up';
+    }
+}
+
 function handleNavClick(e) {
     if (gameScreen.classList.contains('active')) {
         e.preventDefault();
@@ -954,6 +973,7 @@ function shuffle(array) {
 // Event Listeners
 // ======================
 document.addEventListener('DOMContentLoaded', () => {
+    loadMuteState();
     updateHighScores();
     safeClassToggle(setupScreen, 'add', 'active');
     safeClassToggle(highscores, 'add', 'hidden');
@@ -963,10 +983,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mute button handler
     document.getElementById('mute-btn')?.addEventListener('click', () => {
         isMuted = !isMuted;
-        const icon = document.querySelector('#mute-btn .material-icons');
-        if (icon) {
-            icon.textContent = isMuted ? 'volume_off' : 'volume_up';
-        }
+        updateMuteIcon();
+        saveMuteState();
         
         // Toggle all sounds
         Object.values(audioElements).forEach(audio => {

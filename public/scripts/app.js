@@ -797,8 +797,7 @@ async function showSummary() {
     `;
   
     document.getElementById('restart-btn')?.addEventListener('click', restartGame);
-    document.querySelector('.privacy-screen').classList.remove('hidden');
-    document.querySelector('.contact-screen').classList.remove('hidden');
+    document.querySelector('.app-footer').classList.remove('hidden');
 }
 
 // High Scores
@@ -1002,8 +1001,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nav-warning-modal').classList.add('hidden');
         safeClassToggle(gameScreen, 'remove', 'active');
         
-        document.querySelector('.privacy-screen').classList.remove('hidden');
-        document.querySelector('.contact-screen').classList.remove('hidden');
+        document.querySelector('.app-footer').classList.add('hidden')
 
         if (pendingNavigationUrl) {
             window.history.pushState({}, '', pendingNavigationUrl);

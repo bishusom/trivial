@@ -456,8 +456,7 @@ function shuffleArray(array) {
 }
 
 function showQuestion() {
-    document.querySelector('.privacy-screen').classList.add('hidden');
-    document.querySelector('.contact-screen').classList.add('hidden');
+    document.querySelector('.app-footer').classList.add('hidden');
     
     questionEl.classList.remove('correct-bg', 'wrong-bg');
     questionCounterEl.textContent = `${currentQuestion + 1}/${selectedQuestions}`;
@@ -1001,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nav-warning-modal').classList.add('hidden');
         safeClassToggle(gameScreen, 'remove', 'active');
         
-        document.querySelector('.app-footer').classList.add('hidden')
+        document.querySelector('.app-footer').classList.remove('hidden')
 
         if (pendingNavigationUrl) {
             window.history.pushState({}, '', pendingNavigationUrl);

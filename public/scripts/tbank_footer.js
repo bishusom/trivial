@@ -4,7 +4,7 @@ function initializeQuizControls() {
     const showHideEmoji = document.getElementById('show_hide_emoji');
     
     if(toggleButton && printButton) {
-        let answersVisible = true;
+        let answersVisible = false;
         const answers = document.querySelectorAll('.answer');
 
         // Toggle answers

@@ -36,7 +36,7 @@ const audioElements = {
     correct: createAudioElement('/audio/correct.mp3'),
     wrong: createAudioElement('/audio/wrong.mp3')
 };
-
+const todStorageKey = 'triviaMasterTOD';
 //==========================
 // fb Quiz
 //==========================
@@ -49,6 +49,7 @@ const QUIZ_TYPES = {
 // Game State
 // ======================
 let isMuted = false;
+let todQuestion = null;
 let selectedDifficulty = 'easy';
 let questions = [];
 let currentQuestion = 0;
@@ -71,6 +72,82 @@ let fbUsedQuizIds = JSON.parse(localStorage.getItem('fbUsedQuizIds')) || [];
 // ======================
 // Core Functions
 // ======================
+async function loadTriviaOfTheDay() {
+  // Check if we have a saved question for today
+  const savedTOD = localStorage.getItem(todStorageKey);
+  const today = new Date().toDateString();
+  
+  if (savedTOD) {
+    const parsed = JSON.parse(savedTOD);
+    if (parsed.date === today) {
+      todQuestion = parsed.question;
+      displayTODQuestion();
+      return;
+    }
+  }
+
+  // Fetch a new question if we don't have one for today
+  try {
+    const questions = await fetchfbQuestions('General Knowledge', 5);
+    if (questions.length > 0) {
+      todQuestion = questions[0];
+      localStorage.setItem(todStorageKey, JSON.stringify({
+        date: today,
+        question: todQuestion
+      }));
+      displayTODQuestion();
+    }
+  } catch (error) {
+    console.error('Failed to load Trivia of the Day:', error);
+    document.querySelector('.trivia-of-the-day').style.display = 'none';
+  }
+}
+
+function displayTODQuestion() {
+  if (!todQuestion) return;
+
+  const questionEl = document.getElementById('tod-question');
+  const optionsEl = document.getElementById('tod-options');
+  const answerEl = document.getElementById('tod-answer');
+
+  questionEl.textContent = todQuestion.question;
+  answerEl.textContent = `Correct answer: ${todQuestion.correct}`;
+  answerEl.classList.add('hidden');
+
+  // Display shuffled options
+  optionsEl.innerHTML = shuffleArray([...todQuestion.options])
+    .map(option => `<button>${option}</button>`)
+    .join('');
+
+  // Add option selection handler
+  optionsEl.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const isCorrect = this.textContent === todQuestion.correct;
+      this.classList.add(isCorrect ? 'correct' : 'wrong');
+      
+      // Highlight correct answer
+      optionsEl.querySelectorAll('button').forEach(optionBtn => {
+        if (optionBtn.textContent === todQuestion.correct) {
+          optionBtn.classList.add('correct');
+        }
+        optionBtn.disabled = true;
+      });
+    });
+  });
+
+  // Add reveal answer handler
+  document.getElementById('tod-reveal').addEventListener('click', function() {
+    answerEl.classList.remove('hidden');
+    optionsEl.querySelectorAll('button').forEach(btn => {
+      btn.disabled = true;
+      if (btn.textContent === todQuestion.correct) {
+        btn.classList.add('correct');
+      }
+    });
+    this.disabled = true;
+  });
+}
+
 
 // Initialization
 const QUESTION_COLLECTION = 'triviaMaster/questions';
@@ -1045,6 +1122,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('fbQuizCache')) {
     localStorage.setItem('fbQuizCache', JSON.stringify({}));
     }
+    // Add this line to load the Trivia of the Day
+    loadTriviaOfTheDay();
 });
 
 document.addEventListener('click', (e) => {

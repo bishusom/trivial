@@ -36,6 +36,7 @@ const audioElements = {
     correct: createAudioElement('/audio/correct.mp3'),
     wrong: createAudioElement('/audio/wrong.mp3')
 };
+
 //==========================
 // fb Quiz
 //==========================
@@ -48,8 +49,7 @@ const QUIZ_TYPES = {
 // Game State
 // ======================
 let isMuted = false;
-let todQuestion = null;
-let selectedDifficulty = 'easy';
+let dailyPlayers = 142; 
 let questions = [];
 let currentQuestion = 0;
 let score = 0;
@@ -71,6 +71,7 @@ let fbUsedQuizIds = JSON.parse(localStorage.getItem('fbUsedQuizIds')) || [];
 // ======================
 // Core Functions
 // ======================
+
 // Initialization
 const QUESTION_COLLECTION = 'triviaMaster/questions';
 const CATEGORIES_DOC = 'triviaMaster/categories';
@@ -78,6 +79,7 @@ const CACHE_VERSION = 'v1';
 const QUESTION_CACHE_KEY = `trivia-questions-${CACHE_VERSION}`;
 const fb_QUESTIONS_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours cache
 const fb_QUIZ_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+
 
 // Initialize cache
 function initCache() {
@@ -208,64 +210,97 @@ function toInitCaps(str) {
     });
 }
 
+async function fetchPlayerCount(category) {
+    try {
+        const doc = await db.collection('playerCounts').doc(category).get();
+        if (doc.exists) {
+            return doc.data().count;
+        }
+        // If document doesn't exist, create it with count=1
+        const initialCount = 1;
+        await db.collection('playerCounts').doc(category).set({
+            count: initialCount,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            category: category
+        });
+        return initialCount;
+    } catch (error) {
+        console.error('Error fetching player count:', error);
+        return Math.floor(Math.random() * 40) + 100; // Fallback
+    }
+}
+
+// Update the fetchfbQuiz function to prevent duplicate fetches
 async function fetchfbQuiz(quizType) {
     try {
-        // Get current week/month identifier
         const now = new Date();
         const periodId = quizType === QUIZ_TYPES.WEEKLY 
             ? `week-${getWeekNumber(now)}-${now.getFullYear()}`
             : `month-${now.getMonth()+1}-${now.getFullYear()}`;
         
-        console.log(periodId);
-
-        // Check if we've already used this quiz
-        const quizCacheKey = `fb-quiz-${periodId}`;
-        const cachedQuiz = getfbQuizCache(quizCacheKey);
-        
-        if (cachedQuiz && !fbUsedQuizIds.includes(quizCacheKey)) {
-            return shuffleArray(cachedQuiz.questions); // Shuffle cached questions
+        // Check if we're already fetching this quiz
+        if (window.currentQuizFetch && window.currentQuizFetch.quizType === quizType) {
+            return window.currentQuizFetch.promise;
         }
 
-        // Query fb for this period's quiz
-        const quizDoc = await db.collection('quizzes')
-            .doc(quizType.toLowerCase())
-            .collection('periods')
-            .doc(periodId)
-            .get();
+        // Create a new fetch promise and store it
+        const fetchPromise = (async () => {
+            // Check cache first
+            const quizCacheKey = `fb-quiz-${periodId}`;
+            const cachedQuiz = getfbQuizCache(quizCacheKey);
+            
+            if (cachedQuiz && !fbUsedQuizIds.includes(quizCacheKey)) {
+                return shuffleArray(cachedQuiz.questions);
+            }
 
-        if (!quizDoc.exists) {
-            console.error('fb document not found at:', quizRef.path);
-            throw new Error(`No ${quizType} available yet. Check back soon!`);
+            // Query Firestore
+            const quizDoc = await db.collection('quizzes')
+                .doc(quizType.toLowerCase())
+                .collection('periods')
+                .doc(periodId)
+                .get();
+
+            if (!quizDoc.exists) {
+                throw new Error(`No ${quizType} available yet. Check back soon!`);
+            }
+            
+            let questions = quizDoc.data().questions.map(q => ({
+                id: generateQuestionId(q),
+                question: q.question,
+                correct: q.correct_answer,
+                options: shuffleArray([...q.incorrect_answers, q.correct_answer]),
+                category: quizType,
+                subcategory: q.subcategory || '',
+                difficulty: q.difficulty || 'medium'
+            }));
+
+            questions = shuffleArray(questions);
+            setfbQuizCache(quizCacheKey, questions);
+            fbUsedQuizIds.push(quizCacheKey);
+            localStorage.setItem('fbUsedQuizIds', JSON.stringify(fbUsedQuizIds));
+
+            return questions;
+        })();
+
+        // Store the current fetch
+        window.currentQuizFetch = {
+            quizType,
+            promise: fetchPromise
+        };
+
+        const result = await fetchPromise;
+        
+        // Clear the current fetch when done
+        if (window.currentQuizFetch?.quizType === quizType) {
+            window.currentQuizFetch = null;
         }
-        
-        console.log(`Found ${quizDoc.data().questions.length} questions`);
-        
-        let questions = quizDoc.data().questions.map(q => ({
-            id: generateQuestionId(q), // Generate unique ID for each question
-            question: q.question,
-            correct: q.correct_answer,
-            options: shuffleArray([
-                ...q.incorrect_answers,
-                q.correct_answer
-            ]),
-            category: quizType,
-            subcategory: q.subcategory || '', // Add subcategory if available
-            difficulty: q.difficulty || 'medium'
-        }));
 
-        // Shuffle the questions array before returning
-        questions = shuffleArray(questions);
-
-        // Cache these questions
-        setfbQuizCache(quizCacheKey, questions);
-        
-        // Mark this quiz as used
-        fbUsedQuizIds.push(quizCacheKey);
-        localStorage.setItem('fbUsedQuizIds', JSON.stringify(fbUsedQuizIds));
-
-        return questions;
+        return result;
     } catch (error) {
-        console.error(`Error fetching ${quizType}:`, error);
+        // Clear the current fetch on error
+        if (window.currentQuizFetch?.quizType === quizType) {
+            window.currentQuizFetch = null;
+        }
         throw error;
     }
 }
@@ -408,6 +443,14 @@ function processfbQuestions(questions, amount) {
 
 async function fetchQuestions(category) {
     try {
+        // Track category selection
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'select_category', {
+                event_category: 'Gameplay',
+                event_label: category
+            });
+        }
+
         // Exact match for special quizzes
         if (category === QUIZ_TYPES.WEEKLY || category === QUIZ_TYPES.MONTHLY) {
             return await fetchfbQuiz(category);
@@ -721,9 +764,7 @@ function restartGame() {
 
     if (typeof gtag !== 'undefined') {
         gtag('event', 'start_game', {
-            category: 'Gameplay',
-            difficulty: selectedDifficulty,
-            questions: selectedQuestions
+            category: 'Gameplay'
         });
     }
 }
@@ -836,7 +877,7 @@ function saveHighScore() {
       updateHighScores();
       
       // Also save to Firebase
-      saveScoreToFirebase(name, score, category, selectedDifficulty);
+      saveScoreToFirebase(name, score, category);
     }
     isScoreSaved = true;
 }
@@ -854,13 +895,12 @@ function updateHighScores() {
     `).join('');
 }
 
-async function saveScoreToFirebase(name, score, category, difficulty) {
+async function saveScoreToFirebase(name, score, category) {
     try {
       await db.collection('scores').add({
         name: name,
         score: score,
         category: category,
-        difficulty: difficulty,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
       console.log('Score saved to Firebase');
@@ -971,6 +1011,9 @@ function shuffle(array) {
 // ======================
 // Event Listeners
 // ======================
+// ======================
+// Event Listeners
+// ======================
 document.addEventListener('DOMContentLoaded', () => {
     loadMuteState();
     updateHighScores();
@@ -978,6 +1021,27 @@ document.addEventListener('DOMContentLoaded', () => {
     safeClassToggle(highscores, 'add', 'hidden');
     nextBtn.classList.remove('visible');
     nextBtn?.addEventListener('click', handleNextQuestion);
+    rotateTestimonial();
+    setInterval(rotateTestimonial, 10000);
+
+    // Featured challenge button
+    document.querySelector('.featured-play-btn')?.addEventListener('click', function() {
+        const featuredCard = document.querySelector('.featured-card');
+        const category = featuredCard.dataset.category;
+        document.querySelector(`.category-card[data-category="${category}"]`).click();
+    });
+
+    // Value prop tracking
+    document.querySelectorAll('.prop-card').forEach(card => {
+        card.addEventListener('click', () => {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'click_value_prop', {
+                    event_category: 'Engagement',
+                    event_label: card.textContent.trim()
+                });
+            }
+        });
+    });
 
     // Mute button handler
     document.getElementById('mute-btn')?.addEventListener('click', () => {
@@ -985,7 +1049,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMuteIcon();
         saveMuteState();
         
-        // Toggle all sounds
         Object.values(audioElements).forEach(audio => {
             if (!audio) return;
             if (isMuted) {
@@ -996,55 +1059,66 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Add modal button handlers
+    // Modal buttons
     document.getElementById('continue-game')?.addEventListener('click', () => {
         document.getElementById('nav-warning-modal').classList.add('hidden');
-        pendingNavigationUrl = null; // Clear the pending navigation
-        startTimer(); // Resume the game
-        safeClassToggle(gameScreen, 'add', 'active'); // Ensure game screen stays visible
-        safeClassToggle(blogTbankScreen, 'remove', 'active'); // Hide other content
-        safeClassToggle(setupScreen, 'remove', 'active'); // Hide other content
-
+        pendingNavigationUrl = null;
+        startTimer();
+        safeClassToggle(gameScreen, 'add', 'active');
+        safeClassToggle(blogTbankScreen, 'remove', 'active');
+        safeClassToggle(setupScreen, 'remove', 'active');
     });
     
     document.getElementById('end-game')?.addEventListener('click', () => {
-        // Clean up game state
         questions = [];
         currentQuestion = 0;
         score = 0;
         
-        // Hide modal and navigate
         document.getElementById('nav-warning-modal').classList.add('hidden');
         safeClassToggle(gameScreen, 'remove', 'active');
-        
-        document.querySelector('.app-footer').classList.remove('hidden')
+        document.querySelector('.app-footer').classList.remove('hidden');
 
         if (pendingNavigationUrl) {
             window.history.pushState({}, '', pendingNavigationUrl);
-            handleRouting(pendingNavigationUrl); // Use the router's handling
+            handleRouting(pendingNavigationUrl);
         }
         pendingNavigationUrl = null;
     });
     
-    // Add navigation handlers
+    // Navigation
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', handleNavClick);
     });
 
+    // Initialize storage
     if (!localStorage.getItem('fbUsedQuestions')) {
         localStorage.setItem('fbUsedQuestions', JSON.stringify([]));
-      }
+    }
     if (!localStorage.getItem('fbQuestionsCache')) {
         localStorage.setItem('fbQuestionsCache', JSON.stringify({}));
     }
-    
     if (!localStorage.getItem('fbUsedQuizIds')) {
-    localStorage.setItem('fbUsedQuizIds', JSON.stringify([]));
+        localStorage.setItem('fbUsedQuizIds', JSON.stringify([]));
     }
     if (!localStorage.getItem('fbQuizCache')) {
-    localStorage.setItem('fbQuizCache', JSON.stringify({}));
+        localStorage.setItem('fbQuizCache', JSON.stringify({}));
+    }
+
+    // Track featured challenge impressions
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'view_featured_challenge', {
+            event_category: 'Engagement'
+        });
     }
 });
+
+// Add to event listeners section
+document.querySelector('.featured-play-btn')?.addEventListener('click', function() {
+    const featuredCard = document.querySelector('.featured-card');
+    const category = featuredCard.dataset.category;
+    document.querySelector(`.category-card[data-category="${category}"]`).click();
+});
+
 
 document.addEventListener('click', (e) => {
     if (e.target.matches('#options button')) {
@@ -1054,112 +1128,44 @@ document.addEventListener('click', (e) => {
 });
 
 
-// Category card initialization - mobile friendly
-// Category card initialization - simplified mobile/desktop handling
+// Replace the category card initialization code with this optimized version
 document.querySelectorAll('.category-card').forEach(card => {
     let lastTap = 0;
     let touchStartY = 0;
     let isScrolling = false;
+    let isProcessing = false; // Add processing flag
     
-    // Touch start - record initial position
     card.addEventListener('touchstart', function(e) {
         touchStartY = e.touches[0].clientY;
         isScrolling = false;
     });
     
-    // Touch move - detect if user is scrolling
     card.addEventListener('touchmove', function(e) {
         if (Math.abs(e.touches[0].clientY - touchStartY) > 5) {
             isScrolling = true;
         }
     });
     
-    // Touch end - handle tap if not scrolling
     card.addEventListener('touchend', function(e) {
-        if (!isScrolling) {
+        if (!isScrolling && !isProcessing) {
             e.preventDefault();
-            handleCategorySelection.call(this);
+            isProcessing = true;
+            handleCategorySelection.call(this).finally(() => {
+                isProcessing = false;
+            });
         }
     });
     
     // Click handler for desktop
     card.addEventListener('click', function(e) {
-        // Skip if this is a touch device (let touch events handle it)
-        if ('ontouchstart' in window) return;
-        
-        handleCategorySelection.call(this);
+        if ('ontouchstart' in window || isProcessing) return;
+        isProcessing = true;
+        handleCategorySelection.call(this).finally(() => {
+            isProcessing = false;
+        });
     });
 });
 
-// Keep the existing handleCategorySelection function as is
-async function handleCategorySelection() {
-    const category = this.dataset.category;
-
-    // Track the game start event
-    if (typeof gtag !== 'undefined') {
-        gtag('event', 'game_start', {
-            'event_category': 'Gameplay',
-            'event_label': category,
-            'value': 1
-        });
-    }
-    
-    // Create error message element if it doesn't exist
-    if (!document.getElementById('error-message')) {
-        const errorDiv = document.createElement('div');
-        errorDiv.id = 'error-message';
-        errorDiv.className = 'error-message hidden';
-        errorDiv.innerHTML = `
-            <div id="error-text"></div>
-            <button id="retry-btn" class="btn small primary">Retry</button>
-            <button id="try-another-btn" class="btn small secondary">Try Another</button>
-        `;
-        setupScreen.appendChild(errorDiv);
-        
-        // Add try another button handler
-        document.getElementById('try-another-btn')?.addEventListener('click', () => {
-            hideError();
-            document.querySelector('.category-card.active')?.classList.remove('active');
-        });
-    }
-
-    // Update UI
-    document.querySelectorAll('.category-card').forEach(c => 
-        c.classList.remove('active')
-    );
-    this.classList.add('active');
-    
-    // Show loading indicator
-    toggleLoading(true);
-    hideError();
-
-    try {
-        // Fetch questions
-        questions = await fetchQuestions(category);
-        
-        // Initialize game state
-        safeClassToggle(highscores, 'add', 'hidden');
-        safeClassToggle(setupScreen, 'remove', 'active');
-        safeClassToggle(gameScreen, 'add', 'active');
-        
-        currentQuestion = 0;
-        score = 0;
-        answersLog = [];
-        
-        // Initialize game state with time from toggle
-        const quickMode = document.getElementById('quick-mode-toggle').checked;
-        timeLeft = quickMode ? timer.quick : timer.long;
-        totalTimeLeft = 10 * timeLeft;
-        
-        showQuestion();
-        
-    } catch (error) {
-        console.error('Error starting game:', error);
-        showError(error.message || "Failed to load questions. Please try again.");
-    } finally {
-        toggleLoading(false);
-    }
-}
 
 // Extract the game start logic into a separate function
 async function handleCategorySelection() {
@@ -1173,6 +1179,12 @@ async function handleCategorySelection() {
             'value': 1
         });
     }
+
+    if (category === QUIZ_TYPES.WEEKLY || category === QUIZ_TYPES.MONTHLY) {
+        await updatePlayerCount(category);  // First update the count
+        dailyPlayers = await fetchPlayerCount(category);
+        updateFeaturedCardPlayerCount();
+    }
     
     // Create error message element if it doesn't exist
     if (!document.getElementById('error-message')) {
@@ -1217,7 +1229,8 @@ async function handleCategorySelection() {
         answersLog = [];
         
         // Initialize game state with time from toggle
-        const quickMode = document.getElementById('quick-mode-toggle').checked;
+        const toggle = document.getElementById('quick-mode-toggle');
+        const quickMode = toggle ? toggle.checked : false;
         timeLeft = quickMode ? timer.quick : timer.long;
         totalTimeLeft = 10 * timeLeft;
         
@@ -1259,3 +1272,82 @@ function showToast(message, icon = 'ℹ️') {
     
     setTimeout(() => toast.remove(), 2000);
 }
+
+async function updatePlayerCount(category) {
+    try {
+        const countRef = db.collection('playerCounts').doc(category);
+        
+        // First try to get the current count
+        const doc = await countRef.get();
+        const currentCount = doc.exists ? doc.data().count : 0;
+        const newCount = currentCount + 1;
+        
+        // Try to update with the new count
+        await countRef.set({
+            count: newCount,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            category: category
+        }, { merge: true });
+        
+        return newCount;
+    } catch (error) {
+        console.error('Error updating player count:', error);
+        // Fallback to random number if update fails
+        return Math.floor(Math.random() * 40) + 100;
+    }
+}
+
+function updateFeaturedCardPlayerCount() {
+    const countElement = document.querySelector('.players-count span:last-child');
+    if (countElement) {
+        countElement.textContent = `${dailyPlayers} playing today`;
+    }
+}
+
+// Tab switching functionality
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+        // Remove active class from all buttons and content
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button
+        button.classList.add('active');
+        
+        // Show corresponding content
+        const tabId = button.dataset.tab;
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+    });
+});
+
+// Tab switching functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons and content
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            
+            // Show corresponding content
+            const tabId = button.dataset.tab;
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            // Track tab switch event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'switch_tab', {
+                    'event_category': 'Navigation',
+                    'event_label': tabId
+                });
+            }
+        });
+    });
+});

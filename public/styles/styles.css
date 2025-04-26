@@ -482,7 +482,7 @@ input:checked + .slider:before {
 }
 
 .category-card.active {
-    border-color: var(--カード-color);
+    border-color: var(--card-color);
     background: rgba(255,215,0,0.1);
     box-shadow: 0 0 0 2px var(--card-color); /* More subtle active state */
 }
@@ -707,8 +707,7 @@ input:checked + .slider:before {
     }
 }
 /* ================ */
-/* Buttons & Controls */
-/* ================ */
+/* Buttons & Controls verbinding*/
 .btn {
     display: inline-flex;
     align-items: center;
@@ -1394,10 +1393,10 @@ body {
 /* ==========================*/
 @media (max-width: 768px) {
     .main-nav {
-        height: 45px;
+        height: 40px; /* Reduced from 45px */
         gap: 1rem;
-        padding: 0.6rem 0.8rem;
-        margin: 0.5rem auto;
+        padding: 0.5rem 0.8rem; /* Reduced padding */
+        margin: 0.3rem auto; /* Reduced margin */
     }
     
     .nav-link {
@@ -1410,55 +1409,83 @@ body {
     }
 
     .logo {
-        width: 250px;
+        width: 180px; /* Reduced from 250px */
     }
 
     .hero-section {
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem; /* Reduced from 1rem */
+    }
+    
+    .logo-container {
+        margin: 0.3rem 0 !important; /* Reduced from 0.5rem 0 1rem */
     }
     
     .tagline {
-        font-size: 1.2rem;
-        margin: 0.5rem 0 1rem;
+        font-size: 1rem; /* Reduced from 1.2rem */
+        margin: 0.3rem 0 0.8rem; /* Reduced from 0.5rem 0 1rem */
     }
     
-    .value-props {
-        flex-direction: row; /* Keep horizontal layout */
-        overflow-x: auto; /* Enable horizontal scrolling */
-        gap: 0.8rem; /* Reduce gap between cards */
-        padding: 0.5rem 1rem; /* Add some horizontal padding */
-        margin: 1rem auto; /* Reduce vertical margin */
-        justify-content: flex-start; /* Align left */
-        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        scrollbar-width: none; /* Hide scrollbar for Firefox */
+    .time-toggle-container {
+        margin-top: 0.3rem; /* Reduced from 0.5rem */
+        margin-bottom: 0.8rem; /* Reduced from 1rem */
     }
-
-    .value-props::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome/Safari */
+    
+    .setup-screen {
+        padding: 0.5rem 0.5rem !important; /* Reduced from 1rem 0.5rem */
+        padding-top: 0.3rem !important; /* Reduced from 0.5rem */
     }
-
-    .prop-card {
-        width: 160px; /* Fixed width for consistent sizing */
-        min-width: 160px; /* Prevent shrinking */
-        padding: 0.8rem; /* Reduce padding */
-        height: 80px; /* Fixed height */
-        justify-content: flex-start; /* Align content to start */
-        flex-direction: column; /* Stack icon and text */
-        gap: 0.3rem; /* Reduce gap between elements */
+    
+    .setup-card {
+        padding: 0.8rem !important; /* Reduced from 1rem */
+        margin-top: 0 !important;
     }
-
-    .prop-card .material-icons {
-        font-size: 1.4rem; /* Reduce icon size */
-    }
-
-    .prop-card span:last-child {
-        font-size: 0.8rem; /* Reduce text size */
-        text-align: center; /* Center text */
-        width: 100%; /* Full width */
+    
+    .featured-category {
+        margin-bottom: 0.8rem; /* Reduced from 1.5rem */
     }
     
     .featured-card {
-        padding: 1.5rem 1rem;
+        padding: 0.8rem; /* Reduced from 1.5rem 1rem */
+    }
+    
+    .featured-play-btn {
+        max-width: 160px; /* Smaller button */
+        padding: 0.7rem 1.2rem; /* Reduced padding */
+    }
+    
+    .value-props {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0.8rem;
+        padding: 0.5rem 1rem;
+        margin: 0.8rem auto; /* Reduced from 1rem */
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .value-props::-webkit-scrollbar {
+        display: none;
+    }
+
+    .prop-card {
+        width: 160px;
+        min-width: 160px;
+        padding: 0.8rem;
+        height: 80px;
+        justify-content: flex-start;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .prop-card .material-icons {
+        font-size: 1.4rem;
+    }
+
+    .prop-card span:last-child {
+        font-size: 0.8rem;
+        text-align: center;
+        width: 100%;
     }
     
     .section-header {
@@ -1472,7 +1499,7 @@ body {
     }
 
     .category-grid {
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Even smaller on tablets */
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
         gap: 0.6rem;
     }
     
@@ -1488,7 +1515,7 @@ body {
     .instruction-tooltip {
         bottom: 10px;
         padding: 0.4rem 0.8rem;
-        max-width: 90%; /* Prevent tooltip from touching screen edges */
+        max-width: 90%;
     }
     
     .tooltip-text {
@@ -1515,7 +1542,7 @@ body {
 /* Smaller screens */
 @media (max-width: 480px) {
     .logo {
-        width: 200px;
+        width: 150px; /* Reduced from 200px */
     }
     
     .pixel-text {
@@ -1542,8 +1569,10 @@ body {
     }
 
     .main-nav {
-        height: 40px;
+        height: 35px; /* Reduced from 40px */
         gap: 0.8rem;
+        padding: 0.4rem 0.6rem; /* Reduced padding */
+        margin: 0.2rem auto; /* Reduced margin */
         border-radius: 6px;
     }
     
@@ -1557,7 +1586,7 @@ body {
     }
 
     .category-grid {
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Smallest on phones */
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
         gap: 0.5rem;
     }
     
@@ -1575,17 +1604,13 @@ body {
         font-size: 0.7rem;
     }
 
-    .logo {
-        height: 50px; /* Smaller logo on mobile */
-    }
-
     .logo-container {
-        margin: 0.5rem 0 1rem !important;
+        margin: 0.3rem 0 !important; /* Reduced from 0.5rem 0 1rem */
     }
 
     .tagline {
-        font-size: 0.9rem;
-        margin-top: 0.3rem;
+        font-size: 0.8rem; /* Reduced from 0.9rem */
+        margin: 0.2rem 0 0.5rem; /* Reduced from 0.3rem top */
     }
 
     .value-props {
@@ -1593,16 +1618,34 @@ body {
     }
     
     .setup-screen {
-        padding: 1rem 0.5rem !important;
-        padding-top: 0.5rem !important;
+        padding: 0.3rem 0.3rem !important; /* Reduced from 0.5rem */
+        padding-top: 0.2rem !important; /* Reduced from 0.3rem */
     }
     
     .setup-card {
-        padding: 1rem !important;
+        padding: 0.6rem !important; /* Reduced from 0.8rem */
     }
     
     .settings-grid {
-        gap: 1rem !important;
+        gap: 0.8rem !important; /* Reduced from 1rem */
+    }
+
+    .time-toggle-container {
+        margin-top: 0.2rem; /* Reduced from 0.3rem */
+        margin-bottom: 0.5rem; /* Reduced from 0.8rem */
+    }
+    
+    .featured-category {
+        margin-bottom: 0.5rem; /* Reduced from 0.8rem */
+    }
+    
+    .featured-card {
+        padding: 0.6rem; /* Reduced from 0.8rem */
+    }
+    
+    .featured-play-btn {
+        max-width: 140px; /* Even smaller button */
+        padding: 0.6rem 1rem; /* Reduced padding */
     }
 
     .screen {
@@ -1814,20 +1857,20 @@ body {
 
 @media (max-width: 480px) {
     .tabs-container {
-        margin-top: 1rem;
+        margin-top: 0.8rem; /* Reduced from 1rem */
     }
     
     .tab-button {
-        padding: 0.7rem;
+        padding: 0.6rem; /* Reduced from 0.7rem */
         font-size: 0.8rem;
     }
     
     .tab-content {
-        padding: 0.8rem;
+        padding: 0.6rem; /* Reduced from 0.8rem */
     }
     
     .featured-card {
-        padding: 1rem;
+        padding: 0.6rem; /* Match .featured-card above */
     }
     
     .category-grid {

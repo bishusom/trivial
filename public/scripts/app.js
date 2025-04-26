@@ -210,7 +210,7 @@ function toInitCaps(str) {
     });
 }
 
-async function fetchPlayerCount(category) {
+async function fetchPlayerCount(category = 'Weekly') {
     try {
         const doc = await db.collection('playerCounts').doc(category).get();
         if (doc.exists) {
@@ -221,7 +221,7 @@ async function fetchPlayerCount(category) {
         await db.collection('playerCounts').doc(category).set({
             count: initialCount,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            category: category
+            category: category // Ensure category is defined
         });
         return initialCount;
     } catch (error) {
@@ -1269,27 +1269,9 @@ function showToast(message, icon = 'ℹ️') {
     setTimeout(() => toast.remove(), 2000);
 }
 
-async function getPlayerCount(category='Weekly') {
-    try {
-        const doc = await db.collection('playerCounts').doc(category).get();
-        if (doc.exists) {
-            return doc.data().count || 0;
-        }
-        // If document doesn't exist, create it with count=1
-        await db.collection('playerCounts').doc(category).set({
-            count: 1,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        return 1;
-    } catch (error) {
-        console.error(`Error getting player count for ${category}:`, error);
-        return Math.floor(Math.random() * 100) + 50; // Fallback
-    }
-}
-
 async function updateFeaturedCardPlayerCount() {
     const countElement = document.querySelector('.players-count span:last-child');
-    dailyPlayers = await fetchPlayerCount();
+    dailyPlayers = await fetchPlayerCount('Weekly'); // Explicitly pass the category
     if (countElement) {
         countElement.textContent = `${dailyPlayers} playing today`;
     }

@@ -1287,9 +1287,9 @@ async function getPlayerCount(category='Weekly') {
     }
 }
 
-function updateFeaturedCardPlayerCount() {
+async function updateFeaturedCardPlayerCount() {
     const countElement = document.querySelector('.players-count span:last-child');
-    dailyPlayers = fetchPlayerCount();
+    dailyPlayers = await fetchPlayerCount();
     if (countElement) {
         countElement.textContent = `${dailyPlayers} playing today`;
     }

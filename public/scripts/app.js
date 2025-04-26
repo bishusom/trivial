@@ -1104,6 +1104,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('fbQuizCache', JSON.stringify({}));
     }
 
+    updateFeaturedCardPlayerCount();
+
     // Track featured challenge impressions
     if (typeof gtag !== 'undefined') {
         gtag('event', 'view_featured_challenge', {
@@ -1273,6 +1275,31 @@ function showToast(message, icon = 'ℹ️') {
     setTimeout(() => toast.remove(), 2000);
 }
 
+async function getPlayerCount(category='Weekly') {
+    try {
+        const doc = await db.collection('playerCounts').doc(category).get();
+        if (doc.exists) {
+            return doc.data().count || 0;
+        }
+        // If document doesn't exist, create it with count=1
+        await db.collection('playerCounts').doc(category).set({
+            count: 1,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return 1;
+    } catch (error) {
+        console.error(`Error getting player count for ${category}:`, error);
+        return Math.floor(Math.random() * 100) + 50; // Fallback
+    }
+}
+
+function updateFeaturedCardPlayerCount() {
+    const countElement = document.querySelector('.players-count span:last-child');
+    if (countElement) {
+        countElement.textContent = `${dailyPlayers} playing today`;
+    }
+}
+
 async function updatePlayerCount(category) {
     try {
         const countRef = db.collection('playerCounts').doc(category);
@@ -1294,13 +1321,6 @@ async function updatePlayerCount(category) {
         console.error('Error updating player count:', error);
         // Fallback to random number if update fails
         return Math.floor(Math.random() * 40) + 100;
-    }
-}
-
-function updateFeaturedCardPlayerCount() {
-    const countElement = document.querySelector('.players-count span:last-child');
-    if (countElement) {
-        countElement.textContent = `${dailyPlayers} playing today`;
     }
 }
 

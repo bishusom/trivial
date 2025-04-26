@@ -1011,9 +1011,6 @@ function shuffle(array) {
 // ======================
 // Event Listeners
 // ======================
-// ======================
-// Event Listeners
-// ======================
 document.addEventListener('DOMContentLoaded', () => {
     loadMuteState();
     updateHighScores();
@@ -1021,8 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
     safeClassToggle(highscores, 'add', 'hidden');
     nextBtn.classList.remove('visible');
     nextBtn?.addEventListener('click', handleNextQuestion);
-    rotateTestimonial();
-    setInterval(rotateTestimonial, 10000);
+    updateFeaturedCardPlayerCount();
 
     // Featured challenge button
     document.querySelector('.featured-play-btn')?.addEventListener('click', function() {
@@ -1103,8 +1099,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem('fbQuizCache')) {
         localStorage.setItem('fbQuizCache', JSON.stringify({}));
     }
-
-    updateFeaturedCardPlayerCount();
 
     // Track featured challenge impressions
     if (typeof gtag !== 'undefined') {

@@ -213,18 +213,40 @@ function toInitCaps(str) {
 }
 
 function showDailyChallenge() {
-    // Only show if user hasn't interacted yet
-    if (!localStorage.getItem('challengeDismissed')) {
-        challengeTimeout = setTimeout(() => {
-            document.getElementById('daily-challenge-modal').classList.remove('hidden');
-            document.getElementById('daily-challenge-count').textContent = `${dailyPlayers} playing today`;
-        }, 5000);
+    const dismissed = localStorage.getItem('challengeDismissed');
+    const exitOffer = localStorage.getItem('exitOfferShown');
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    // Show modal if neither flag is set or if 24 hours have passed since last set
+    if (!dismissed || (dismissed && now - parseInt(dismissed) > oneDay)) {
+        if (!exitOffer || (exitOffer && now - parseInt(exitOffer) > oneDay)) {
+            challengeTimeout = setTimeout(() => {
+                document.getElementById('daily-challenge-modal').classList.remove('hidden');
+                document.getElementById('daily-challenge-count').textContent = `${dailyPlayers} playing today`;
+            }, 5000);
+        }
     }
 }
 
 function hideDailyChallenge() {
     clearTimeout(challengeTimeout);
     document.getElementById('daily-challenge-modal').classList.add('hidden');
+}
+
+function showExitOffer() {
+    const dismissed = localStorage.getItem('challengeDismissed');
+    const exitOffer = localStorage.getItem('exitOfferShown');
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    // Show modal if neither flag is set or if 24 hours have passed since last set
+    if (!dismissed || (dismissed && now - parseInt(dismissed) > oneDay)) {
+        if (!exitOffer || (exitOffer && now - parseInt(exitOffer) > oneDay)) {
+            document.getElementById('daily-challenge-modal').classList.remove('hidden');
+            localStorage.setItem('exitOfferShown', Date.now().toString());
+        }
+    }
 }
 
 // Track user progress
@@ -243,13 +265,6 @@ function updateProgressTracker() {
     
     const currentMessage = messages.reverse().find(m => gamesPlayed >= m.threshold) || messages[0];
     document.getElementById('progress-message').textContent = currentMessage.message;
-}
-
-function showExitOffer() {
-    if (!localStorage.getItem('exitOfferShown')) {
-        document.getElementById('daily-challenge-modal').classList.remove('hidden');
-        localStorage.setItem('exitOfferShown', 'true');
-    }
 }
 
 async function fetchPlayerCount(category = 'Weekly') {
@@ -1063,6 +1078,63 @@ document.addEventListener('DOMContentLoaded', () => {
     nextBtn.classList.remove('visible');
     nextBtn?.addEventListener('click', handleNextQuestion);
     updateFeaturedCardPlayerCount();
+
+    // Add event listener for "Play Instantly" button
+    document.getElementById('instant-play')?.addEventListener('click', async () => {
+        // Get all category cards
+        const categoryCards = document.querySelectorAll('.category-card');
+        // Select a random category card
+        const randomIndex = Math.floor(Math.random() * categoryCards.length);
+        const randomCard = categoryCards[randomIndex];
+        
+        // Track the random game start event
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'instant_play', {
+                'event_category': 'Gameplay',
+                'event_label': randomCard.dataset.category,
+                'value': 1
+            });
+        }
+
+        // Simulate category selection
+        await handleCategorySelection.call(randomCard);
+    });
+
+    // Add event listener for "Explore Categories" button
+    document.getElementById('explore-btn')?.addEventListener('click', () => {
+        // Switch to the categories tab
+        const categoriesTabButton = document.querySelector('.tab-button[data-tab="categories"]');
+        const categoriesTabContent = document.getElementById('categories-tab');
+        
+        if (categoriesTabButton && categoriesTabContent) {
+            // Remove active class from all buttons and content
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Activate categories tab
+            categoriesTabButton.classList.add('active');
+            categoriesTabContent.classList.add('active');
+            
+            // Track tab switch event
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'switch_tab', {
+                    'event_category': 'Navigation',
+                    'event_label': 'categories'
+                });
+            }
+        }
+    });
+
+    document.getElementById('accept-challenge')?.addEventListener('click', () => {
+        hideDailyChallenge();
+        localStorage.setItem('challengeDismissed', Date.now().toString()); // Store timestamp
+        document.querySelector('.featured-play-btn').click();
+    });
+
+    document.getElementById('decline-challenge')?.addEventListener('click', () => {
+        hideDailyChallenge();
+        localStorage.setItem('challengeDismissed', Date.now().toString()); // Store timestamp
+    });
 
     // Featured challenge button
     document.querySelector('.featured-play-btn')?.addEventListener('click', function() {

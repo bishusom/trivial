@@ -251,6 +251,23 @@ body {
     animation: pulse 2s infinite;
 }
 
+/* Challenge Modal */
+.challenge-modal {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    text-align: center;
+    max-width: 350px;
+}
+
+.challenge-modal h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.challenge-modal .players-count {
+    margin: 1rem 0;
+    justify-content: center;
+}
 /* ================ */
 /* Category Selection */
 /* ================ */
@@ -473,12 +490,24 @@ input:checked + .slider:before {
     transition: all 0.2s ease; /* Faster transition */
     border: 1px solid transparent; /* Thinner border */
     min-height: 90px; /* Set minimum height */
+    position: relative;
+    overflow: hidden;
 }
 
 .category-card:hover {
     transform: translateY(-3px); /* Reduced from -5px */
     background: rgba(255,255,255,0.15);
     box-shadow: 0 3px 10px rgba(0,0,0,0.15); /* Lighter shadow */
+}
+
+.category-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: rgba(255,255,255,0.1);
 }
 
 .category-card.active {
@@ -503,6 +532,68 @@ input:checked + .slider:before {
     text-align: center;
     line-height: 1.2; /* Tighter line height */
     padding: 0 0.2rem; /* Small horizontal padding */
+}
+
+.category-card .progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: var(--accent-color);
+    transition: width 0.5s ease;
+}
+
+.popular-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--secondary-color);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 5px;
+    border-radius: 10px;
+    animation: pulse 2s infinite;
+}
+
+.progress-tracker {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1rem auto;
+    max-width: 500px;
+}
+
+.progress-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.progress-header h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.progress-message {
+    font-size: 0.9rem;
+    text-align: center;
+    color: var(--accent-color);
 }
 /* =========================== */
 /* Loading Indicator Styles */

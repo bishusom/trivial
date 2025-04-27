@@ -50,6 +50,8 @@ const QUIZ_TYPES = {
 // ======================
 let isMuted = false;
 let dailyPlayers = 142; 
+let challengeTimeout;
+let mouseY = 0;
 let questions = [];
 let currentQuestion = 0;
 let score = 0;
@@ -208,6 +210,46 @@ function toInitCaps(str) {
     return str.replace(/\w\S*/g, function(txt) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
+}
+
+function showDailyChallenge() {
+    // Only show if user hasn't interacted yet
+    if (!localStorage.getItem('challengeDismissed')) {
+        challengeTimeout = setTimeout(() => {
+            document.getElementById('daily-challenge-modal').classList.remove('hidden');
+            document.getElementById('daily-challenge-count').textContent = `${dailyPlayers} playing today`;
+        }, 5000);
+    }
+}
+
+function hideDailyChallenge() {
+    clearTimeout(challengeTimeout);
+    document.getElementById('daily-challenge-modal').classList.add('hidden');
+}
+
+// Track user progress
+function updateProgressTracker() {
+    const gamesPlayed = localStorage.getItem('gamesPlayed') || 0;
+    const progress = Math.min((gamesPlayed / 5) * 100, 100);
+    
+    document.getElementById('user-progress').style.width = `${progress}%`;
+    
+    const messages = [
+        { threshold: 0, message: "Play 1 more game to unlock your first badge!" },
+        { threshold: 1, message: "Keep going! 3 more games for a new achievement!" },
+        { threshold: 3, message: "Almost there! 1 more game to level up!" },
+        { threshold: 5, message: "Trivia Master! Play to discover new challenges!" }
+    ];
+    
+    const currentMessage = messages.reverse().find(m => gamesPlayed >= m.threshold) || messages[0];
+    document.getElementById('progress-message').textContent = currentMessage.message;
+}
+
+function showExitOffer() {
+    if (!localStorage.getItem('exitOfferShown')) {
+        document.getElementById('daily-challenge-modal').classList.remove('hidden');
+        localStorage.setItem('exitOfferShown', 'true');
+    }
 }
 
 async function fetchPlayerCount(category = 'Weekly') {
@@ -856,6 +898,8 @@ async function showSummary() {
   
     document.getElementById('restart-btn')?.addEventListener('click', restartGame);
     document.querySelector('.app-footer').classList.remove('hidden');
+    localStorage.setItem('gamesPlayed', (parseInt(localStorage.getItem('gamesPlayed') || 0) + 1));
+    updateProgressTracker();
 }
 
 // High Scores
@@ -1081,6 +1125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingNavigationUrl = null;
     });
     
+    showDailyChallenge();
+
     // Navigation
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', handleNavClick);
@@ -1347,4 +1393,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+});
+
+// Event listeners for challenge modal
+document.getElementById('accept-challenge')?.addEventListener('click', () => {
+    hideDailyChallenge();
+    document.querySelector('.featured-play-btn').click();
+});
+
+document.getElementById('decline-challenge')?.addEventListener('click', () => {
+    hideDailyChallenge();
+    localStorage.setItem('challengeDismissed', 'true');
+});
+
+document.addEventListener('mouseout', (e) => {
+    if (!e.relatedTarget && e.clientY < 50) {
+        showExitOffer();
+    }
 });

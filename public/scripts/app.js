@@ -40,7 +40,8 @@ let state = {
     selectedQuestions: 10,
     usedQuestions: new Set(),
     fbUsedQuestions: JSON.parse(localStorage.getItem('fbUsedQuestions')) || [],
-    fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds')) || []
+    fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds')) || [],
+    pendingNavigation: null // Store URL for navigation after modal
 };
 
 const QUIZ_TYPES = { WEEKLY: 'Weekly', MONTHLY: 'Monthly' };
@@ -95,43 +96,6 @@ function playSound(type) {
 function stopSound(type) {
     audio[type].pause();
     audio[type].currentTime = 0;
-}
-
-function handleNavClick(e) {
-    if (elements.screens.game.classList.contains('active')) {
-        e.preventDefault();
-        state.pendingNavigationUrl = e.target.href;
-        
-        // Pause the game
-        clearTimers();
-        stopSound('tick');
-        
-        // Show warning modal
-        document.getElementById('nav-warning-modal').classList.remove('hidden');
-    }
-}
-
-function continueGame() {
-    document.getElementById('nav-warning-modal').classList.add('hidden');
-    state.pendingNavigationUrl = null;
-    startTimer();
-    toggleScreen('game');
-}
-
-function endCurrentGame() {
-    state.questions = [];
-    state.currentQuestion = 0;
-    state.score = 0;
-    
-    document.getElementById('nav-warning-modal').classList.add('hidden');
-    toggleScreen('setup');
-    document.querySelector('.app-footer').classList.remove('hidden');
-
-    if (state.pendingNavigationUrl) {
-        window.history.pushState({}, '', state.pendingNavigationUrl);
-        handleRouting(state.pendingNavigationUrl);
-    }
-    state.pendingNavigationUrl = null;
 }
 
 function showError(msg) {
@@ -200,18 +164,25 @@ async function fetchfbQuiz(type) {
 }
 
 async function fetchfbQuestions(category, amount = 10) {
-    const cacheKey = `fb_questions-${category}`;
+    const normalizedCategory = category.toLowerCase();
+    console.log('Fetching questions for category:', category);
+    const cacheKey = `fb_questions-${normalizedCategory}`;
     const cache = JSON.parse(localStorage.getItem('fbQuestionsCache'))?.[cacheKey];
     if (cache && cache.questions.length >= amount && cache.questions.filter(q => !state.fbUsedQuestions.includes(q.id)).length >= amount) {
+        console.log('Using cached questions:', cache.questions);
         return processfbQuestions(cache.questions, amount);
     }
-    const query = db.collection('triviaMaster').doc('questions').collection('items')
-        .where('randomIndex', '>=', Math.floor(Math.random() * 900))
-        .orderBy('randomIndex')
-        .limit(amount * 2);
-    if (category !== 'General Knowledge') query.where('category', '==', category);
+    let query = db.collection('triviaMaster').doc('questions').collection('items');
+    if (category !== 'General Knowledge') query = query.where('category', '==', category);
+    query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
+            .orderBy('randomIndex')
+            .limit(amount * 2);
     const snapshot = await query.get();
-    if (snapshot.empty) throw new Error('No questions found.');
+    if (snapshot.empty) {
+        console.warn(`No questions found for ${category}, falling back to General Knowledge`);
+        showError(`No questions available for ${category}. Loading General Knowledge instead.`);
+        return fetchfbQuestions('General Knowledge', amount);
+    }
     const questions = snapshot.docs.map(doc => ({
         id: doc.id,
         question: decodeHTML(doc.data().question),
@@ -221,6 +192,7 @@ async function fetchfbQuestions(category, amount = 10) {
         subcategory: doc.data().subcategory || '',
         difficulty: doc.data().difficulty || 'medium'
     }));
+    console.log('Fetched questions:', questions);
     localStorage.setItem('fbQuestionsCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     return processfbQuestions(questions, amount);
 }
@@ -408,11 +380,22 @@ function updateHighScores() {
     `).join('') : '<p class="no-scores">No high scores yet. Play a game to start!</p>';
 }
 
+function handleNavigation(url) {
+    if (!els.game.classList.contains('active')) {
+        window.location.href = url;
+        return;
+    }
+    state.pendingNavigation = url;
+    const modal = document.getElementById('nav-warning-modal');
+    toggleClass(modal, 'remove', 'hidden');
+}
+
 function setupEvents() {
     document.getElementById('instant-play').addEventListener('click', () => {
         const cards = document.querySelectorAll('.category-card');
         cards[Math.floor(Math.random() * cards.length)].click();
     });
+
     document.getElementById('explore-btn').addEventListener('click', () => {
         document.querySelector('.tab-button[data-tab="categories"]').click();
     });
@@ -432,20 +415,27 @@ function setupEvents() {
         document.querySelector('.category-card[data-category="Weekly"]').click();
     });
     document.querySelectorAll('.category-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            // Prevent touch devices from triggering both touch and click
-            if (e.type === 'click' && ('ontouchstart' in window)) return;
-            handleCategorySelection.call(this);
-        });
-        
-        card.addEventListener('touchend', function(e) {
-            handleCategorySelection.call(this);
-            e.preventDefault(); // Prevent mouse events from firing
+        card.addEventListener('click', async function () {
+            toggleClass(document.querySelector('.category-card.active'), 'remove', 'active');
+            this.classList.add('active');
+            toggleLoading(true);
+            hideError();
+            try {
+                state.questions = await fetchQuestions(this.dataset.category);
+                state.current = 0;
+                state.score = 0;
+                state.answers = [];
+                state.timeLeft = document.getElementById('quick-mode-toggle').checked ? timers.quick : timers.long;
+                state.totalTime = 10 * state.timeLeft;
+                toggleClass(els.highscores, 'add', 'hidden');
+                toggleClass(els.setup, 'remove', 'active');
+                toggleClass(els.game, 'add', 'active');
+                showQuestion();
+            } finally {
+                toggleLoading(false);
+            }
         });
     });
-    document.getElementById('continue-game')?.addEventListener('click', continueGame);
-    document.getElementById('end-game')?.addEventListener('click', endCurrentGame);
-    elements.navLinks.forEach(link => link.addEventListener('click', handleNavClick));
     document.getElementById('decline-challenge')?.addEventListener('click', () => {
         localStorage.setItem('challengeDismissed', Date.now());
         document.getElementById('daily-challenge-modal').classList.add('hidden');
@@ -466,6 +456,26 @@ function setupEvents() {
     els.nextBtn.addEventListener('click', handleNextQuestion);
     document.addEventListener('click', e => {
         if (e.target.matches('#options button')) checkAnswer(e.target.dataset.correct === 'true');
+    });
+
+    // Navigation link handling
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            handleNavigation(link.getAttribute('href'));
+        });
+    });
+    document.getElementById('continue-game')?.addEventListener('click', () => {
+        toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
+        state.pendingNavigation = null;
+    });
+    document.getElementById('end-game')?.addEventListener('click', () => {
+        toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
+        endGame();
+        if (state.pendingNavigation) {
+            window.location.href = state.pendingNavigation;
+            state.pendingNavigation = null;
+        }
     });
 }
 

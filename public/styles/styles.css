@@ -220,6 +220,12 @@ body {
     pointer-events: auto;
 }
 
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
 /* Screens */
 .screen {
     display: none;
@@ -241,7 +247,6 @@ body {
     max-width: 880px;
     margin: 0 auto;
 }
-
 /* Hero Section */
 .hero-section {
     text-align: center;
@@ -720,7 +725,15 @@ body {
     color: var(--accent);
     padding: 1rem;
 }
-
+/* Footer */
+.blog-tbank {
+    background: white;
+    color: #333;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    margin: 2rem auto;
+    min-height: calc(100vh - 100px);
+}
 /* Footer */
 .app-footer {
     margin-top: 2rem;
@@ -790,6 +803,7 @@ body {
     .highscores-header { flex-direction: column; gap: 0.5rem; text-align: center; }
     .highscore-entry { grid-template-columns: 30px 1fr 60px; font-size: 0.7rem; }
     .btn.small { padding: 0.2rem 0.5rem; font-size: 0.7rem; min-width: 60px;}
+    .modal-actions {flex-direction: column; gap: 0.5rem;}
 }
 
 /* Utility classes */

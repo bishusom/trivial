@@ -97,12 +97,23 @@ function toggleClass(el, action, cls) {
 }
 
 function playSound(type) {
-    if (!state.isMuted) audio[type].play().catch(() => {});
+    if (state.isMuted) {
+        console.log(`Sound ${type} skipped: muted`);
+        return;
+    }
+    console.log(`Playing sound: ${type}`);
+    audio[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
 }
 
 function stopSound(type) {
+    console.log(`Stopping sound: ${type}`);
     audio[type].pause();
     audio[type].currentTime = 0;
+}
+
+function stopAllSounds() {
+    console.log('Stopping all sounds');
+    ['tick', 'correct', 'wrong'].forEach(type => stopSound(type));
 }
 
 function showError(msg) {
@@ -316,6 +327,7 @@ function endGame() {
     toggleClass(els.mainNav, 'add', 'hidden');
     clearInterval(state.timerId);
     clearInterval(state.totalTimerId);
+    stopAllSounds(); // Ensure all sounds stop when game ends
     toggleClass(els.game, 'remove', 'active');
     toggleClass(els.summary, 'add', 'active');
     toggleClass(els.highscores, 'remove', 'hidden');
@@ -376,7 +388,7 @@ function saveHighScore() {
     state.highScores = [...state.highScores, { name, score: state.score }].sort((a, b) => b.score - a.score).slice(0, 5);
     localStorage.setItem('highScores', JSON.stringify(state.highScores));
     updateHighScores();
-    db.collection('scores').add({ name, score: state.score, category, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+    db.collection('scores').add({ name, score: state.score, category, timestamp: firefox.firestore.FieldValue.serverTimestamp() });
     state.isScoreSaved = true;
 }
 
@@ -410,11 +422,19 @@ function setupEvents() {
     document.getElementById('explore-btn').addEventListener('click', () => {
         document.querySelector('.tab-button[data-tab="categories"]').click();
     });
+
     document.getElementById('mute-btn').addEventListener('click', () => {
         state.isMuted = !state.isMuted;
         localStorage.setItem('triviaMasterMuteState', state.isMuted);
         document.querySelector('#mute-btn .material-icons').textContent = state.isMuted ? 'volume_off' : 'volume_up';
+        console.log(`Mute state changed: ${state.isMuted}`);
+        if (state.isMuted) {
+            stopAllSounds(); // Stop all sounds when muting
+        } else if (els.game.classList.contains('active')) {
+            playSound('tick'); // Resume tick sound if game is active
+        }
     });
+
     document.getElementById('clear-scores').addEventListener('click', () => {
         if (confirm('Delete all scores?')) {
             state.highScores = [];
@@ -422,9 +442,11 @@ function setupEvents() {
             updateHighScores();
         }
     });
+
     document.querySelector('.featured-play-btn').addEventListener('click', () => {
         document.querySelector('.category-card[data-category="Weekly"]').click();
     });
+
     document.querySelectorAll('.category-card').forEach(card => {
         card.addEventListener('click', async function () {
             trackEvent('game_start', 'category', this.dataset.category);
@@ -448,16 +470,19 @@ function setupEvents() {
             }
         });
     });
+
     document.getElementById('decline-challenge')?.addEventListener('click', () => {
         localStorage.setItem('challengeDismissed', Date.now());
         document.getElementById('daily-challenge-modal').classList.add('hidden');
     });
+
     document.getElementById('accept-challenge')?.addEventListener('click', () => {
         trackEvent('daily_challenge', 'response', 'accepted');
         localStorage.setItem('challengeDismissed', Date.now());
         document.getElementById('daily-challenge-modal').classList.add('hidden');
         document.querySelector('.category-card[data-category="Weekly"]').click();
     });
+
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             trackEvent('tab_switch', 'navigation', button.dataset.tab);
@@ -467,7 +492,9 @@ function setupEvents() {
             document.getElementById(`${button.dataset.tab}-tab`).classList.add('active');
         });
     });
+
     els.nextBtn.addEventListener('click', handleNextQuestion);
+
     document.addEventListener('click', e => {
         if (e.target.matches('#options button')) checkAnswer(e.target.dataset.correct === 'true');
     });
@@ -479,6 +506,15 @@ function setupEvents() {
             handleNavigation(link.getAttribute('href'));
         });
     });
+
+    // Close button handling for Privacy and Contact screens
+    document.querySelectorAll('.close-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            trackEvent('navigation', 'ui', 'close_button');
+            handleNavigation('/home');
+        });
+    });
+
     document.getElementById('continue-game')?.addEventListener('click', () => {
         toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
         state.pendingNavigation = null;
@@ -487,6 +523,7 @@ function setupEvents() {
         toggleClass(els.setup, 'remove', 'active');
         toggleClass(els.tblogtbankscreen, 'remove', 'active');
     });
+
     document.getElementById('end-game')?.addEventListener('click', () => {
         toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
         endGame();
@@ -495,18 +532,15 @@ function setupEvents() {
             state.pendingNavigation = null;
         }
     });
-    // Close button handling for Privacy and Contact screens
-    document.querySelectorAll('.close-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            trackEvent('navigation', 'ui', 'close_button');
-            handleNavigation('/home');
-        });
-    });
 }
 
 function loadMuteState() {
     state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState') || 'false');
     document.querySelector('#mute-btn .material-icons').textContent = state.isMuted ? 'volume_off' : 'volume_up';
+    if (state.isMuted) {
+        stopAllSounds(); // Ensure sounds are stopped if muted on load
+    }
+    console.log(`Loaded mute state: ${state.isMuted}`);
 }
 
 function showDailyChallenge() {

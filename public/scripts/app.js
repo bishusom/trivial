@@ -123,6 +123,21 @@ function initEventListeners() {
     elements.buttons.explore?.addEventListener('click', showCategoriesTab);
     elements.buttons.featuredPlay?.addEventListener('click', startFeaturedGame);
     
+    elements.buttons.instantPlay?.addEventListener('click', () => {
+        const categoryCards = document.querySelectorAll('.category-card');
+        const randomIndex = Math.floor(Math.random() * categoryCards.length);
+        handleCategorySelection.call(categoryCards[randomIndex]);
+    });
+    
+    elements.buttons.explore?.addEventListener('click', () => {
+        document.querySelector('.tab-button[data-tab="categories"]').click();
+    });
+    
+    elements.buttons.featuredPlay?.addEventListener('click', () => {
+        const featuredCard = document.querySelector('.featured-card');
+        document.querySelector(`.category-card[data-category="${featuredCard.dataset.category}"]`).click();
+    });
+
     // Answer selection
     elements.options?.addEventListener('click', (e) => {
         if (e.target.matches('button')) {
@@ -350,7 +365,7 @@ function toggleScreen(screen) {
     Object.values(elements.screens).forEach(s => s.classList.remove('active'));
     elements.screens[screen].classList.add('active');
     elements.mainNav.classList.toggle('hidden', screen === 'game');
-    elements.highscores.container.classList.toggle('hidden', screen !== 'summary');
+    elements.highscores.container.classList.toggle('active', screen === 'summary');
 }
 
 function toggleLoading(show) {
@@ -387,6 +402,26 @@ function loadMuteState() {
         state.isMuted = JSON.parse(savedState);
     }
     updateMuteIcon();
+}
+
+function switchTab() {
+    const tabId = this.dataset.tab;
+    
+    // Remove active class from all buttons and content
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    this.classList.add('active');
+    
+    // Show corresponding content
+    document.getElementById(`${tabId}-tab`).classList.add('active');
+    
+    trackEvent('switch_tab', 'Navigation', tabId);
 }
 
 function updateTimerDisplay(seconds, element) {

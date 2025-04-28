@@ -12,7 +12,8 @@ const els = {
     questionTimer: document.getElementById('question-timer'),
     totalTimer: document.getElementById('total-timer'),
     highscores: document.querySelector('.highscores'),
-    highscoresList: document.getElementById('highscores-list')
+    highscoresList: document.getElementById('highscores-list'),
+    tblogtbankscreen: document.getElementById('blog-tbank') 
 };
 
 const timers = { quick: 30, long: 60 };
@@ -46,6 +47,12 @@ let state = {
 
 const QUIZ_TYPES = { WEEKLY: 'Weekly', MONTHLY: 'Monthly' };
 const CACHE = { QUESTIONS: 'trivia-questions-v1', EXPIRY: 24 * 60 * 60 * 1000 };
+
+function trackEvent(action, category, label, value) {
+    if (typeof gtag !== 'undefined') {
+        gtag('event', action, { 'event_category': category,'event_label': label,'value': value});
+    }
+}
 
 async function setPlayerCount(category='Weekly', update=true) {
     try {
@@ -304,6 +311,8 @@ function handleNextQuestion() {
 }
 
 function endGame() {
+    const correctCount = state.answers.filter(a => a.correct).length;
+    trackEvent('game_complete', 'performance', `${correctCount}/${state.selectedQuestions} correct`, state.score);
     toggleClass(els.mainNav, 'add', 'hidden');
     clearInterval(state.timerId);
     clearInterval(state.totalTimerId);
@@ -315,6 +324,7 @@ function endGame() {
 }
 
 function restartGame() {
+    trackEvent('restart_game', 'navigation', 'from_summary');
     state.usedQuestions.clear();
     state.questions = [];
     toggleClass(els.mainNav, 'remove', 'hidden');
@@ -381,6 +391,7 @@ function updateHighScores() {
 }
 
 function handleNavigation(url) {
+    trackEvent('navigation', 'ui', url);
     if (!els.game.classList.contains('active')) {
         window.location.href = url;
         return;
@@ -416,6 +427,7 @@ function setupEvents() {
     });
     document.querySelectorAll('.category-card').forEach(card => {
         card.addEventListener('click', async function () {
+            trackEvent('game_start', 'category', this.dataset.category);
             toggleClass(document.querySelector('.category-card.active'), 'remove', 'active');
             this.classList.add('active');
             toggleLoading(true);
@@ -441,12 +453,14 @@ function setupEvents() {
         document.getElementById('daily-challenge-modal').classList.add('hidden');
     });
     document.getElementById('accept-challenge')?.addEventListener('click', () => {
+        trackEvent('daily_challenge', 'response', 'accepted');
         localStorage.setItem('challengeDismissed', Date.now());
         document.getElementById('daily-challenge-modal').classList.add('hidden');
         document.querySelector('.category-card[data-category="Weekly"]').click();
     });
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
+            trackEvent('tab_switch', 'navigation', button.dataset.tab);
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             button.classList.add('active');
@@ -468,6 +482,10 @@ function setupEvents() {
     document.getElementById('continue-game')?.addEventListener('click', () => {
         toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
         state.pendingNavigation = null;
+        startTimer();
+        toggleClass(els.game, 'add', 'active');
+        toggleClass(els.setup, 'remove', 'active');
+        toggleClass(els.tblogtbankscreen, 'remove', 'active');
     });
     document.getElementById('end-game')?.addEventListener('click', () => {
         toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
@@ -476,6 +494,13 @@ function setupEvents() {
             window.location.href = state.pendingNavigation;
             state.pendingNavigation = null;
         }
+    });
+    // Close button handling for Privacy and Contact screens
+    document.querySelectorAll('.close-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            trackEvent('navigation', 'ui', 'close_button');
+            handleNavigation('/home');
+        });
     });
 }
 

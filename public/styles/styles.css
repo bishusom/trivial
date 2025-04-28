@@ -32,6 +32,7 @@ body {
     border-radius: 15px;
     padding: 1rem;
     box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
+    position: relative; /* Added for close button positioning */
 }
 
 .btn {
@@ -106,6 +107,33 @@ body {
 .featured-play-btn {
     width: 200px;
     margin: 0.5rem auto;
+}
+
+/* Close Button */
+.close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--primary);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: var(--primary);
+    transform: scale(1.1);
+}
+
+.close-btn .material-icons {
+    color: var(--text);
+    font-size: 20px;
 }
 
 /* Navigation */
@@ -226,6 +254,7 @@ body {
     justify-content: center;
     margin-top: 1rem;
 }
+
 /* Screens */
 .screen {
     display: none;
@@ -247,6 +276,7 @@ body {
     max-width: 880px;
     margin: 0 auto;
 }
+
 /* Hero Section */
 .hero-section {
     text-align: center;
@@ -283,7 +313,8 @@ body {
     border: 2px solid var(--accent);
     border-radius: 10px;
     padding: 1rem;
-    background: var(--card-bg);
+    background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
+    animation: rotate 15s linear infinite;
 }
 
 .progress-bar-container {
@@ -390,10 +421,15 @@ body {
     gap: 0.3rem;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
 }
 
 .featured-card {
+    background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
     color: var(--accent);
+    border: 2px solid var(--card);
+    animation: rotate 15s linear infinite;
+    margin: 0 auto;
 }
 
 .category-card:hover, .featured-card:hover {
@@ -424,6 +460,104 @@ body {
     font-size: 0.7rem;
     padding: 2px 5px;
     border-radius: 8px;
+}
+
+/* Contact Form */
+.contact-card {
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.contact-card h2 {
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.contact-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contact-card label {
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.contact-card input,
+.contact-card textarea,
+.contact-card select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    padding: 0.8rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.contact-card input:focus,
+.contact-card textarea:focus,
+.contact-card select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.contact-card textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.contact-card .btn.primary {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.contact-card .btn.primary:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, var(--secondary), var(--primary));
+}
+
+/* Privacy Section */
+.privacy-card {
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.privacy-card h2 {
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.privacy-card h3 {
+    color: var(--text);
+    margin: 1rem 0 0.5rem;
+    font-size: 1.2rem;
+}
+
+.privacy-card p {
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.privacy-card ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.privacy-card li {
+    color: var(--text);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
 }
 
 /* Game Screen */
@@ -725,6 +859,7 @@ body {
     color: var(--accent);
     padding: 1rem;
 }
+
 /* Footer */
 .blog-tbank {
     background: white;
@@ -734,6 +869,7 @@ body {
     margin: 2rem auto;
     min-height: calc(100vh - 100px);
 }
+
 /* Footer */
 .app-footer {
     margin-top: 2rem;
@@ -777,12 +913,24 @@ body {
     .question-category,
     .question-subcategory,
     .question-difficulty { font-size: 0.7rem; padding: 2px 6px; }
-    #next-btn { width: 100%; max-width: 300px; }
-    .highscores { max-width: 100%; padding: 0.8rem; }
-    .highscores-header { gap: 0.3rem; }
-    .highscores-header h3 { font-size: 1rem; }
-    .highscore-entry { grid-template-columns: 40px 1fr 80px; font-size: 0.8rem; padding: 0.4rem; }
-    .btn.small { padding: 0.2rem 0.5rem; font-size: 0.7rem; min-width: 70px; }
+    .contact-card { max-width: 100%; padding: 0.8rem; }
+    .contact-card h2 { font-size: 1.3rem; }
+    .contact-card input,
+    .contact-card textarea,
+    .contact-card select { padding: 0.6rem; font-size: 0.8rem; }
+    .contact-card .btn.primary { max-width: 150px; }
+    .privacy-card { max-width: 100%; padding: 0.8rem; }
+    .privacy-card h2 { font-size: 1.3rem; }
+    .privacy-card h3 { font-size: 1.1rem; }
+    .privacy-card p,
+    .privacy-card li { font-size: 0.8rem; }
+    .close-btn {
+        width: 28px;
+        height: 28px;
+    }
+    .close-btn .material-icons {
+        font-size: 18px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -799,11 +947,26 @@ body {
     .question-category,
     .question-subcategory,
     .question-difficulty { font-size: 0.65rem; padding: 1px 5px; }
-    #next-btn { position: sticky; bottom: 5px; width: 90%; }
-    .highscores-header { flex-direction: column; gap: 0.5rem; text-align: center; }
-    .highscore-entry { grid-template-columns: 30px 1fr 60px; font-size: 0.7rem; }
-    .btn.small { padding: 0.2rem 0.5rem; font-size: 0.7rem; min-width: 60px;}
-    .modal-actions {flex-direction: column; gap: 0.5rem;}
+    .btn.small { padding: 0.2rem 0.5rem; font-size: 0.7rem; min-width: 60px; }
+    .modal-actions { flex-direction: column; gap: 0.5rem; }
+    .contact-card { padding: 0.6rem; }
+    .contact-card h2 { font-size: 1.2rem; }
+    .contact-card input,
+    .contact-card textarea,
+    .contact-card select { padding: 0.5rem; font-size: 0.75rem; }
+    .contact-card .btn.primary { max-width: 120px; }
+    .privacy-card { padding: 0.6rem; }
+    .privacy-card h2 { font-size: 1.2rem; }
+    .privacy-card h3 { font-size: 1rem; }
+    .privacy-card p,
+    .privacy-card li { font-size: 0.75rem; }
+    .close-btn {
+        width: 24px;
+        height: 24px;
+    }
+    .close-btn .material-icons {
+        font-size: 16px;
+    }
 }
 
 /* Utility classes */
@@ -816,4 +979,20 @@ body {
     color: rgba(255, 255, 255, 0.7);
     text-align: center;
     margin-top: 1.5rem;
+}
+
+/* Animation Keyframes */
+@keyframes rotate {
+    0% {
+        background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
+    }
+    100% {
+        background: linear-gradient(495deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
 }

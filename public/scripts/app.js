@@ -97,6 +97,43 @@ function stopSound(type) {
     audio[type].currentTime = 0;
 }
 
+function handleNavClick(e) {
+    if (elements.screens.game.classList.contains('active')) {
+        e.preventDefault();
+        state.pendingNavigationUrl = e.target.href;
+        
+        // Pause the game
+        clearTimers();
+        stopSound('tick');
+        
+        // Show warning modal
+        document.getElementById('nav-warning-modal').classList.remove('hidden');
+    }
+}
+
+function continueGame() {
+    document.getElementById('nav-warning-modal').classList.add('hidden');
+    state.pendingNavigationUrl = null;
+    startTimer();
+    toggleScreen('game');
+}
+
+function endCurrentGame() {
+    state.questions = [];
+    state.currentQuestion = 0;
+    state.score = 0;
+    
+    document.getElementById('nav-warning-modal').classList.add('hidden');
+    toggleScreen('setup');
+    document.querySelector('.app-footer').classList.remove('hidden');
+
+    if (state.pendingNavigationUrl) {
+        window.history.pushState({}, '', state.pendingNavigationUrl);
+        handleRouting(state.pendingNavigationUrl);
+    }
+    state.pendingNavigationUrl = null;
+}
+
 function showError(msg) {
     let error = document.getElementById('error-message');
     if (!error) {
@@ -395,27 +432,20 @@ function setupEvents() {
         document.querySelector('.category-card[data-category="Weekly"]').click();
     });
     document.querySelectorAll('.category-card').forEach(card => {
-        card.addEventListener('click', async function () {
-            toggleClass(document.querySelector('.category-card.active'), 'remove', 'active');
-            this.classList.add('active');
-            toggleLoading(true);
-            hideError();
-            try {
-                state.questions = await fetchQuestions(this.dataset.category);
-                state.current = 0;
-                state.score = 0;
-                state.answers = [];
-                state.timeLeft = document.getElementById('quick-mode-toggle').checked ? timers.quick : timers.long;
-                state.totalTime = 10 * state.timeLeft;
-                toggleClass(els.highscores, 'add', 'hidden');
-                toggleClass(els.setup, 'remove', 'active');
-                toggleClass(els.game, 'add', 'active');
-                showQuestion();
-            } finally {
-                toggleLoading(false);
-            }
+        card.addEventListener('click', function(e) {
+            // Prevent touch devices from triggering both touch and click
+            if (e.type === 'click' && ('ontouchstart' in window)) return;
+            handleCategorySelection.call(this);
+        });
+        
+        card.addEventListener('touchend', function(e) {
+            handleCategorySelection.call(this);
+            e.preventDefault(); // Prevent mouse events from firing
         });
     });
+    document.getElementById('continue-game')?.addEventListener('click', continueGame);
+    document.getElementById('end-game')?.addEventListener('click', endCurrentGame);
+    elements.navLinks.forEach(link => link.addEventListener('click', handleNavClick));
     document.getElementById('decline-challenge')?.addEventListener('click', () => {
         localStorage.setItem('challengeDismissed', Date.now());
         document.getElementById('daily-challenge-modal').classList.add('hidden');

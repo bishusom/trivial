@@ -32,7 +32,7 @@ body {
     border-radius: 15px;
     padding: 1rem;
     box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
-    position: relative; /* Added for close button positioning */
+    position: relative;
 }
 
 .btn {
@@ -779,6 +779,12 @@ body {
     background: rgba(205, 127, 50, 0.1);
     border: 1px solid #cd7f32;
     color: #cd7f32;
+}
+
+.performance-message.zero {
+    background: rgba(79, 195, 247, 0.1);
+    border: 1px solid #4fc3f7;
+    color: #4fc3f7;
 }
 
 .performance-message.default {

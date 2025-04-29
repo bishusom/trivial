@@ -1,4 +1,38 @@
 /* Trivia Master Game Logic - Compact */
+const messages = {
+    gold: [
+        "🏆 Trivia Deity! The knowledge gods bow before you! Can you maintain your reign?",
+        "🧠 Mind = Blown! Think you can top this perfect score? Try again!",
+        "🤯 Unstoppable Genius! Ready for an even bigger challenge next round?",
+        "🎖️ Absolute Legend! The leaderboard needs your name again!"
+    ],
+    silver: [
+        "✨ Brainiac Alert! One more round could push you to perfection!",
+        "🚀 Knowledge Rocket! You're just one launch away from trivia greatness!",
+        "💎 Diamond Mind! Polish your skills further with another game!",
+        "🧩 Puzzle Master! Can you complete the picture perfectly next time?"
+    ],
+    bronze: [
+        "👍 Solid Effort! Your next attempt could be your breakthrough!",
+        "📚 Bookworm Rising! Every replay makes you wiser - try again!",
+        "💡 Bright Spark! Your knowledge is growing - fuel it with another round!",
+        "🏅 Contender Status! The podium is within reach - one more try!"
+    ],
+    zero: [
+        "💥 Knowledge Explosion Incoming! Stick around - the next attempt will be better!",
+        "🎯 Fresh Start! Now that you've warmed up, the real game begins!",
+        "🔥 Fueling Curiosity! Your learning journey starts here - play again!",
+        "🚀 Launch Pad Ready! First attempts are just practice - try for real now!",
+        "🌱 Seeds of Knowledge Planted! Water them with another try!"
+    ],
+    default: [
+        "🌱 Sprouting Scholar! Every replay makes you stronger - continue your journey!",
+        "🦉 Wise Owl in Training! The more you play, the wiser you become!",
+        "📖 Chapter 1 Complete! Turn the page to your next knowledge adventure!",
+        "🧭 Learning Compass Active! Your next game could be your true north!"
+    ]
+};
+
 const els = {
     mainNav: document.querySelector('.main-nav'),
     setup: document.querySelector('.setup-screen'),
@@ -360,6 +394,24 @@ async function showSummary() {
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = document.querySelector('.category-card.active')?.dataset.category || 'General Knowledge';
     const globalHigh = await db.collection('scores').where('category', '==', category).orderBy('score', 'desc').limit(1).get().then(s => s.empty ? null : s.docs[0].data());
+    
+    // Determine message category and select random message
+    let messageCategory, messageClass;
+    if (correctCount === 0) {
+        messageCategory = 'zero';
+        messageClass = 'zero';
+    } else if (correctCount >= 0.9 * state.selectedQuestions) {
+        messageCategory = 'gold';
+        messageClass = 'gold';
+    } else if (correctCount >= 0.7 * state.selectedQuestions) {
+        messageCategory = 'silver';
+        messageClass = 'silver';
+    } else {
+        messageCategory = 'bronze';
+        messageClass = 'bronze';
+    }
+    const message = messages[messageCategory][Math.floor(Math.random() * messages[messageCategory].length)];
+
     els.summary.innerHTML = `
         <div class="card performance-card compact">
             <h2>Game Report</h2>
@@ -367,9 +419,7 @@ async function showSummary() {
                 <div class="stat-item correct"><span class="material-icons">check_circle</span><div><h3>${correctCount}/${state.selectedQuestions}</h3><small>Correct</small></div></div>
                 <div class="stat-item time"><span class="material-icons">timer</span><div><h3>${Math.floor(timeUsed / 60)}m ${(timeUsed % 60).toString().padStart(2, '0')}s</h3><small>Time</small></div></div>
             </div>
-            <div class="performance-message ${correctCount >= 0.9 * state.selectedQuestions ? 'gold' : correctCount >= 0.7 * state.selectedQuestions ? 'silver' : 'bronze'}">
-                ${correctCount >= 0.9 * state.selectedQuestions ? '🏆 Trivia Deity!' : correctCount >= 0.7 * state.selectedQuestions ? '✨ Brainiac!' : '👍 Solid Effort!'}
-            </div>
+            <div class="performance-message ${messageClass}">${message}</div>
             ${globalHigh ? `<div class="global-high-score"><div class="trophy-icon">🏆</div><div class="global-high-details"><div class="global-high-text">Global High in ${category}:</div><div class="global-high-value">${globalHigh.score} by ${globalHigh.name}</div></div></div>` : ''}
             <button class="btn primary" id="restart-btn"><span class="material-icons">replay</span>${globalHigh && globalHigh.score > state.score ? `Chase ${globalHigh.name}'s ${globalHigh.score}!` : 'Play Again'}</button>
             ${globalHigh && globalHigh.score > state.score ? `<div class="motivation-text">You're ${globalHigh.score - state.score} points behind the leader!</div>` : globalHigh && globalHigh.score <= state.score ? `<div class="global-champion-message">🎉 You beat the global high score! Submit your score to claim the crown!</div>` : ''}
@@ -388,7 +438,7 @@ function saveHighScore() {
     state.highScores = [...state.highScores, { name, score: state.score }].sort((a, b) => b.score - a.score).slice(0, 5);
     localStorage.setItem('highScores', JSON.stringify(state.highScores));
     updateHighScores();
-    db.collection('scores').add({ name, score: state.score, category, timestamp: firefox.firestore.FieldValue.serverTimestamp() });
+    db.collection('scores').add({ name, score: state.score, category, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     state.isScoreSaved = true;
 }
 
@@ -559,13 +609,13 @@ function updateProgressTracker() {
     progressElement.setAttribute('aria-valuemin', 0);
     progressElement.setAttribute('aria-valuemax', 100);
     progressElement.setAttribute('role', 'progressbar');
-    const messages = [
+    const progressMessages = [
         { threshold: 0, message: "Play 1 more game to unlock your first badge!" },
         { threshold: 1, message: "Keep going! 3 more games for a new achievement!" },
         { threshold: 3, message: "Almost there! 1 more game to level up!" },
         { threshold: 5, message: "Trivia Master! Play to discover new challenges!" }
     ];
-    const currentMessage = messages.reverse().find(m => gamesPlayed >= m.threshold) || messages[0];
+    const currentMessage = progressMessages.reverse().find(m => gamesPlayed >= m.threshold) || progressMessages[0];
     document.getElementById('progress-message').textContent = currentMessage.message;
 }
 

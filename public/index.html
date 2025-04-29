@@ -36,7 +36,7 @@
         <!-- Canonical URL -->
         <link rel="canonical" href="https://www.triviaah.com/">
         <!-- Fav icon URL -->
-        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon">
         <!-- Schema.org Structured Data -->
         <script type="application/ld+json">
         {
@@ -103,22 +103,12 @@
                         <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
                         <div class="tagline">Think You're Smart? Show Us What You've Got!</div>
                     </div>
-                    
-                    <div class="cta-buttons">
-                        <button id="instant-play" class="btn primary pulse-animation">
-                            <span class="material-icons">play_arrow</span>
-                            Play Instantly
-                        </button>
-                        <div class="or-divider">OR</div>
-                        <button id="explore-btn" class="btn secondary">
-                            <span class="material-icons">explore</span>
-                            Explore Categories
-                        </button>
-                    </div>
-                    
+                </div>    
+                      
+                <div class="setup-card">
                     <div class="progress-tracker">
                         <div class="progress-header">
-                            <h4><span class="material-icons">emoji_events</span> Your Trivia Journey</h4>
+                            <h4><span class="material-icons" style="color:rgb(255, 213, 0)">emoji_events</span> Your Trivia Journey</h4>
                         </div>
                         <div class="progress-bar-container">
                             <div class="progress-bar-fill" id="user-progress"></div>
@@ -127,243 +117,193 @@
                             You're one game away from your first badge! Play now.
                         </div>
                     </div>
-                </div>
-                
-                <div class="time-toggle-container">
-                    <div class="setting-label">
-                        <span class="material-icons">timer</span>
-                        QUESTION TIMER
-                    </div>
-                    <span id="normal-timer">Normal (60s)</span>
-                    <label class="time-toggle-switch">
-                        <input type="checkbox" id="quick-mode-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                    <span id="quick-timer">Quick (30s)</span>
-                </div>   
-                <div class="setup-card">
-                        <div class="tabs-container">
-                            <div class="tabs-header">
-                                <button class="tab-button active" data-tab="featured">Featured</button>
-                                <button class="tab-button" data-tab="categories">Categories</button>
-                            </div>
-                            
-                            <div class="tab-content active" id="featured-tab">
-                                <div class="featured-category">
-                                    <h3>🔥 Today's Featured Challenge</h3>
-                                    <div class="featured-card" data-category="Weekly">
-                                        <div class="featured-content">
-                                            <span class="material-icons">stars</span>
-                                            <h4>Weekly Quiz</h4>
-                                            <p>Compete against others in this week's special trivia!</p>
-                                            <div class="players-count">
-                                                <span class="material-icons">people</span>
-                                                <span>142 playing today</span>
-                                            </div>
-                                        </div>
-                                        <button class="btn primary featured-play-btn">Play Now</button>
-                                    </div>
-                                </div>    
-                            </div>
-                            
-                            <div class="tab-content" id="categories-tab">
-                                <!-- Categories content goes here -->
-                                <div class="category-selection">
-                                    <div class="section-header">
-                                        <h3>Select a Category</h3>
-                                        <div class="instruction-tooltip">
-                                                <span class="material-icons">info</span>
-                                                <span class="tooltip-text">Double-click any category to start</span>
-                                        </div>
-                                    </div>
-                                    <div class="category-grid">
-                                        <!-- Your existing category cards -->
-                                        <div class="category-card" data-category="Weekly">
-                                            <span class="material-icons">event</span>
-                                            <span>Weekly Quiz</span>
-                                            <div class="progress-bar" style="width: 80%"></div>
-                                            <span class="popular-badge">Hot!</span>
-                                        </div>
-            
-                                        <div class="category-card" data-category="Monthly">
-                                            <span class="material-symbols-outlined">date_range</span>
-                                            <span>Monthly Quiz</span>
-                                            <div class="progress-bar" style="width: 65%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="General Knowledge">
-                                            <span class="material-symbols-outlined">psychology_alt</span>
-                                            <span>General</span>
-                                            <div class="progress-bar" style="width: 90%"></div>
-                                            <span class="popular-badge">Popular</span>
-                                        </div>
-            
-                                        <div class="category-card" data-category="literature">
-                                            <span class="material-icons">menu_book</span>
-                                            <span>Literature</span>
-                                            <div class="progress-bar" style="width: 45%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="arts">
-                                            <span class="material-icons">palette</span>
-                                            <span>Arts</span>
-                                            <div class="progress-bar" style="width: 30%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="animals">
-                                            <span class="material-icons">pets</span>
-                                            <span>Animals</span>
-                                            <div class="progress-bar" style="width: 55%"></div>
-                                        </div>
-                                                                    
-                                        <div class="category-card" data-category="science">
-                                            <span class="material-icons">science</span>
-                                            <span>Science</span>
-                                            <div class="progress-bar" style="width: 75%"></div>
-                                        </div>
-                                        
-                                        <div class="category-card" data-category="food and drinks">
-                                            <span class="material-symbols-outlined">lunch_dining</span>
-                                            <span>Food</span>
-                                            <div class="progress-bar" style="width: 60%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="history">
-                                            <span class="material-icons">history</span>
-                                            <span>History</span>
-                                            <div class="progress-bar" style="width: 70%"></div>
-                                        </div>
-                                        
-                                        <div class="category-card" data-category="geography">
-                                            <span class="material-icons">public</span>
-                                            <span>Geography</span>
-                                            <div class="progress-bar" style="width: 50%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="movies">
-                                            <span class="material-icons">movie</span>
-                                            <span>Movies</span>
-                                            <div class="progress-bar" style="width: 85%"></div>
-                                            <span class="popular-badge">Trending</span>
-                                        </div>
-                                            
-                                        <div class="category-card" data-category="music">
-                                            <span class="material-icons">music_note</span>
-                                            <span>Music</span>
-                                            <div class="progress-bar" style="width: 80%"></div>
-                                        </div>
-                                        
-                                        <div class="category-card" data-category="tv/web series">
-                                            <span class="material-icons">tv</span>
-                                            <span>TV/Web Series</span>
-                                            <div class="progress-bar" style="width: 75%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="sports">
-                                            <span class="material-symbols-outlined">sports_and_outdoors</span>
-                                            <span>Sports</span>
-                                            <div class="progress-bar" style="width: 65%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="video games">
-                                            <span class="material-symbols-outlined">stadia_controller</span>
-                                            <span>Video Games</span>
-                                            <div class="progress-bar" style="width: 70%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="Board Game">
-                                            <span class="material-symbols-outlined">casino</span>
-                                            <span>Board Games</span>
-                                            <div class="progress-bar" style="width: 40%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="mythology">
-                                            <span class="material-symbols-outlined">castle</span>
-                                            <span>Mythology</span>
-                                            <div class="progress-bar" style="width: 35%"></div>
-                                        </div>
-            
-                                        <div class="category-card" data-category="comics series">
-                                            <span class="material-symbols-outlined">comic_bubble</span>
-                                            <span>Comics</span>
-                                            <div class="progress-bar" style="width: 45%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                        
-                <div id="loading-indicator" class="loading-indicator hidden">
-                    <div class="loading-spinner"></div>
-                        <p>Loading questions...</p>
-                </div>
-
-            </div>
-
-            <!-- Game Screen -->
-            <div class="screen game-screen">
-                <div class="card">
-                    <div class="game-header">
-                        <div class="score-box">
-                            <span class="material-icons">emoji_events</span>
-                            <span id="score">0</span>
-                            <span id="question-counter">0/10</span>
-                        </div>
-                        <div class="timer-box">
-                            <span class="material-icons">timer</span>
-                            <span id="question-timer">15</span>
-                            <span id="total-timer">2:30</span>
-                        </div>
-                        <button id="mute-btn" class="btn icon-btn">
-                            <span class="material-icons">volume_up</span>
-                        </button>
-                    </div>
-
-                    <div id="question" class="question"></div>
-                    <div id="options" class="options-grid"></div>
                     
-                    <div class="game-footer">
-                        <button id="next-btn" class="btn primary">
-                            Next Question
-                            <span class="material-icons">arrow_forward</span>
-                        </button>
+                    <div class="time-toggle-container">
+                        <div class="setting-label">
+                            <span class="material-icons">timer</span>
+                            QUESTION TIMER
+                        </div>
+                        <span id="normal-timer">Normal (60s)</span>
+                        <label class="time-toggle-switch">
+                            <input type="checkbox" id="quick-mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="quick-timer">Quick (30s)</span>
+                    </div> 
+            
+                    <div class="tabs-container">
+                        <div class="category-selection">
+                            <div class="section-header">
+                                <h3>Select a Category</h3>
+                                <div class="instruction-tooltip">
+                                        <span class="material-icons">info</span>
+                                        <span class="tooltip-text">Double-click any category to start</span>
+                                </div>
+                            </div>
+                            <div class="category-grid">
+                                <!-- Your existing category cards -->
+                                <div class="featured-card category-card" data-category="Weekly">
+                                    <span class="material-icons">event</span>
+                                    <span>Weekly Quiz</span>
+                                    <span class="popular-badge">Featured!</span>
+                                </div>
+
+                                <div class="category-card" data-category="Monthly">
+                                    <span class="material-symbols-outlined">date_range</span>
+                                    <span>Monthly Quiz</span>
+                                    <div class="progress-bar" style="width: 65%"></div>
+                                </div>
+
+                                <div class="category-card" data-category="General Knowledge">
+                                    <span class="material-symbols-outlined">psychology_alt</span>
+                                    <span>General</span>
+                                    <div class="progress-bar" style="width: 90%"></div>
+                                    <span class="popular-badge">Popular</span>
+                                </div>
+                                <div class="category-card" data-category="literature">
+                                    <span class="material-icons">menu_book</span>
+                                    <span>Literature</span>
+                                </div>
+    
+                                <div class="category-card" data-category="arts">
+                                    <span class="material-icons">palette</span>
+                                    <span>Arts</span>
+                                </div>
+    
+                                <div class="category-card" data-category="animals">
+                                    <span class="material-icons">pets</span>
+                                    <span>Animals</span>
+                                </div>
+                                                            
+                                <div class="category-card" data-category="science">
+                                    <span class="material-icons">science</span>
+                                    <span>Science</span>
+                                </div>
+                                
+                                <div class="category-card" data-category="food">
+                                    <span class="material-symbols-outlined">lunch_dining</span>
+                                    <span>Food</span>
+                                    <span class="popular-badge">Popular</span>
+                                </div>
+    
+                                <div class="category-card" data-category="history">
+                                    <span class="material-icons">history</span>
+                                    <span>History</span>
+                                    <span class="popular-badge">Tough</span>
+                                </div>
+                                
+                                <div class="category-card" data-category="geography">
+                                    <span class="material-icons">public</span>
+                                    <span>Geography</span>
+                                    <span class="popular-badge">Tough</span>
+                                </div>
+    
+                                <div class="category-card" data-category="movies">
+                                    <span class="material-icons">movie</span>
+                                    <span>Movies</span>
+                                    <span class="popular-badge">Trending</span>
+                                </div>
+                                    
+                                <div class="category-card" data-category="music">
+                                    <span class="material-icons">music_note</span>
+                                    <span>Music</span>
+                                </div>
+                                
+                                <div class="category-card" data-category="tv/web series">
+                                    <span class="material-icons">tv</span>
+                                    <span>TV/Web Series</span>
+                                </div>
+    
+                                <div class="category-card" data-category="sports">
+                                    <span class="material-symbols-outlined">sports_and_outdoors</span>
+                                    <span>Sports</span>
+                                </div>
+    
+                                <div class="category-card" data-category="video-games">
+                                    <span class="material-symbols-outlined">stadia_controller</span>
+                                    <span>Video Games</span>
+                                </div>
+    
+                                <div class="category-card" data-category="board-games">
+                                    <span class="material-symbols-outlined">casino</span>
+                                    <span>Board Games</span>
+                                </div>
+    
+                                <div class="category-card" data-category="mythology">
+                                    <span class="material-symbols-outlined">castle</span>
+                                    <span>Mythology</span>
+                                </div>
+    
+                                <div class="category-card" data-category="comics series">
+                                    <span class="material-symbols-outlined">comic_bubble</span>
+                                    <span>Comics</span>
+                                </div>
+                        </div>        
+                    </div>
+                    <div id="loading-indicator" class="loading-indicator hidden">
+                        <div class="loading-spinner"></div>
+                            <p>Loading questions...</p>
                     </div>
                 </div>
             </div>
-
-            <!-- Summary Screen -->
-            <div class="screen summary-screen">
-                <div class="card performance-card compact">
-                    <!-- Content populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- High Scores -->
-            <div class="highscores">
-                <div class="highscores-header">
-                    <h3>My Best Scores</h3>
-                    <button id="clear-scores" class="btn small danger" title="Delete all local scores">
-                        🗑️ Clear All
+        </div>    
+            <!-- Game Screen -->
+        <div class="screen game-screen">
+            <div class="card">
+                <div class="game-header">
+                    <div class="score-box">
+                        <span class="material-icons">emoji_events</span>
+                        <span id="score">0</span>
+                        <span id="question-counter">0/10</span>
+                    </div>
+                    <div class="timer-box">
+                        <span class="material-icons">timer</span>
+                        <span id="question-timer">15</span>
+                        <span id="total-timer">2:30</span>
+                    </div>
+                    <button id="mute-btn" class="btn icon-btn">
+                        <span class="material-icons">volume_up</span>
                     </button>
                 </div>
-                <p class="local-warning">(Stored on this device only)</p>
-                <div id="highscores-list" class="highscores-list"></div>
-            </div>
-            
-            <!-- Daily Challenge Modal -->
-            <div id="daily-challenge-modal" class="modal hidden">
-                <div class="modal-content challenge-modal">
-                    <h3>🔥 Daily Challenge Awaits!</h3>
-                    <p>Test your knowledge against others in today's special trivia!</p>
-                    <div class="modal-actions">
-                        <button id="decline-challenge" class="btn secondary">Not Now</button>
-                        <button id="accept-challenge" class="btn primary">Accept Challenge</button>
-                    </div>
+
+                <div id="question" class="question"></div>
+                <div id="options" class="options-grid"></div>
+                
+                <div class="game-footer">
+                    <button id="next-btn" class="btn primary">
+                        Next Question
+                        <span class="material-icons">arrow_forward</span>
+                    </button>
                 </div>
             </div>
+        </div>
+
+        <!-- Summary Screen -->
+        <div class="screen summary-screen">
+            <div class="card performance-card compact">
+                <!-- Content populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- High Scores -->
+        <div class="highscores">
+            <div class="highscores-header">
+                <h3>Global Best Scores</h3>
+            </div>
+            <div id="highscores-list" class="highscores-list"></div>
+        </div>
+            
+        <!-- Daily Challenge Modal -->
+        <div id="daily-challenge-modal" class="modal hidden">
+            <div class="modal-content challenge-modal">
+                <h3>🔥 Daily Challenge Awaits!</h3>
+                <p>Test your knowledge against others in today's special trivia!</p>
+                <div class="modal-actions">
+                    <button id="decline-challenge" class="btn secondary">Not Now</button>
+                    <button id="accept-challenge" class="btn primary">Accept Challenge</button>
+                </div>
+            </div>
+        </div>
 
             <!-- Modal dialog for handling game exit midway -->
             <div id="nav-warning-modal" class="modal hidden">

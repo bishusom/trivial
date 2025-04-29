@@ -53,10 +53,16 @@ body {
 .btn.primary {
     background: linear-gradient(45deg, var(--primary), var(--secondary));
     color: var(--text);
+    box-shadow: 0 2px 8px rgba(70, 23, 143, 0.4);
 }
 
 .btn:hover {
     transform: scale(1.05);
+}
+
+.btn.primary:hover {
+    background: linear-gradient(45deg, var(--secondary), var(--primary));
+    box-shadow: 0 4px 12px rgba(70, 23, 143, 0.6);
 }
 
 .btn.secondary {
@@ -157,7 +163,7 @@ body {
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.1);
+    color: var(--card);
 }
 
 /* Tabs */
@@ -255,6 +261,26 @@ body {
     margin-top: 1rem;
 }
 
+/* Welcome Modal */
+.welcome-modal {
+    text-align: center;
+}
+
+.welcome-modal h3 {
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.welcome-modal p {
+    color: var(--text);
+    margin-bottom: 1.5rem;
+}
+
+.welcome-modal .btn.primary {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
 /* Screens */
 .screen {
     display: none;
@@ -270,6 +296,10 @@ body {
     transform: translateY(0);
     position: relative;
     z-index: 100;
+}
+
+.screen:not(.active) {
+    display: none;
 }
 
 .setup-card {
@@ -306,15 +336,14 @@ body {
 }
 
 .progress-tracker {
-    width: 80%;
-    max-width: 400px;
-    margin: 1rem auto;
+    width: 100%;
+    margin: 1rem 0;
     text-align: center;
     border: 2px solid var(--accent);
     border-radius: 10px;
     padding: 1rem;
     background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
-    animation: rotate 15s linear infinite;
+    animation: rotate 15s linear infinite, glow 2s infinite;;
 }
 
 .progress-bar-container {
@@ -343,10 +372,9 @@ body {
 .time-toggle-container {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin: 1rem auto;
-    justify-content: center;
-    max-width: 400px;
+    gap: 10px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .time-toggle-switch {
@@ -403,7 +431,46 @@ body {
     color: var(--accent);
 }
 
+/* Tooltip Styles */
+.instruction-tooltip {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    transform: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    animation: fadeIn 1s ease-in-out;
+    width: fit-content;
+    margin: 0 auto;
+    z-index: 100;
+}
+
+.instruction-tooltip .material-icons {
+    font-size: 1rem;
+    color: var(--accent);
+}
+
+.tooltip-text {
+    font-size: 0.9rem;
+    color: white;
+    text-align: center;
+}
+
 /* Category & Featured Cards */
+.category-selection {
+    width: 100%;
+}
+
+.section-header {
+    margin-bottom: 1rem; /* Added gap between header and category grid */
+}
+
 .category-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -428,13 +495,14 @@ body {
     background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
     color: var(--accent);
     border: 2px solid var(--card);
-    animation: rotate 15s linear infinite;
+    animation: rotate 15s linear infinite, glow 2s infinite;
     margin: 0 auto;
 }
 
 .category-card:hover, .featured-card:hover {
     transform: translateY(-3px);
     background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .category-card.active {
@@ -605,37 +673,108 @@ body {
 }
 
 .question {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 1rem;
-    border-radius: 10px;
-    margin: 0.5rem 0;
+    background: rgba(255,255,255,0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
 }
 
+/* Question Meta Styling */
 .question-meta {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
     gap: 8px;
-    margin-top: 0.5rem;
+    margin-top: 8px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-.question-category,
+.question-category {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 0;
+    line-height: 1.4;
+}
+
 .question-subcategory {
-    font-size: 0.75rem;
+    background-color: rgba(227, 242, 253, 0.2);
     padding: 2px 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #e3f2fd;
+    line-height: 1.4;
 }
 
 .question-difficulty {
-    font-size: 0.75rem;
     padding: 2px 8px;
-    background: var(--primary);
-    color: var(--accent);
-    border-radius: 6px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+    line-height: 1.4;
+}
+
+/* Difficulty color schemes */
+.question-difficulty.easy {
+    background-color: rgba(46, 125, 50, 0.2);
+    color: #80e6a3;
+}
+
+.question-difficulty.medium {
+    background-color: rgba(255, 143, 0, 0.2);
+    color: #ffd700;
+}
+
+.question-difficulty.hard {
+    background-color: rgba(198, 40, 40, 0.2);
+    color: #ff7d7d;
+}
+
+.question.correct-bg {
+    background: var(--correct) !important;
+    color: #000000;
+    animation: correctPulse 0.5s ease;
+}
+
+.question.wrong-bg {
+    color: #000000;
+    background: var(--wrong) !important;
+}
+
+.options-grid {
+    display: grid;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.options-grid button {
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.options-grid button.correct {
+    background: var(--correct) !important;
+    color: #1a1a2e !important;
+    border: 2px solid #4dffa6 !important;
+}
+
+.options-grid button.wrong {
+    background: var(--wrong) !important;
+    color: #1a1a2e !important;
+    border: 2px solid #ff4d4d !important;
+}
+
+.timer-box {
+    background: rgba(255,255,255,0.1);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    display: inline-flex;
+    gap: 1rem;
+    margin: 1rem 0;
 }
 
 .options-grid {
@@ -660,19 +799,6 @@ body {
 .options-grid button.wrong {
     background: var(--wrong);
     color: var(--bg);
-}
-
-/* Question Feedback */
-#question.correct-bg {
-    background: var(--correct) !important;
-    color: #1a1a2e !important;
-    border-color: #4dffa6 !important;
-}
-
-#question.wrong-bg {
-    background: var(--wrong) !important;
-    color: #1a1a2e !important;
-    border-color: #ff4d4d !important;
 }
 
 .game-footer {
@@ -778,7 +904,7 @@ body {
 .performance-message.bronze {
     background: rgba(205, 127, 50, 0.1);
     border: 1px solid #cd7f32;
-    color: #cd7f32;
+    color: #cd7f32 troubling;
 }
 
 .performance-message.zero {
@@ -807,6 +933,7 @@ body {
     background: var(--card-bg);
     border-radius: 15px;
     box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
+    display: block;
 }
 
 .highscores-header {
@@ -864,6 +991,8 @@ body {
     font-size: 0.9rem;
     color: var(--accent);
     padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
 }
 
 /* Footer */
@@ -906,7 +1035,7 @@ body {
     .tab-button { font-size: 0.8rem; padding: 0.5rem 0.8rem; }
     .hero-section { gap: 0.8rem; }
     .featured-card { max-width: 300px; }
-    .progress-tracker { max-width: 300px; padding: 0.8rem; }
+    .progress-tracker { padding: 0.8rem; }
     .cta-button-wrapper { width: 100%; max-width: 300px; }
     .cta-buttons { flex-direction: column; gap: 0.5rem; }
     .or-divider { margin: 0.5rem 0; }
@@ -945,7 +1074,7 @@ body {
     .game-header { flex-direction: column; gap: 0.5rem; }
     .score-box, .timer-box { width: 100%; text-align: center; }
     .featured-card { max-width: 250px; }
-    .progress-tracker { max-width: 250px; padding: 0.6rem; }
+    .progress-tracker { padding: 0.6rem; }
     .time-toggle-container { max-width: 250px; }
     .setup-card { max-width: 100%; }
     #featured-tab { max-width: 100%; padding: 0.8rem; }
@@ -992,6 +1121,9 @@ body {
     0% {
         background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
     }
+    50% {
+        background: linear-gradient(315deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
+    }
     100% {
         background: linear-gradient(495deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
     }
@@ -1001,4 +1133,15 @@ body {
     0% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.05); opacity: 0.8; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
 }

@@ -68,7 +68,7 @@ let state = {
     totalTime: 10 * timers.long,
     timerId: null,
     totalTimerId: null,
-    highScores: JSON.parse(localStorage.getItem('highScores')) || [],
+    highScores: [],
     answers: [],
     isScoreSaved: false,
     isNextPending: false,
@@ -76,7 +76,7 @@ let state = {
     usedQuestions: new Set(),
     fbUsedQuestions: JSON.parse(localStorage.getItem('fbUsedQuestions')) || [],
     fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds')) || [],
-    pendingNavigation: null // Store URL for navigation after modal
+    pendingNavigation: null
 };
 
 const QUIZ_TYPES = { WEEKLY: 'Weekly', MONTHLY: 'Monthly' };
@@ -115,7 +115,6 @@ function init() {
     loadMuteState();
     updateHighScores();
     updateProgressTracker();
-    setPlayerCount(category='Weekly', update=false);
     els.setup.classList.add('active');
     els.highscores.classList.add('hidden');
     setupEvents();
@@ -355,17 +354,36 @@ function handleNextQuestion() {
     }
 }
 
-function endGame() {
+async function endGame() {
     const correctCount = state.answers.filter(a => a.correct).length;
     trackEvent('game_complete', 'performance', `${correctCount}/${state.selectedQuestions} correct`, state.score);
-    toggleClass(els.mainNav, 'add', 'hidden');
+    
+    // Batch DOM updates
+    els.mainNav.classList.remove('hidden');
+    els.game.classList.remove('active');
+    els.summary.classList.add('active');
+    els.highscores.classList.remove('hidden');
+    document.querySelector('.app-footer').classList.remove('hidden');
     clearInterval(state.timerId);
     clearInterval(state.totalTimerId);
-    stopAllSounds(); // Ensure all sounds stop when game ends
-    toggleClass(els.game, 'remove', 'active');
-    toggleClass(els.summary, 'add', 'active');
-    toggleClass(els.highscores, 'remove', 'hidden');
-    showSummary();
+    stopAllSounds();
+
+    // Pre-fetch high scores to reduce delay in showSummary
+    const category = document.querySelector('.category-card.active')?.dataset.category || 'General Knowledge';
+    let globalHigh = null;
+    try {
+        const highScoreSnapshot = await db.collection('scores')
+            .where('category', '==', category)
+            .orderBy('score', 'desc')
+            .limit(1)
+            .get();
+        globalHigh = highScoreSnapshot.empty ? null : highScoreSnapshot.docs[0].data();
+        console.log('endGame: Fetched global high score:', globalHigh);
+    } catch (error) {
+        console.error('endGame: Error fetching global high score:', error);
+    }
+
+    await showSummary(globalHigh);
     saveHighScore();
 }
 
@@ -389,13 +407,11 @@ function restartGame() {
     localStorage.removeItem(CACHE.QUESTIONS);
 }
 
-async function showSummary() {
+async function showSummary(globalHigh) {
     const timeUsed = state.selectedQuestions * (document.getElementById('quick-mode-toggle').checked ? timers.quick : timers.long) - state.totalTime;
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = document.querySelector('.category-card.active')?.dataset.category || 'General Knowledge';
-    const globalHigh = await db.collection('scores').where('category', '==', category).orderBy('score', 'desc').limit(1).get().then(s => s.empty ? null : s.docs[0].data());
     
-    // Determine message category and select random message
     let messageCategory, messageClass;
     if (correctCount === 0) {
         messageCategory = 'zero';
@@ -412,6 +428,9 @@ async function showSummary() {
     }
     const message = messages[messageCategory][Math.floor(Math.random() * messages[messageCategory].length)];
 
+    // Show loading indicator for high scores
+    els.highscoresList.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div><p>Loading high scores...</p></div>';
+
     els.summary.innerHTML = `
         <div class="card performance-card compact">
             <h2>Game Report</h2>
@@ -426,30 +445,50 @@ async function showSummary() {
         </div>
     `;
     document.getElementById('restart-btn').addEventListener('click', restartGame);
-    toggleClass(els.highscores, 'remove', 'hidden');
-    toggleClass(document.querySelector('.app-footer'), 'remove', 'hidden');
+    
+    // Ensure highscores is visible
+    els.highscores.classList.remove('hidden');
+    els.mainNav.classList.remove('hidden');
+    document.querySelector('.app-footer').classList.remove('hidden');
+    console.log('showSummary: Highscores visibility set to block');
+
     localStorage.setItem('gamesPlayed', (parseInt(localStorage.getItem('gamesPlayed') || 0) + 1));
+    await updateHighScores();
 }
 
 function saveHighScore() {
     if (state.isScoreSaved || !state.score) return;
     const category = document.querySelector('.category-card.active')?.dataset.category || 'General Knowledge';
     const name = prompt('Enter your name:', 'Anonymous') || 'Anonymous';
-    state.highScores = [...state.highScores, { name, score: state.score }].sort((a, b) => b.score - a.score).slice(0, 5);
-    localStorage.setItem('highScores', JSON.stringify(state.highScores));
-    updateHighScores();
     db.collection('scores').add({ name, score: state.score, category, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
     state.isScoreSaved = true;
+    console.log('saveHighScore: Score saved to Firebase, triggering updateHighScores');
+    updateHighScores();
 }
 
-function updateHighScores() {
-    els.highscoresList.innerHTML = state.highScores.length ? state.highScores.map((e, i) => `
-        <div class="highscore-entry">
-            <span class="rank">${i + 1}.</span>
-            <span class="name">${e.name}</span>
-            <span class="score">${e.score}</span>
-        </div>
-    `).join('') : '<p class="no-scores">No high scores yet. Play a game to start!</p>';
+async function updateHighScores() {
+    const category = document.querySelector('.category-card.active')?.dataset.category || 'General Knowledge';
+    console.log('updateHighScores: Fetching scores for category:', category);
+    try {
+        const snapshot = await db.collection('scores')
+            .where('category', '==', category)
+            .orderBy('score', 'desc')
+            .limit(5)
+            .get();
+        state.highScores = snapshot.docs.map(doc => doc.data());
+        console.log('updateHighScores: Fetched scores:', state.highScores);
+        els.highscoresList.innerHTML = state.highScores.length ? state.highScores.map((e, i) => `
+            <div class="highscore-entry">
+                <span class="rank">${i + 1}.</span>
+                <span class="name">${e.name}</span>
+                <span class="score">${e.score}</span>
+            </div>
+        `).join('') : '<p class="no-scores">No high scores yet for this category. Play a game to start!</p>';
+    } catch (error) {
+        console.error('updateHighScores: Error fetching global high scores:', error);
+        els.highscoresList.innerHTML = '<p class="no-scores">Error loading high scores. Please try again later.</p>';
+    }
+    console.log('updateHighScores: Highscores list updated, visibility:', els.highscores.style.display);
 }
 
 function handleNavigation(url) {
@@ -464,37 +503,16 @@ function handleNavigation(url) {
 }
 
 function setupEvents() {
-    document.getElementById('instant-play').addEventListener('click', () => {
-        const cards = document.querySelectorAll('.category-card');
-        cards[Math.floor(Math.random() * cards.length)].click();
-    });
-
-    document.getElementById('explore-btn').addEventListener('click', () => {
-        document.querySelector('.tab-button[data-tab="categories"]').click();
-    });
-
     document.getElementById('mute-btn').addEventListener('click', () => {
         state.isMuted = !state.isMuted;
         localStorage.setItem('triviaMasterMuteState', state.isMuted);
         document.querySelector('#mute-btn .material-icons').textContent = state.isMuted ? 'volume_off' : 'volume_up';
         console.log(`Mute state changed: ${state.isMuted}`);
         if (state.isMuted) {
-            stopAllSounds(); // Stop all sounds when muting
+            stopAllSounds();
         } else if (els.game.classList.contains('active')) {
-            playSound('tick'); // Resume tick sound if game is active
+            playSound('tick');
         }
-    });
-
-    document.getElementById('clear-scores').addEventListener('click', () => {
-        if (confirm('Delete all scores?')) {
-            state.highScores = [];
-            localStorage.setItem('highScores', '[]');
-            updateHighScores();
-        }
-    });
-
-    document.querySelector('.featured-play-btn').addEventListener('click', () => {
-        document.querySelector('.category-card[data-category="Weekly"]').click();
     });
 
     document.querySelectorAll('.category-card').forEach(card => {
@@ -549,7 +567,6 @@ function setupEvents() {
         if (e.target.matches('#options button')) checkAnswer(e.target.dataset.correct === 'true');
     });
 
-    // Navigation link handling
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
@@ -557,7 +574,6 @@ function setupEvents() {
         });
     });
 
-    // Close button handling for Privacy and Contact screens
     document.querySelectorAll('.close-btn').forEach(button => {
         button.addEventListener('click', () => {
             trackEvent('navigation', 'ui', 'close_button');
@@ -588,7 +604,7 @@ function loadMuteState() {
     state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState') || 'false');
     document.querySelector('#mute-btn .material-icons').textContent = state.isMuted ? 'volume_off' : 'volume_up';
     if (state.isMuted) {
-        stopAllSounds(); // Ensure sounds are stopped if muted on load
+        stopAllSounds();
     }
     console.log(`Loaded mute state: ${state.isMuted}`);
 }
@@ -610,7 +626,7 @@ function updateProgressTracker() {
     progressElement.setAttribute('aria-valuemax', 100);
     progressElement.setAttribute('role', 'progressbar');
     const progressMessages = [
-        { threshold: 0, message: "Play 1 more game to unlock your first badge!" },
+        { threshold: 0, message: "You're one game away from your first badge! Play now" },
         { threshold: 1, message: "Keep going! 3 more games for a new achievement!" },
         { threshold: 3, message: "Almost there! 1 more game to level up!" },
         { threshold: 5, message: "Trivia Master! Play to discover new challenges!" }

@@ -611,7 +611,10 @@ function loadMuteState() {
 
 function showDailyChallenge() {
     const now = Date.now();
-    if (!localStorage.getItem('challengeDismissed') || now - localStorage.getItem('challengeDismissed') > 24 * 60 * 60 * 1000) {
+    // Check if the game is not in progress and challenge hasn't been dismissed recently
+    if (!els.game.classList.contains('active') && 
+        (!localStorage.getItem('challengeDismissed') || 
+         now - localStorage.getItem('challengeDismissed') > 24 * 60 * 60 * 1000)) {
         setTimeout(() => document.getElementById('daily-challenge-modal').classList.remove('hidden'), 5000);
     }
 }

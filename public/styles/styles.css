@@ -369,87 +369,64 @@ body {
 }
 
 /* Toggle Switch */
-/* Base styles for time-toggle-container */
 .time-toggle-container {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px;
-    font-family: 'Poppins', sans-serif;
+    gap: 10px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-/* Setting label (with timer icon and text) */
-.setting-label {
-    font-size: 16px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* Timer labels (Normal and Quick) */
-.timer-label {
-    font-size: 14px;
-    padding: 8px;
-}
-
-/* Toggle switch base styles */
 .time-toggle-switch {
     position: relative;
     display: inline-block;
-    width: 48px; /* Default width */
-    height: 24px; /* Default height */
+    width: 48px;
+    height: 24px;
 }
 
-/* Hide default checkbox */
 .time-toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-/* Slider base styles */
-.slider {
+.time-toggle-switch .slider {
     position: absolute;
-    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 24px; /* Round edges */
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s;
+    border-radius: 24px;
 }
 
-/* Slider knob (the circle that moves) */
-.slider:before {
-    position: absolute;
+.time-toggle-switch .slider:before {
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.4s;
+    position: absolute;
+    left: 2px;
+    bottom: 2px;
+    height: 20px;
+    width: 20px;
+    background-color: var(--text);
+    transition: all 0.3s;
     border-radius: 50%;
 }
 
-/* Checked state */
 .time-toggle-switch input:checked + .slider {
-    background-color: #2196F3; /* Blue when toggled */
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
 }
 
-/* Move the knob when checked */
 .time-toggle-switch input:checked + .slider:before {
     transform: translateX(24px);
 }
 
-/* Mobile-specific styles (for screens smaller than 768px) */
-@media (max-width: 768px) {
-    
+.time-toggle-switch input:focus + .slider {
+    box-shadow: 0 0 5px var(--accent);
 }
 
-#normal-timer, #quick-timer {
+#normal-timer,
+#quick-timer {
     font-size: 0.9rem;
     color: var(--accent);
 }
@@ -1064,13 +1041,10 @@ body {
     .or-divider { margin: 0.5rem 0; }
     .featured-play-btn { width: 100%; max-width: 300px; }
     .progress-bar-container { height: 8px; }
-    .time-toggle-container { gap: 16px;padding: 16px;}
-    .setting-label { font-size: 18px; padding: 12px; }
-    .timer-label { font-size: 16px; padding: 12px; }
-    .time-toggle-switch { width: 60px; height: 32px; }
-    .slider { border-radius: 32px;}
-    .slider:before {height: 26px; width: 26px; left: 3px; bottom: 3px; }
-    .time-toggle-switch input:checked + .slider:before { transform: translateX(28px); }
+    .time-toggle-container { max-width: 300px; }
+    .time-toggle-switch { width: 60px;height: 30px; }
+    .time-toggle-switch .slider:before { width: 26px; height: 26px; }
+    .time-toggle-switch input:checked + .slider:before { transform: translateX(30px); }
     .setup-card { max-width: 600px; }
     .question-meta { gap: 6px; }
     #featured-tab { max-width: 600px; padding: 1rem; }
@@ -1105,6 +1079,10 @@ body {
     .featured-card { max-width: 250px; }
     .progress-tracker { padding: 0.6rem; }
     .time-toggle-container { max-width: 250px; }
+    .time-toggle-switch { width: 56px; height: 28px; }    
+    .time-toggle-switch .slider:before { width: 24px; height: 24px; }   
+    .time-toggle-switch input:checked + .slider:before { transform: translateX(28px); }
+    #normal-timer, #quick-timer { font-size: 0.8rem; }
     .setup-card { max-width: 100%; }
     #featured-tab { max-width: 100%; padding: 0.8rem; }
     .question-meta { gap: 4px; }
@@ -1122,15 +1100,9 @@ body {
     .privacy-card { padding: 0.6rem; }
     .privacy-card h2 { font-size: 1.2rem; }
     .privacy-card h3 { font-size: 1rem; }
-    .privacy-card p,
-    .privacy-card li { font-size: 0.75rem; }
-    .close-btn {
-        width: 24px;
-        height: 24px;
-    }
-    .close-btn .material-icons {
-        font-size: 16px;
-    }
+    .privacy-card p, .privacy-card li { font-size: 0.75rem; }
+    .close-btn { width: 24px; height: 24px; }
+    .close-btn .material-icons { font-size: 16px; }
 }
 
 /* Utility classes */
@@ -1147,15 +1119,9 @@ body {
 
 /* Animation Keyframes */
 @keyframes rotate {
-    0% {
-        background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
-    }
-    50% {
-        background: linear-gradient(315deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
-    }
-    100% {
-        background: linear-gradient(495deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3));
-    }
+    0% { background: linear-gradient(135deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3)); }
+    50% { background: linear-gradient(315deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3)); }
+    100% { background: linear-gradient(495deg, rgba(70,23,143,0.3), rgba(226,43,90,0.3)); }
 }
 
 @keyframes pulse {

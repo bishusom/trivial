@@ -1070,9 +1070,10 @@ input:checked + .slider:before {
     .setup-card { max-width: 100%; }
     #featured-tab { max-width: 100%; padding: 0.8rem; }
     .question-meta { gap: 4px; }
-    .question-category,
-    .question-subcategory,
-    .question-difficulty { font-size: 0.65rem; padding: 1px 5px; }
+    .game-screen .game-header { position: relative; padding-top: 40px; flex-direction: row;
+                                justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .game-screen .score-box, .game-screen .timer-box { width: 48%; padding: 0.5rem; font-size: 0.9rem; margin: 0; }
+    .question-category, .question-subcategory, .question-difficulty { font-size: 0.65rem; padding: 1px 5px; }
     .btn.small { padding: 0.2rem 0.5rem; font-size: 0.7rem; min-width: 60px; }
     .modal-actions { flex-direction: column; gap: 0.5rem; }
     .contact-card { padding: 0.6rem; }

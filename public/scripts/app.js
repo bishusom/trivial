@@ -46,15 +46,14 @@ const els = {
     questionTimer: document.getElementById('question-timer'),
     totalTimer: document.getElementById('total-timer'),
     highscores: document.querySelector('.highscores'),
-    highscoresList: document.getElementById('highscores-list'),
-    tblogtbankscreen: document.getElementById('blog-tbank') 
+    highscoresList: document.getElementById('highscores-list')
 };
 
 const timers = { quick: 30, long: 60 };
 const audio = {
-    tick: new Audio('/audio/tick.mp3'),
-    correct: new Audio('/audio/correct.mp3'),
-    wrong: new Audio('/audio/wrong.mp3')
+    tick: document.getElementById('tick-sound'),
+    correct: document.getElementById('correct-sound'),
+    wrong: document.getElementById('wrong-sound')
 };
 audio.tick.loop = true;
 

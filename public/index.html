@@ -298,6 +298,12 @@
                             <span id="word-hint">Hint: It's a 5-letter word</span>
                         </div>
                     </div>
+                    <div class="difficulty-selector">
+                        <button id="easy-btn" class="btn difficulty-btn easy">Easy</button>
+                        <button id="medium-btn" class="btn difficulty-btn medium active">Medium</button>
+                        <button id="hard-btn" class="btn difficulty-btn hard">Hard</button>
+                    </div>
+                    <div id="word-difficulty" class="difficulty-label">Difficulty: MEDIUM</div>
                     <div class="word-game-body">
                         <div class="guess-grid" id="guess-grid"></div>
                         <div class="guess-input">
@@ -312,7 +318,7 @@
                     </div>
                 </div>
             </div>
-            <div class="screen blog-tbank"></div>
+            
             <!-- Privacy Screen -->
             <div class="screen privacy-screen">
                 <div class="privacy-card">
@@ -425,6 +431,14 @@
                 <p class="copyright">© 2025 Triviaah. All rights reserved.</p>
             </footer>
         </div>
+
+        <audio id="tick-sound" src="/audio/tick.mp3" preload="auto"></audio>
+        <audio id="correct-sound" src="/audio/correct.mp3" preload="auto"></audio>
+        <audio id="wrong-sound" src="/audio/wrong.mp3" preload="auto"></audio>
+        <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
+        <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
+        <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
+
         <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
         <script>

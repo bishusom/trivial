@@ -1,11 +1,11 @@
-// Updated router.js
+import { endGame } from '/scripts/app.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const setupScreen = document.querySelector('.setup-screen');
     const gameScreen = document.querySelector('.game-screen');
     const blogTbankScreen = document.querySelector('.blog-tbank');
     let currentContentPath = '';
 
-    // Path configuration - match your file structure
     const contentPaths = {
         blog: {
             base: '/blog',
@@ -25,15 +25,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Initial route
+    window.handleRouting = handleRouting; // Expose for app.js
     handleRouting(window.location.pathname);
 
-    // Event delegation for all links
     document.addEventListener('click', (e) => {
         const link = e.target.closest('a[href]');
         if (!link) return;
         
-        // Skip if it's an external link, has a target, or is a non-HTML link
         if (link.hostname !== window.location.hostname || 
             link.target ||
             link.href.includes('.pdf') || 
@@ -42,25 +40,52 @@ document.addEventListener('DOMContentLoaded', () => {
         
         e.preventDefault();
         const path = new URL(link.href).pathname;
-        window.history.pushState({}, '', path);
-        handleRouting(path);
+        
+        if (gameScreen.classList.contains('active')) {
+            const modal = document.getElementById('nav-warning-modal');
+            modal.classList.remove('hidden');
+            
+            window.pendingNavigation = path;
+            
+            const continueBtn = document.getElementById('continue-game');
+            const endBtn = document.getElementById('end-game');
+            
+            const newContinueBtn = continueBtn.cloneNode(true);
+            const newEndBtn = endBtn.cloneNode(true);
+            continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+            endBtn.parentNode.replaceChild(newEndBtn, endBtn);
+            
+            newContinueBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                window.pendingNavigation = null;
+            });
+            
+            newEndBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+                endGame();
+                if (window.pendingNavigation) {
+                    window.history.pushState({}, '', window.pendingNavigation);
+                    handleRouting(window.pendingNavigation);
+                    window.pendingNavigation = null;
+                }
+            });
+        } else {
+            window.history.pushState({}, '', path);
+            handleRouting(path);
+        }
     });
 
-    // History navigation
     window.addEventListener('popstate', () => handleRouting(window.location.pathname));
 
     async function handleRouting(path) {
+        console.log(`Handling route: ${path}`);
         path = path === '/' ? '/home' : path;
-        
-        // Remove trailing slash
         path = path.replace(/\/$/, '');
         
-        // Hide all screens first
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
     
-        // Show the appropriate screen based on route
         if (path.includes('/privacy')) {
             document.querySelector('.privacy-screen').classList.add('active');
         } else if (path.includes('/contact')) {
@@ -70,12 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (path === '/number-puzzle') {
             document.querySelector('.number-puzzle-screen').classList.add('active');
             try {
-                //const { initPuzzle } = await import('/scripts/number-puzzle.js');
+                const { initPuzzle } = await import('/scripts/number-puzzle.js');
                 initPuzzle();
             } catch (error) {
                 console.error('Error loading number-puzzle.js:', error);
                 showHomeScreen();
-                // Show error to user
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error';
                 errorDiv.innerHTML = `
@@ -84,6 +108,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a href="/home" class="btn primary">Return Home</a>
                 `;
                 document.querySelector('.number-puzzle-screen').innerHTML = errorDiv.outerHTML;
+            }
+        } else if (path === '/word-game') {
+            document.querySelector('.word-game-screen').classList.add('active');
+            try {
+                const { initWordGame } = await import('/scripts/word-game.js');
+                initWordGame();
+            } catch (error) {
+                console.error('Error loading word-game.js:', error);
+                showHomeScreen();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.innerHTML = `
+                    <h3>Error Loading Word Game</h3>
+                    <p>Unable to load the Word Game. Please try again later.</p>
+                    <a href="/home" class="btn primary">Return Home</a>
+                `;
+                document.querySelector('.word-game-screen').innerHTML = errorDiv.outerHTML;
             }
         } else if (path.startsWith('/blog')) {
             await loadContent('blog', path);
@@ -95,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 processSocialSharing();
             }
         } else {
-            // Handle 404
             showHomeScreen();
         }
     }
@@ -116,26 +156,26 @@ document.addEventListener('DOMContentLoaded', () => {
         blogTbankScreen.classList.add('active');
 
         try {
-            // Use the contentPath function from the configuration
             const contentPath = contentPaths[section].contentPath(path);
+            console.log(`Fetching content: ${contentPath}`);
             
             const response = await fetch(contentPath);
-            if (!response.ok) throw new Error('Content not found');
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             
             blogTbankScreen.innerHTML = await response.text();
             currentContentPath = path;
             
-            // Update page title
             const title = blogTbankScreen.querySelector('title')?.textContent || 
                          `${section.charAt(0).toUpperCase() + section.slice(1)} Content`;
             document.title = title;
             
         } catch (error) {
+            console.error(`Error loading ${section} content:`, error);
             blogTbankScreen.innerHTML = `
                 <div class="error">
-                    <h3>Content not found</h3>
-                    <p>The requested page could not be found.</p>
-                    <a href="/" class="btn primary">Return Home</a>
+                    <h3>Content Not Found</h3>
+                    <p>Unable to load ${section} content. Please check your connection or try again later.</p>
+                    <a href="/home" class="btn primary">Return Home</a>
                 </div>
             `;
             currentContentPath = '';
@@ -143,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Update loadContent function to call the initializer
 function initializeAlphabetFilters() {
     const blogTbankScreen = document.querySelector('.blog-tbank');
     if (!blogTbankScreen) return;
@@ -174,7 +213,6 @@ function initializeAlphabetFilters() {
             preview.style.display = shouldShow ? 'block' : 'none';
         });
 
-        // Update filter criteria display
         if (selectedLetter === 'all') {
             criteriaText.textContent = 'All';
         } else {
@@ -187,7 +225,6 @@ function initializeAlphabetFilters() {
             criteriaText.textContent = `"${selectedLetter.toUpperCase()}" (${tagsList})`;
         }
         filterCriteria.style.display = 'block';
-        // Show/hide no results message
         if(visibleCount === 0 && selectedLetter !== 'all') {
             selectedLetterSpan.textContent = selectedLetter.toUpperCase();
             noResultsDiv.style.display = 'block';
@@ -206,29 +243,24 @@ function initializeAlphabetFilters() {
     });
 }
 
-// Initialize quiz controls function
 function initializeQuizControls(hideAnswersByDefault = false) {
     const toggleLink = document.getElementById('toggleAnswers');
     const printLink = document.getElementById('printPDF');
     const showHideEmoji = document.getElementById('show_hide_emoji');
 
-    //Nothing to do if /tbank/content.html or /blog/list.html
     if (!toggleLink) return;
     let answersVisible = !hideAnswersByDefault;
-    // Toggle answers
     toggleLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    answersVisible = !answersVisible;
-    document.querySelectorAll('.answer').forEach(answer => {
-        answer.style.display = answersVisible ? 'block' : 'none';
+        e.preventDefault();
+        answersVisible = !answersVisible;
+        document.querySelectorAll('.answer').forEach(answer => {
+            answer.style.display = answersVisible ? 'block' : 'none';
+        });
+        toggleLink.textContent = showHideEmoji.textContent
+        toggleLink.textContent += answersVisible ? ' Hide Answers' : ' Show Answers';
     });
-    toggleLink.textContent = showHideEmoji.textContent
-    toggleLink.textContent += answersVisible ? ' Hide Answers' : ' Show Answers';
-    });
-
-       
     
-        printLink.addEventListener('click', (e) => {
+    printLink.addEventListener('click', (e) => {
         const blogTbankScreen = document.querySelector('.blog-tbank');
         const printWindow = window.open('', '_blank');
         printWindow.document.body.innerHTML = `
@@ -250,8 +282,7 @@ function initializeQuizControls(hideAnswersByDefault = false) {
         printWindow.print();
         printWindow.close();
     });    
-}                      
-
+}
 
 function processSocialSharing() {
     const blogTbankScreen = document.querySelector('.blog-tbank');

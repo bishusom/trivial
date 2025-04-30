@@ -355,10 +355,10 @@ function handleNextQuestion() {
 }
 
 async function endGame() {
+    window.endGame = endGame; // Expose globally
     const correctCount = state.answers.filter(a => a.correct).length;
     trackEvent('game_complete', 'performance', `${correctCount}/${state.selectedQuestions} correct`, state.score);
     
-    // Batch DOM updates
     els.mainNav.classList.remove('hidden');
     els.game.classList.remove('active');
     els.summary.classList.add('active');
@@ -368,7 +368,6 @@ async function endGame() {
     clearInterval(state.totalTimerId);
     stopAllSounds();
 
-    // Pre-fetch high scores to reduce delay in showSummary
     const category = document.querySelector('.category-card.active')?.dataset.category || 'General Knowledge';
     let globalHigh = null;
     try {
@@ -428,7 +427,6 @@ async function showSummary(globalHigh) {
     }
     const message = messages[messageCategory][Math.floor(Math.random() * messages[messageCategory].length)];
 
-    // Show loading indicator for high scores
     els.highscoresList.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div><p>Loading high scores...</p></div>';
 
     els.summary.innerHTML = `
@@ -446,7 +444,6 @@ async function showSummary(globalHigh) {
     `;
     document.getElementById('restart-btn').addEventListener('click', restartGame);
     
-    // Ensure highscores is visible
     els.highscores.classList.remove('hidden');
     els.mainNav.classList.remove('hidden');
     document.querySelector('.app-footer').classList.remove('hidden');
@@ -491,18 +488,8 @@ async function updateHighScores() {
     console.log('updateHighScores: Highscores list updated, visibility:', els.highscores.style.display);
 }
 
-function handleNavigation(url) {
-    trackEvent('navigation', 'ui', url);
-    if (!els.game.classList.contains('active')) {
-        window.location.href = url;
-        return;
-    }
-    state.pendingNavigation = url;
-    const modal = document.getElementById('nav-warning-modal');
-    toggleClass(modal, 'remove', 'hidden');
-}
-
 function setupEvents() {
+    console.log('Setting up events');
     document.getElementById('mute-btn').addEventListener('click', () => {
         state.isMuted = !state.isMuted;
         localStorage.setItem('triviaMasterMuteState', state.isMuted);
@@ -566,36 +553,12 @@ function setupEvents() {
         if (e.target.matches('#options button')) checkAnswer(e.target.dataset.correct === 'true');
     });
 
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', e => {
-            e.preventDefault();
-            handleNavigation(link.getAttribute('href'));
-        });
-    });
-
     document.querySelectorAll('.close-btn').forEach(button => {
         button.addEventListener('click', () => {
             trackEvent('navigation', 'ui', 'close_button');
-            handleNavigation('/home');
+            window.history.pushState({}, '', '/home');
+            window.handleRouting?.('/home');
         });
-    });
-
-    document.getElementById('continue-game')?.addEventListener('click', () => {
-        toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
-        state.pendingNavigation = null;
-        startTimer();
-        toggleClass(els.game, 'add', 'active');
-        toggleClass(els.setup, 'remove', 'active');
-        toggleClass(els.tblogtbankscreen, 'remove', 'active');
-    });
-
-    document.getElementById('end-game')?.addEventListener('click', () => {
-        toggleClass(document.getElementById('nav-warning-modal'), 'add', 'hidden');
-        endGame();
-        if (state.pendingNavigation) {
-            window.location.href = state.pendingNavigation;
-            state.pendingNavigation = null;
-        }
     });
 }
 
@@ -610,7 +573,6 @@ function loadMuteState() {
 
 function showDailyChallenge() {
     const now = Date.now();
-    // Check if the game is not in progress and challenge hasn't been dismissed recently
     if (!els.game.classList.contains('active') && 
         (!localStorage.getItem('challengeDismissed') || 
          now - localStorage.getItem('challengeDismissed') > 24 * 60 * 60 * 1000)) {
@@ -638,3 +600,5 @@ function updateProgressTracker() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+export { endGame }; // Export for router.js

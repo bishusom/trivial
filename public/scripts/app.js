@@ -76,17 +76,7 @@ let state = {
     usedQuestions: new Set(),
     fbUsedQuestions: JSON.parse(localStorage.getItem('fbUsedQuestions')) || [],
     fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds')) || [],
-    pendingNavigation: null,
-    puzzle: {
-        targetNumber: 0,
-        attemptsLeft: 5,
-        maxAttempts: 5,
-        minRange: 1,
-        maxRange: 100,
-        guesses: [],
-        hintsUsed: 0,
-        maxHints: 2
-    }
+    pendingNavigation: null
 };
 
 const QUIZ_TYPES = { WEEKLY: 'Weekly', MONTHLY: 'Monthly' };
@@ -121,117 +111,14 @@ async function setPlayerCount(category='Weekly', update=true) {
     }
 }
 
-function setupPuzzleEvents() {
-    document.getElementById('submit-guess')?.addEventListener('click', handleGuessSubmit);
-    document.getElementById('new-puzzle')?.addEventListener('click', startNewPuzzle);
-    document.getElementById('puzzle-hint-btn')?.addEventListener('click', giveHint);
-    document.getElementById('number-guess')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleGuessSubmit();
-    });
-}
-
-window.startNewPuzzle = function() {
-    state.puzzle = {
-        targetNumber: Math.floor(Math.random() * 100) + 1,
-        attemptsLeft: 5,
-        maxAttempts: 5,
-        minRange: 1,
-        maxRange: 100,
-        guesses: [],
-        hintsUsed: 0,
-        maxHints: 2
-    };
-    
-    updatePuzzleUI();
-    document.getElementById('number-guess').value = '';
-    document.getElementById('puzzle-feedback').textContent = '';
-    document.getElementById('puzzle-feedback').className = 'puzzle-feedback';
-}
-
-function handleGuessSubmit() {
-    const guessInput = document.getElementById('number-guess');
-    const guess = parseInt(guessInput.value);
-    
-    if (isNaN(guess)) {
-        document.getElementById('puzzle-feedback').textContent = 'Please enter a valid number';
-        document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-wrong';
-        return;
-    }
-    
-    if (guess < state.puzzle.minRange || guess > state.puzzle.maxRange) {
-        document.getElementById('puzzle-feedback').textContent = `Please enter a number between ${state.puzzle.minRange} and ${state.puzzle.maxRange}`;
-        document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-wrong';
-        return;
-    }
-    
-    state.puzzle.guesses.push(guess);
-    state.puzzle.attemptsLeft--;
-    
-    if (guess === state.puzzle.targetNumber) {
-        // Correct guess
-        document.getElementById('puzzle-feedback').textContent = '🎉 Correct! You guessed the number!';
-        document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-correct';
-        document.getElementById('submit-guess').disabled = true;
-        trackEvent('puzzle_solved', 'number_puzzle', state.puzzle.maxAttempts - state.puzzle.attemptsLeft);
-    } else if (state.puzzle.attemptsLeft <= 0) {
-        // Out of attempts
-        document.getElementById('puzzle-feedback').textContent = `Game Over! The number was ${state.puzzle.targetNumber}`;
-        document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-wrong';
-        document.getElementById('submit-guess').disabled = true;
-        trackEvent('puzzle_failed', 'number_puzzle', state.puzzle.targetNumber);
-    } else {
-        // Give feedback
-        if (guess < state.puzzle.targetNumber) {
-            state.puzzle.minRange = guess + 1;
-            document.getElementById('puzzle-feedback').textContent = 'Too low! Try a higher number.';
-            document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-low';
-        } else {
-            state.puzzle.maxRange = guess - 1;
-            document.getElementById('puzzle-feedback').textContent = 'Too high! Try a lower number.';
-            document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-high';
-        }
-    }
-    
-    updatePuzzleUI();
-    guessInput.value = '';
-}
-
-function giveHint() {
-    if (state.puzzle.hintsUsed >= state.puzzle.maxHints) {
-        alert('You have used all your hints!');
-        return;
-    }
-    
-    state.puzzle.hintsUsed++;
-    const hintRange = Math.floor((state.puzzle.maxRange - state.puzzle.minRange) / 4);
-    const hint = `The number is between ${state.puzzle.targetNumber - hintRange} and ${state.puzzle.targetNumber + hintRange}`;
-    
-    document.getElementById('puzzle-feedback').textContent = hint;
-    document.getElementById('puzzle-feedback').className = 'puzzle-feedback';
-    updatePuzzleUI();
-    trackEvent('puzzle_hint', 'number_puzzle', state.puzzle.hintsUsed);
-}
-
-window.updatePuzzleUI = function() {
-    document.getElementById('puzzle-attempts').textContent = `Attempts left: ${state.puzzle.attemptsLeft}`;
-    document.getElementById('puzzle-hint').textContent = `Hint: It's between ${state.puzzle.minRange} and ${state.puzzle.maxRange}`;
-    
-    const historyElement = document.getElementById('guess-history');
-    historyElement.innerHTML = state.puzzle.guesses.map(guess => {
-        const direction = guess < state.puzzle.targetNumber ? '↑' : 
-                         guess > state.puzzle.targetNumber ? '↓' : '✓';
-        const className = guess === state.puzzle.targetNumber ? 'correct' : 
-                         guess < state.puzzle.targetNumber ? 'low' : 'high';
-        return `<div class="guess-entry ${className}">
-            <span>${guess}</span>
-            <span>${direction}</span>
-        </div>`;
-    }).join('');
-    
-    document.getElementById('puzzle-hint-btn').textContent = 
-        `Get Hint (${state.puzzle.maxHints - state.puzzle.hintsUsed} left)`;
-    document.getElementById('puzzle-hint-btn').disabled = 
-        state.puzzle.hintsUsed >= state.puzzle.maxHints;
+function init() {
+    loadMuteState();
+    updateHighScores();
+    updateProgressTracker();
+    els.setup.classList.add('active');
+    els.highscores.classList.add('hidden');
+    setupEvents();
+    showDailyChallenge();
 }
 
 function toggleLoading(show) {
@@ -748,17 +635,6 @@ function updateProgressTracker() {
     ];
     const currentMessage = progressMessages.reverse().find(m => gamesPlayed >= m.threshold) || progressMessages[0];
     document.getElementById('progress-message').textContent = currentMessage.message;
-}
-
-function init() {
-    loadMuteState();
-    updateHighScores();
-    updateProgressTracker();
-    els.setup.classList.add('active');
-    els.highscores.classList.add('hidden');
-    setupEvents();
-    showDailyChallenge();
-    setupPuzzleEvents();
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -69,7 +69,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showHomeScreen();
         } else if (path === '/number-puzzle') {
             document.querySelector('.number-puzzle-screen').classList.add('active');
-            startNewPuzzle(); // Initialize a new puzzle when the screen is shown    
+            // Dynamically load number-puzzle.js and initialize
+            try {
+                const { initPuzzle } = await import('/scripts/number-puzzle.js');
+                initPuzzle();
+            } catch (error) {
+                console.error('Error loading number-puzzle.js:', error);
+                showHomeScreen();
+            }
         } else if (path.startsWith('/blog')) {
             await loadContent('blog', path);
         } else if (path.startsWith('/tbank')) {

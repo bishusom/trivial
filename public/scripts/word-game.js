@@ -1,10 +1,22 @@
+// At the top of word-game.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseApp = window.firebase?.app();
-const db = firebaseApp ? getDatabase() : null;
-const firestore = firebaseApp ? getFirestore() : null;
+const firebaseConfig = {
+  apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
+  authDomain: "triviaahdb.firebaseapp.com",
+  projectId: "triviaahdb",
+  storageBucket: "triviaahdb.firebasestorage.app",
+  messagingSenderId: "758082588437",
+  appId: "1:758082588437:web:9eada609e974b9e458631c",
+  measurementId: "G-ZT8Q78QYDQ"
+};
+
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getDatabase(firebaseApp);
+const firestore = getFirestore(firebaseApp);
 
 // Game messages
 const wordGameMessages = {

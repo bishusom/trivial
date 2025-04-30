@@ -399,7 +399,7 @@ function setupWordGameEvents() {
     });
 
     // Load mute state
-    wordState.isMuted = JSON.parse(localStorage.getItem('wordGameMuteState') || false;
+    wordState.isMuted = JSON.parse(localStorage.getItem('wordGameMuteState') || 'false');
     if (wordGameEls.muteBtn) {
         wordGameEls.muteBtn.querySelector('.material-icons').textContent = 
             wordState.isMuted ? 'volume_off' : 'volume_up';

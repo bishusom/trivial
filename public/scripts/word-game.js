@@ -91,6 +91,17 @@ const WORD_CACHE = {
     EXPIRY: 24 * 60 * 60 * 1000 // 24 hours
 };
 
+wordState.difficulty = 'medium';
+
+function setDifficulty(difficulty) {
+  wordState.difficulty = difficulty;
+  // Update UI to show active difficulty
+  document.querySelectorAll('.difficulty-btn').forEach(btn => {
+      btn.classList.remove('active');
+  });
+  document.querySelector(`.difficulty-btn.${difficulty}`).classList.add('active');
+}
+
 // Updated fetchWords function with caching similar to fetchfbQuiz
 async function fetchWords() {
   const now = new Date();
@@ -161,8 +172,7 @@ function getFallbackWords() {
 // Initialize game with words from Firebase
 async function startNewGame(difficulty = 'medium') {
   const words = await fetchWords();
-  wordState.difficulty = difficulty;
-  const settings = difficultySettings[difficulty];
+  const settings = difficultySettings[wordState.difficulty];
 
   // Select random category and word
   const categoryKeys = Object.keys(words);

@@ -1,7 +1,6 @@
-// At the top of word-game.js
+// Update the Firebase imports and initialization
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
@@ -15,7 +14,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const firebaseApp = initializeApp(firebaseConfig);
-const db = getDatabase(firebaseApp);
 const firestore = getFirestore(firebaseApp);
 
 // Game messages
@@ -95,45 +93,47 @@ const WORD_CACHE = {
 
 // Updated fetchWords function with caching similar to fetchfbQuiz
 async function fetchWords() {
-    const now = new Date();
-    const cacheKey = `word-list-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-    const cached = JSON.parse(localStorage.getItem(WORD_CACHE.WORDS))?.[cacheKey];
-    
-    // Return cached words if available and not expired
-    if (cached && Date.now() - cached.timestamp < WORD_CACHE.EXPIRY) {
-        console.log('Using cached word list');
-        return cached.words;
-    }
+  const now = new Date();
+  const cacheKey = `word-list-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const cached = JSON.parse(localStorage.getItem(WORD_CACHE.WORDS))?.[cacheKey];
+  
+  // Return cached words if available and not expired
+  if (cached && Date.now() - cached.timestamp < WORD_CACHE.EXPIRY) {
+      console.log('Using cached word list');
+      return cached.words;
+  }
 
-    if (!db) {
-        console.warn("Firebase not initialized. Using fallback words.");
-        return getFallbackWords();
-    }
+  try {
+      // Fetch from Firestore
+      const wordsCollection = collection(firestore, 'wordLists');
+      const wordsSnapshot = await getDocs(wordsCollection);
+      
+      if (wordsSnapshot.empty) {
+          console.warn("No word lists found in Firestore");
+          return getFallbackWords();
+      }
 
-    try {
-        // Fetch from Firebase
-        const snapshot = await get(ref(db, 'wordLists'));
-        if (!snapshot.exists()) {
-            console.warn("No word lists found in Firebase");
-            return getFallbackWords();
-        }
+      // Convert documents to words object
+      const words = {};
+      wordsSnapshot.forEach(doc => {
+          const data = doc.data();
+          words[doc.id] = data; // Assuming your documents have the word categories as fields
+      });
+      
+      // Cache the result
+      localStorage.setItem(WORD_CACHE.WORDS, JSON.stringify({
+          ...JSON.parse(localStorage.getItem(WORD_CACHE.WORDS) || '{}',
+          [cacheKey]: { 
+              words, 
+              timestamp: Date.now() 
+          }
+      }));
 
-        const words = snapshot.val();
-        
-        // Cache the result
-        localStorage.setItem(WORD_CACHE.WORDS, JSON.stringify({
-            ...JSON.parse(localStorage.getItem(WORD_CACHE.WORDS) || '{}'),
-            [cacheKey]: { 
-                words, 
-                timestamp: Date.now() 
-            }
-        }));
-
-        return words;
-    } catch (error) {
-        console.error("Firebase fetch failed:", error);
-        return getFallbackWords();
-    }
+      return words;
+  } catch (error) {
+      console.error("Firestore fetch failed:", error);
+      return getFallbackWords();
+  }
 }
 
 // Helper function for fallback words

@@ -69,13 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
             showHomeScreen();
         } else if (path === '/number-puzzle') {
             document.querySelector('.number-puzzle-screen').classList.add('active');
-            // Dynamically load number-puzzle.js and initialize
             try {
                 const { initPuzzle } = await import('/scripts/number-puzzle.js');
                 initPuzzle();
             } catch (error) {
                 console.error('Error loading number-puzzle.js:', error);
                 showHomeScreen();
+                // Show error to user
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.innerHTML = `
+                    <h3>Error Loading Number Puzzle</h3>
+                    <p>Unable to load the Number Puzzle game. Please try again later.</p>
+                    <a href="/home" class="btn primary">Return Home</a>
+                `;
+                document.querySelector('.number-puzzle-screen').innerHTML = errorDiv.outerHTML;
             }
         } else if (path.startsWith('/blog')) {
             await loadContent('blog', path);

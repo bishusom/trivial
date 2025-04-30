@@ -122,7 +122,7 @@ async function fetchWords() {
       
       // Cache the result
       localStorage.setItem(WORD_CACHE.WORDS, JSON.stringify({
-          ...JSON.parse(localStorage.getItem(WORD_CACHE.WORDS) || '{}',
+          ...JSON.parse(localStorage.getItem(WORD_CACHE.WORDS))|| '{}',
           [cacheKey]: { 
               words, 
               timestamp: Date.now() 
@@ -160,10 +160,27 @@ function getFallbackWords() {
 
 // Initialize game with words from Firebase
 async function startNewGame(difficulty = 'medium') {
-    const words = await fetchWords();
+  const words = await fetchWords();
     wordState.difficulty = difficulty;
     const settings = difficultySettings[difficulty];
 
+    // Apply difficulty settings
+    wordState.maxAttempts = settings.maxAttempts;
+    wordState.maxHints = settings.maxHints;
+    wordState.timeLeft = settings.timePerGuess;
+    wordState.score = 0;
+    wordState.isPlaying = true;
+    
+    // Handle both string and object word formats
+    if (typeof wordData === 'object') {
+        wordState.targetWord = wordData.word.toLowerCase();
+        wordState.wordType = wordData.type; // e.g. "noun", "adjective"
+    } else {
+        wordState.targetWord = wordData.toLowerCase();
+        wordState.wordType = null;
+    }
+    
+    
     // Apply difficulty settings
     wordState.maxAttempts = settings.maxAttempts;
     wordState.maxHints = settings.maxHints;
@@ -290,31 +307,45 @@ function handleGuessSubmit() {
 }
 
 function giveHint() {
-    if (!wordState.isPlaying || wordState.hintsUsed >= wordState.maxHints) return;
+  if (!wordState.isPlaying || wordState.hintsUsed >= wordState.maxHints) return;
 
-    playSound('hint');
-    wordState.hintsUsed++;
+  playSound('hint');
+  wordState.hintsUsed++;
 
-    // Find a position that hasn't been revealed yet
-    const unrevealedPositions = [];
-    for (let i = 0; i < wordState.targetWord.length; i++) {
-        if (!wordState.revealedLetters.includes(i)) {
-            unrevealedPositions.push(i);
-        }
-    }
+  // First check if we have word type information
+  if (wordState.wordType) {
+      const feedback = document.createElement('div');
+      feedback.className = 'word-feedback hint';
+      feedback.textContent = `Hint: It's a ${wordState.wordType}`;
+      wordGameEls.results.appendChild(feedback);
+      return;
+  }
 
-    if (unrevealedPositions.length === 0) return;
+  // Fallback to letter position hint if no word type available
+  const unrevealedPositions = [];
+  for (let i = 0; i < wordState.targetWord.length; i++) {
+      if (!wordState.revealedLetters.includes(i)) {
+          unrevealedPositions.push(i);
+      }
+  }
 
-    const hintPosition = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
-    wordState.revealedLetters.push(hintPosition);
-    wordState.score = Math.max(0, wordState.score - 50); // Penalty for using hint
-    wordGameEls.scoreDisplay.textContent = wordState.score;
+  if (unrevealedPositions.length === 0) return;
 
-    updateWordGameUI();
-    wordGameEls.hintBtn.textContent = `Hints (${wordState.maxHints - wordState.hintsUsed} left)`;
-    if (wordState.hintsUsed >= wordState.maxHints) {
-        wordGameEls.hintBtn.disabled = true;
-    }
+  const hintPosition = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
+  wordState.revealedLetters.push(hintPosition);
+  wordState.score = Math.max(0, wordState.score - 50);
+  wordGameEls.scoreDisplay.textContent = wordState.score;
+
+  const feedback = document.createElement('div');
+  feedback.className = 'word-feedback hint';
+  feedback.textContent = `Letter ${hintPosition + 1} is ${wordState.targetWord[hintPosition].toUpperCase()}`;
+  wordGameEls.results.appendChild(feedback);
+
+  updateWordGameUI();
+  wordGameEls.hintBtn.textContent = `Hints (${wordState.maxHints - wordState.hintsUsed} left)`;
+  if (wordState.hintsUsed >= wordState.maxHints) {
+      wordGameEls.hintBtn.disabled = true;
+  }
 }
 
 function endWordGame(isWin) {

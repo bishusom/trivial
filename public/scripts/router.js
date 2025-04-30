@@ -67,6 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.contact-screen').classList.add('active');
         } else if (path === '/home') {
             showHomeScreen();
+        } else if (path === '/number-puzzle') {
+            document.querySelector('.number-puzzle-screen').classList.add('active');
+            startNewPuzzle(); // Initialize a new puzzle when the screen is shown    
         } else if (path.startsWith('/blog')) {
             await loadContent('blog', path);
         } else if (path.startsWith('/tbank')) {

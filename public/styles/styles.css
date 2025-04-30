@@ -1018,7 +1018,110 @@ input:checked + .slider:before {
 .footer-link:hover {
     color: var(--card);
 }
+/* ==================== */
+/* Number Puzzle Styles */
+/* ==================== */
+.number-puzzle-screen {
+    max-width: 600px;
+    margin: 2rem auto;
+}
 
+.puzzle-card {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
+}
+
+.puzzle-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.puzzle-header h2 {
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.puzzle-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.puzzle-body {
+    margin: 1.5rem 0;
+}
+
+.guess-history {
+    min-height: 100px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.guess-entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.guess-entry:last-child {
+    border-bottom: none;
+}
+
+.guess-input {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.guess-input input {
+    flex: 1;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.puzzle-feedback {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.puzzle-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+}
+
+/* Feedback states */
+.feedback-correct {
+    background: rgba(46, 125, 50, 0.3);
+    color: var(--correct);
+}
+
+.feedback-high {
+    background: rgba(255, 143, 0, 0.3);
+    color: #ffd700;
+}
+
+.feedback-low {
+    background: rgba(33, 150, 243, 0.3);
+    color: #4fc3f7;
+}
+
+.feedback-wrong {
+    background: rgba(198, 40, 40, 0.3);
+    color: var(--wrong);
+}
 /* Mobile Optimization */
 @media (max-width: 768px) {
     body { padding: 5px; }

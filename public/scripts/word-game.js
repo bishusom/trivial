@@ -77,8 +77,6 @@ const WORD_CACHE = {
     EXPIRY: 24 * 60 * 60 * 1000 // 24 hours
 };
 
-// Game messages and other existing code remains the same...
-
 // Updated fetchWords function with caching similar to fetchfbQuiz
 async function fetchWords() {
     const now = new Date();
@@ -142,34 +140,6 @@ function getFallbackWords() {
             hard: ['avocado']
         }
     };
-}
-
-
-// Fetch words from Firebase or use fallback
-async function fetchWords() {
-    if (!db) {
-        console.warn("Firebase not initialized. Using fallback words.");
-        return {
-            animal: { 
-                easy: ['lion', 'frog', 'duck'],
-                medium: ['zebra', 'panda'],
-                hard: ['chameleon']
-            },
-            bird: {
-                easy: ['crow', 'dove'],
-                medium: ['eagle', 'heron'],
-                hard: ['flamingo']
-            }
-        };
-    }
-
-    try {
-        const snapshot = await get(ref(db, 'wordLists'));
-        return snapshot.exists() ? snapshot.val() : fallbackWords;
-    } catch (error) {
-        console.error("Firebase fetch failed:", error);
-        return fallbackWords;
-    }
 }
 
 // Initialize game with words from Firebase

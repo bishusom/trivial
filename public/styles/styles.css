@@ -369,64 +369,87 @@ body {
 }
 
 /* Toggle Switch */
+/* Base styles for time-toggle-container */
 .time-toggle-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 12px;
+    padding: 12px;
+    font-family: 'Poppins', sans-serif;
 }
 
+/* Setting label (with timer icon and text) */
+.setting-label {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Timer labels (Normal and Quick) */
+.timer-label {
+    font-size: 14px;
+    padding: 8px;
+}
+
+/* Toggle switch base styles */
 .time-toggle-switch {
     position: relative;
     display: inline-block;
-    width: 48px;
-    height: 24px;
+    width: 48px; /* Default width */
+    height: 24px; /* Default height */
 }
 
+/* Hide default checkbox */
 .time-toggle-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-.time-toggle-switch .slider {
+/* Slider base styles */
+.slider {
     position: absolute;
+    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.2);
-    transition: all 0.3s;
-    border-radius: 24px;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px; /* Round edges */
 }
 
-.time-toggle-switch .slider:before {
-    content: "";
+/* Slider knob (the circle that moves) */
+.slider:before {
     position: absolute;
-    left: 2px;
-    bottom: 2px;
-    height: 20px;
-    width: 20px;
-    background-color: var(--text);
-    transition: all 0.3s;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
     border-radius: 50%;
 }
 
+/* Checked state */
 .time-toggle-switch input:checked + .slider {
-    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    background-color: #2196F3; /* Blue when toggled */
 }
 
+/* Move the knob when checked */
 .time-toggle-switch input:checked + .slider:before {
     transform: translateX(24px);
 }
 
-.time-toggle-switch input:focus + .slider {
-    box-shadow: 0 0 5px var(--accent);
+/* Mobile-specific styles (for screens smaller than 768px) */
+@media (max-width: 768px) {
+    
 }
 
-#normal-timer,
-#quick-timer {
+#normal-timer, #quick-timer {
     font-size: 0.9rem;
     color: var(--accent);
 }
@@ -1041,7 +1064,13 @@ body {
     .or-divider { margin: 0.5rem 0; }
     .featured-play-btn { width: 100%; max-width: 300px; }
     .progress-bar-container { height: 8px; }
-    .time-toggle-container { max-width: 300px; }
+    .time-toggle-container { gap: 16px;padding: 16px;}
+    .setting-label { font-size: 18px; padding: 12px; }
+    .timer-label { font-size: 16px; padding: 12px; }
+    .time-toggle-switch { width: 60px; height: 32px; }
+    .slider { border-radius: 32px;}
+    .slider:before {height: 26px; width: 26px; left: 3px; bottom: 3px; }
+    .time-toggle-switch input:checked + .slider:before { transform: translateX(28px); }
     .setup-card { max-width: 600px; }
     .question-meta { gap: 6px; }
     #featured-tab { max-width: 600px; padding: 1rem; }

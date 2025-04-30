@@ -369,18 +369,18 @@ body {
 }
 
 /* Toggle Switch */
+/* Time Toggle Switch Styles */
 .time-toggle-container {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
+    margin-top: 10px;
 }
 
 .time-toggle-switch {
     position: relative;
     display: inline-block;
-    width: 48px;
+    width: 50px;
     height: 24px;
 }
 
@@ -390,45 +390,42 @@ body {
     height: 0;
 }
 
-.time-toggle-switch .slider {
+.slider {
     position: absolute;
+    cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.2);
-    transition: all 0.3s;
+    background-color: #ccc;
+    transition: .4s;
     border-radius: 24px;
 }
 
-.time-toggle-switch .slider:before {
-    content: "";
+.slider:before {
     position: absolute;
-    left: 2px;
-    bottom: 2px;
-    height: 20px;
-    width: 20px;
-    background-color: var(--text);
-    transition: all 0.3s;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
     border-radius: 50%;
 }
 
-.time-toggle-switch input:checked + .slider {
-    background: linear-gradient(45deg, var(--primary), var(--secondary));
+input:checked + .slider {
+    background-color: rgba(255,255,255,0.15);
 }
 
-.time-toggle-switch input:checked + .slider:before {
-    transform: translateX(24px);
+input:checked + .slider:before {
+    transform: translateX(26px);
 }
 
-.time-toggle-switch input:focus + .slider {
-    box-shadow: 0 0 5px var(--accent);
-}
-
-#normal-timer,
-#quick-timer {
-    font-size: 0.9rem;
-    color: var(--accent);
+.time-toggle-container span {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
 }
 
 /* Tooltip Styles */
@@ -1041,10 +1038,6 @@ body {
     .or-divider { margin: 0.5rem 0; }
     .featured-play-btn { width: 100%; max-width: 300px; }
     .progress-bar-container { height: 8px; }
-    .time-toggle-container { max-width: 300px; }
-    .time-toggle-switch { width: 60px;height: 30px; }
-    .time-toggle-switch .slider:before { width: 26px; height: 26px; }
-    .time-toggle-switch input:checked + .slider:before { transform: translateX(30px); }
     .setup-card { max-width: 600px; }
     .question-meta { gap: 6px; }
     #featured-tab { max-width: 600px; padding: 1rem; }
@@ -1062,13 +1055,8 @@ body {
     .privacy-card h3 { font-size: 1.1rem; }
     .privacy-card p,
     .privacy-card li { font-size: 0.8rem; }
-    .close-btn {
-        width: 28px;
-        height: 28px;
-    }
-    .close-btn .material-icons {
-        font-size: 18px;
-    }
+    .close-btn { width: 28px; height: 28px; }
+    .close-btn .material-icons { font-size: 18px; }
 }
 
 @media (max-width: 480px) {
@@ -1078,10 +1066,6 @@ body {
     .score-box, .timer-box { width: 100%; text-align: center; }
     .featured-card { max-width: 250px; }
     .progress-tracker { padding: 0.6rem; }
-    .time-toggle-container { max-width: 250px; }
-    .time-toggle-switch { width: 56px; height: 28px; }    
-    .time-toggle-switch .slider:before { width: 24px; height: 24px; }   
-    .time-toggle-switch input:checked + .slider:before { transform: translateX(28px); }
     #normal-timer, #quick-timer { font-size: 0.8rem; }
     .setup-card { max-width: 100%; }
     #featured-tab { max-width: 100%; padding: 0.8rem; }

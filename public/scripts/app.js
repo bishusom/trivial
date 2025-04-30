@@ -121,17 +121,6 @@ async function setPlayerCount(category='Weekly', update=true) {
     }
 }
 
-function init() {
-    loadMuteState();
-    updateHighScores();
-    updateProgressTracker();
-    els.setup.classList.add('active');
-    els.highscores.classList.add('hidden');
-    setupEvents();
-    showDailyChallenge();
-    setupPuzzleEvents();
-}
-
 function setupPuzzleEvents() {
     document.getElementById('submit-guess')?.addEventListener('click', handleGuessSubmit);
     document.getElementById('new-puzzle')?.addEventListener('click', startNewPuzzle);
@@ -141,7 +130,7 @@ function setupPuzzleEvents() {
     });
 }
 
-function startNewPuzzle() {
+window.startNewPuzzle = function() {
     state.puzzle = {
         targetNumber: Math.floor(Math.random() * 100) + 1,
         attemptsLeft: 5,
@@ -163,7 +152,7 @@ function handleGuessSubmit() {
     const guessInput = document.getElementById('number-guess');
     const guess = parseInt(guessInput.value);
     
-    if (isNaN(guess) {
+    if (isNaN(guess)) {
         document.getElementById('puzzle-feedback').textContent = 'Please enter a valid number';
         document.getElementById('puzzle-feedback').className = 'puzzle-feedback feedback-wrong';
         return;
@@ -223,7 +212,7 @@ function giveHint() {
     trackEvent('puzzle_hint', 'number_puzzle', state.puzzle.hintsUsed);
 }
 
-function updatePuzzleUI() {
+window.updatePuzzleUI = function() {
     document.getElementById('puzzle-attempts').textContent = `Attempts left: ${state.puzzle.attemptsLeft}`;
     document.getElementById('puzzle-hint').textContent = `Hint: It's between ${state.puzzle.minRange} and ${state.puzzle.maxRange}`;
     
@@ -759,6 +748,17 @@ function updateProgressTracker() {
     ];
     const currentMessage = progressMessages.reverse().find(m => gamesPlayed >= m.threshold) || progressMessages[0];
     document.getElementById('progress-message').textContent = currentMessage.message;
+}
+
+function init() {
+    loadMuteState();
+    updateHighScores();
+    updateProgressTracker();
+    els.setup.classList.add('active');
+    els.highscores.classList.add('hidden');
+    setupEvents();
+    showDailyChallenge();
+    setupPuzzleEvents();
 }
 
 document.addEventListener('DOMContentLoaded', init);

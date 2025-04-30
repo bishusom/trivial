@@ -1,15 +1,14 @@
-// Update the Firebase imports and initialization
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
-  authDomain: "triviaahdb.firebaseapp.com",
-  projectId: "triviaahdb",
-  storageBucket: "triviaahdb.firebasestorage.app",
-  messagingSenderId: "758082588437",
-  appId: "1:758082588437:web:9eada609e974b9e458631c",
-  measurementId: "G-ZT8Q78QYDQ"
+    apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
+    authDomain: "triviaahdb.firebaseapp.com",
+    projectId: "triviaahdb",
+    storageBucket: "triviaahdb.firebasestorage.app",
+    messagingSenderId: "758082588437",
+    appId: "1:758082588437:web:9eada609e974b9e458631c",
+    measurementId: "G-ZT8Q78QYDQ"
 };
 
 // Initialize Firebase
@@ -94,60 +93,74 @@ const WORD_CACHE = {
 wordState.difficulty = 'medium';
 
 function setDifficulty(difficulty) {
-  wordState.difficulty = difficulty;
-  // Update UI to show active difficulty
-  document.querySelectorAll('.difficulty-btn').forEach(btn => {
-      btn.classList.remove('active');
-  });
-  document.querySelector(`.difficulty-btn.${difficulty}`).classList.add('active');
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) {
+        console.warn(`Invalid difficulty: ${difficulty}`);
+        return;
+    }
+    wordState.difficulty = difficulty;
+    // Update UI to show active difficulty
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const activeBtn = document.querySelector(`.difficulty-btn.${difficulty}`);
+    if (activeBtn) activeBtn.classList.add('active');
 }
 
-// Updated fetchWords function with caching similar to fetchfbQuiz
 async function fetchWords() {
-  const now = new Date();
-  const cacheKey = `word-list-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-  const cached = JSON.parse(localStorage.getItem(WORD_CACHE.WORDS))?.[cacheKey];
-  
-  // Return cached words if available and not expired
-  if (cached && Date.now() - cached.timestamp < WORD_CACHE.EXPIRY) {
-      console.log('Using cached word list');
-      return cached.words;
-  }
+    const now = new Date();
+    const cacheKey = `word-list-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    const cached = JSON.parse(localStorage.getItem(WORD_CACHE.WORDS))?.[cacheKey];
+    
+    if (cached && Date.now() - cached.timestamp < WORD_CACHE.EXPIRY) {
+        console.log('Using cached word list');
+        return cached.words;
+    }
 
-  try {
-      // Fetch from Firestore
-      const wordsCollection = collection(firestore, 'wordLists');
-      const wordsSnapshot = await getDocs(wordsCollection);
-      
-      if (wordsSnapshot.empty) {
-          console.warn("No word lists found in Firestore");
-          return getFallbackWords();
-      }
+    try {
+        const wordsCollection = collection(firestore, 'wordLists');
+        const wordsSnapshot = await getDocs(wordsCollection);
+        
+        if (wordsSnapshot.empty) {
+            console.warn("No word lists found in Firestore");
+            return getFallbackWords();
+        }
 
-      // Convert documents to words object
-      const words = {};
-      wordsSnapshot.forEach(doc => {
-          const data = doc.data();
-          words[doc.id] = data; // Assuming your documents have the word categories as fields
-      });
-      
-      // Cache the result
-      localStorage.setItem(WORD_CACHE.WORDS, JSON.stringify({
-          ...JSON.parse(localStorage.getItem(WORD_CACHE.WORDS))|| '{}',
-          [cacheKey]: { 
-              words, 
-              timestamp: Date.now() 
-          }
-      }));
+        const words = {};
+        wordsSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.easy?.length || data.medium?.length || data.hard?.length) {
+                words[doc.id] = {
+                    easy: data.easy || [],
+                    medium: data.medium || [],
+                    hard: data.hard || []
+                };
+            } else {
+                console.warn(`Skipping invalid document ${doc.id}:`, data);
+            }
+        });
+        
+        if (Object.keys(words).length === 0) {
+            console.warn("No valid word lists found in Firestore");
+            return getFallbackWords();
+        }
+        
+        console.log('Fetched Firestore words:', words);
+        
+        localStorage.setItem(WORD_CACHE.WORDS, JSON.stringify({
+            ...JSON.parse(localStorage.getItem(WORD_CACHE.WORDS) || '{}'),
+            [cacheKey]: { 
+                words, 
+                timestamp: Date.now() 
+            }
+        }));
 
-      return words;
-  } catch (error) {
-      console.error("Firestore fetch failed:", error);
-      return getFallbackWords();
-  }
+        return words;
+    } catch (error) {
+        console.error("Firestore fetch failed:", error);
+        return getFallbackWords();
+    }
 }
 
-// Helper function for fallback words
 function getFallbackWords() {
     return {
         animal: { 
@@ -160,7 +173,6 @@ function getFallbackWords() {
             medium: ['eagle', 'heron'],
             hard: ['flamingo']
         },
-        // Add more fallback categories as needed
         food: {
             easy: ['apple', 'bread', 'pizza'],
             medium: ['banana', 'carrot'],
@@ -169,64 +181,68 @@ function getFallbackWords() {
     };
 }
 
-// Initialize game with words from Firebase
-async function startNewGame(difficulty = 'medium') {
-  const words = await fetchWords();
-  const settings = difficultySettings[wordState.difficulty];
+async function startNewGame(difficulty = wordState.difficulty) {
+    const words = await fetchWords();
+    console.log('Fetched words:', words);
 
-  // Select random category and word
-  const categoryKeys = Object.keys(words);
-  if (categoryKeys.length === 0) {
-      console.error("No word categories available");
-      return;
-  }
-  
-  wordState.category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
-  const wordPool = words[wordState.category][difficulty];
-  
-  if (!wordPool || wordPool.length === 0) {
-      console.error(`No words available for category ${wordState.category} and difficulty ${difficulty}`);
-      return;
-  }
-  
-  wordState.targetWord = wordPool[Math.floor(Math.random() * wordPool.length)].toLowerCase();
-  wordState.wordType = null; // Reset word type
+    const categoryKeys = Object.keys(words).filter(key => 
+        words[key].easy?.length || words[key].medium?.length || words[key].hard?.length
+    );
+    console.log('Available categories:', categoryKeys);
+    if (categoryKeys.length === 0) {
+        console.error("No valid word categories available");
+        wordGameEls.feedback.textContent = "No words available. Please try again later.";
+        wordGameEls.feedback.className = 'word-feedback feedback-wrong';
+        return;
+    }
+    
+    wordState.category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+    console.log('Selected category:', wordState.category);
+    const wordPool = words[wordState.category][difficulty];
+    
+    if (!wordPool || wordPool.length === 0) {
+        console.error(`No words available for category ${wordState.category} and difficulty ${difficulty}`);
+        wordGameEls.feedback.textContent = `No words available for ${difficulty} difficulty in ${wordState.category}.`;
+        wordGameEls.feedback.className = 'word-feedback feedback-wrong';
+        return;
+    }
+    
+    wordState.targetWord = wordPool[Math.floor(Math.random() * wordPool.length)].toLowerCase();
+    wordState.wordType = null;
+    wordState.difficulty = difficulty;
 
-  // Rest of the function remains the same...
-  wordState.maxAttempts = settings.maxAttempts;
-  wordState.maxHints = settings.maxHints;
-  wordState.timeLeft = settings.timePerGuess;
-  wordState.score = 0;
-  wordState.isPlaying = true;
-  wordState.attemptsLeft = settings.maxAttempts;
-  wordState.guesses = [];
-  wordState.hintsUsed = 0;
-  wordState.revealedLetters = [];
+    const settings = difficultySettings[difficulty];
+    wordState.maxAttempts = settings.maxAttempts;
+    wordState.maxHints = settings.maxHints;
+    wordState.timeLeft = settings.timePerGuess;
+    wordState.score = 0;
+    wordState.isPlaying = true;
+    wordState.attemptsLeft = settings.maxAttempts;
+    wordState.guesses = [];
+    wordState.hintsUsed = 0;
+    wordState.revealedLetters = [];
 
-  // Reveal letters based on difficulty
-  for (let i = 0; i < settings.revealLetters; i++) {
-      const randomPos = Math.floor(Math.random() * wordState.targetWord.length);
-      if (!wordState.revealedLetters.includes(randomPos)) {
-          wordState.revealedLetters.push(randomPos);
-      }
-  }
+    for (let i = 0; i < settings.revealLetters; i++) {
+        const randomPos = Math.floor(Math.random() * wordState.targetWord.length);
+        if (!wordState.revealedLetters.includes(randomPos)) {
+            wordState.revealedLetters.push(randomPos);
+        }
+    }
 
-  // Update UI
-  if (wordGameEls.startBtn) wordGameEls.startBtn.disabled = true;
-  if (wordGameEls.scoreDisplay) wordGameEls.scoreDisplay.textContent = '0';
-  if (wordGameEls.results) wordGameEls.results.innerHTML = '';
-  if (wordGameEls.input) {
-      wordGameEls.input.value = '';
-      wordGameEls.input.focus();
-  }
-  if (wordGameEls.hintBtn) wordGameEls.hintBtn.disabled = false;
+    if (wordGameEls.startBtn) wordGameEls.startBtn.disabled = true;
+    if (wordGameEls.scoreDisplay) wordGameEls.scoreDisplay.textContent = '0';
+    if (wordGameEls.results) wordGameEls.results.innerHTML = '';
+    if (wordGameEls.input) {
+        wordGameEls.input.value = '';
+        wordGameEls.input.focus();
+    }
+    if (wordGameEls.hintBtn) wordGameEls.hintBtn.disabled = false;
 
-  startTimer();
-  updateWordGameUI();
-  playSound('start');
+    startTimer();
+    updateWordGameUI();
+    playSound('start');
 }
 
-// Timer functions
 function startTimer() {
     clearInterval(wordState.timer);
     updateTimerDisplay();
@@ -246,7 +262,6 @@ function updateTimerDisplay() {
     wordGameEls.timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-// Sound functions
 function playSound(type) {
     if (wordState.isMuted) return;
     if (sounds[type]) {
@@ -264,7 +279,6 @@ function stopAllSounds() {
     });
 }
 
-// Game logic
 function handleGuessSubmit() {
     if (!wordState.isPlaying) return;
     
@@ -281,7 +295,6 @@ function handleGuessSubmit() {
     wordState.guesses.push(guess);
     wordState.attemptsLeft--;
 
-    // Calculate score for this guess
     let correctLetters = 0;
     for (let i = 0; i < guess.length; i++) {
         if (guess[i] === wordState.targetWord[i]) {
@@ -289,13 +302,11 @@ function handleGuessSubmit() {
         }
     }
 
-    // Update score
     const settings = difficultySettings[wordState.difficulty];
     const pointsEarned = correctLetters * 10 * settings.scoreMultiplier;
     wordState.score += pointsEarned;
     wordGameEls.scoreDisplay.textContent = wordState.score;
 
-    // Show feedback
     const feedback = document.createElement('div');
     feedback.className = correctLetters === wordState.targetWord.length ? 
         'word-feedback correct' : 'word-feedback';
@@ -312,45 +323,43 @@ function handleGuessSubmit() {
 }
 
 function giveHint() {
-  if (!wordState.isPlaying || wordState.hintsUsed >= wordState.maxHints) return;
+    if (!wordState.isPlaying || wordState.hintsUsed >= wordState.maxHints) return;
 
-  playSound('hint');
-  wordState.hintsUsed++;
+    playSound('hint');
+    wordState.hintsUsed++;
 
-  // First check if we have word type information
-  if (wordState.wordType) {
-      const feedback = document.createElement('div');
-      feedback.className = 'word-feedback hint';
-      feedback.textContent = `Hint: It's a ${wordState.wordType}`;
-      wordGameEls.results.appendChild(feedback);
-      return;
-  }
+    if (wordState.wordType) {
+        const feedback = document.createElement('div');
+        feedback.className = 'word-feedback hint';
+        feedback.textContent = `Hint: It's a ${wordState.wordType}`;
+        wordGameEls.results.appendChild(feedback);
+        return;
+    }
 
-  // Fallback to letter position hint if no word type available
-  const unrevealedPositions = [];
-  for (let i = 0; i < wordState.targetWord.length; i++) {
-      if (!wordState.revealedLetters.includes(i)) {
-          unrevealedPositions.push(i);
-      }
-  }
+    const unrevealedPositions = [];
+    for (let i = 0; i < wordState.targetWord.length; i++) {
+        if (!wordState.revealedLetters.includes(i)) {
+            unrevealedPositions.push(i);
+        }
+    }
 
-  if (unrevealedPositions.length === 0) return;
+    if (unrevealedPositions.length === 0) return;
 
-  const hintPosition = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
-  wordState.revealedLetters.push(hintPosition);
-  wordState.score = Math.max(0, wordState.score - 50);
-  wordGameEls.scoreDisplay.textContent = wordState.score;
+    const hintPosition = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
+    wordState.revealedLetters.push(hintPosition);
+    wordState.score = Math.max(0, wordState.score - 50);
+    wordGameEls.scoreDisplay.textContent = wordState.score;
 
-  const feedback = document.createElement('div');
-  feedback.className = 'word-feedback hint';
-  feedback.textContent = `Letter ${hintPosition + 1} is ${wordState.targetWord[hintPosition].toUpperCase()}`;
-  wordGameEls.results.appendChild(feedback);
+    const feedback = document.createElement('div');
+    feedback.className = 'word-feedback hint';
+    feedback.textContent = `Letter ${hintPosition + 1} is ${wordState.targetWord[hintPosition].toUpperCase()}`;
+    wordGameEls.results.appendChild(feedback);
 
-  updateWordGameUI();
-  wordGameEls.hintBtn.textContent = `Hints (${wordState.maxHints - wordState.hintsUsed} left)`;
-  if (wordState.hintsUsed >= wordState.maxHints) {
-      wordGameEls.hintBtn.disabled = true;
-  }
+    updateWordGameUI();
+    wordGameEls.hintBtn.textContent = `Hints (${wordState.maxHints - wordState.hintsUsed} left)`;
+    if (wordState.hintsUsed >= wordState.maxHints) {
+        wordGameEls.hintBtn.disabled = true;
+    }
 }
 
 function endWordGame(isWin) {
@@ -368,7 +377,6 @@ function endWordGame(isWin) {
         wordGameEls.feedback.className = 'word-feedback feedback-wrong';
     }
 
-    // Show summary message
     const messageCategory = isWin ? 'win' : 
                          wordState.score >= 150 ? 'nearWin' : 'default';
     const message = wordGameMessages[messageCategory][Math.floor(Math.random() * wordGameMessages[messageCategory].length)];
@@ -382,7 +390,6 @@ function endWordGame(isWin) {
     `;
     wordGameEls.results.appendChild(summary);
 
-    // Save score if it's high enough
     if (wordState.score > 100) {
         saveWordGameScore();
     }
@@ -408,9 +415,7 @@ async function saveWordGameScore() {
     }
 }
 
-// UI updates
 function updateWordGameUI() {
-    // Display the word with revealed letters
     let displayWord = '';
     for (let i = 0; i < wordState.targetWord.length; i++) {
         if (wordState.revealedLetters.includes(i) || 
@@ -422,18 +427,15 @@ function updateWordGameUI() {
     }
     wordGameEls.wordDisplay.textContent = displayWord.split('').join(' ');
 
-    // Update attempts display
     wordGameEls.hintBtn.textContent = `Hints (${wordState.maxHints - wordState.hintsUsed} left)`;
 }
 
-// Event setup
 function setupWordGameEvents() {
-    // Game controls
-    wordGameEls.startBtn.addEventListener('click', startNewGame);
+    wordGameEls.startBtn.addEventListener('click', () => startNewGame(wordState.difficulty));
     wordGameEls.input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             if (!wordState.isPlaying) {
-                startNewGame();
+                startNewGame(wordState.difficulty);
             } else {
                 handleGuessSubmit();
             }
@@ -441,7 +443,14 @@ function setupWordGameEvents() {
     });
     wordGameEls.hintBtn.addEventListener('click', giveHint);
 
-    // Mute toggle
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const difficulty = btn.classList.contains('easy') ? 'easy' :
+                              btn.classList.contains('medium') ? 'medium' : 'hard';
+            setDifficulty(difficulty);
+        });
+    });
+
     wordGameEls.muteBtn?.addEventListener('click', () => {
         wordState.isMuted = !wordState.isMuted;
         localStorage.setItem('wordGameMuteState', wordState.isMuted);
@@ -450,7 +459,6 @@ function setupWordGameEvents() {
         if (wordState.isMuted) stopAllSounds();
     });
 
-    // Load mute state
     wordState.isMuted = JSON.parse(localStorage.getItem('wordGameMuteState') || 'false');
     if (wordGameEls.muteBtn) {
         wordGameEls.muteBtn.querySelector('.material-icons').textContent = 
@@ -458,7 +466,6 @@ function setupWordGameEvents() {
     }
 }
 
-// Initialize
 async function initWordGame() {
     await fetchWords();
     setupWordGameEvents();

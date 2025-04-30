@@ -161,64 +161,59 @@ function getFallbackWords() {
 // Initialize game with words from Firebase
 async function startNewGame(difficulty = 'medium') {
   const words = await fetchWords();
-    wordState.difficulty = difficulty;
-    const settings = difficultySettings[difficulty];
+  wordState.difficulty = difficulty;
+  const settings = difficultySettings[difficulty];
 
-    // Apply difficulty settings
-    wordState.maxAttempts = settings.maxAttempts;
-    wordState.maxHints = settings.maxHints;
-    wordState.timeLeft = settings.timePerGuess;
-    wordState.score = 0;
-    wordState.isPlaying = true;
-    
-    // Handle both string and object word formats
-    if (typeof wordData === 'object') {
-        wordState.targetWord = wordData.word.toLowerCase();
-        wordState.wordType = wordData.type; // e.g. "noun", "adjective"
-    } else {
-        wordState.targetWord = wordData.toLowerCase();
-        wordState.wordType = null;
-    }
-    
-    
-    // Apply difficulty settings
-    wordState.maxAttempts = settings.maxAttempts;
-    wordState.maxHints = settings.maxHints;
-    wordState.timeLeft = settings.timePerGuess;
-    wordState.score = 0;
-    wordState.isPlaying = true;
+  // Select random category and word
+  const categoryKeys = Object.keys(words);
+  if (categoryKeys.length === 0) {
+      console.error("No word categories available");
+      return;
+  }
+  
+  wordState.category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
+  const wordPool = words[wordState.category][difficulty];
+  
+  if (!wordPool || wordPool.length === 0) {
+      console.error(`No words available for category ${wordState.category} and difficulty ${difficulty}`);
+      return;
+  }
+  
+  wordState.targetWord = wordPool[Math.floor(Math.random() * wordPool.length)].toLowerCase();
+  wordState.wordType = null; // Reset word type
 
-    // Select random category and word
-    const categoryKeys = Object.keys(words);
-    wordState.category = categoryKeys[Math.floor(Math.random() * categoryKeys.length)];
-    const wordPool = words[wordState.category][difficulty];
-    wordState.targetWord = wordPool[Math.floor(Math.random() * wordPool.length)].toLowerCase();
+  // Rest of the function remains the same...
+  wordState.maxAttempts = settings.maxAttempts;
+  wordState.maxHints = settings.maxHints;
+  wordState.timeLeft = settings.timePerGuess;
+  wordState.score = 0;
+  wordState.isPlaying = true;
+  wordState.attemptsLeft = settings.maxAttempts;
+  wordState.guesses = [];
+  wordState.hintsUsed = 0;
+  wordState.revealedLetters = [];
 
-    // Reset game state
-    wordState.attemptsLeft = settings.maxAttempts;
-    wordState.guesses = [];
-    wordState.hintsUsed = 0;
-    wordState.revealedLetters = [];
+  // Reveal letters based on difficulty
+  for (let i = 0; i < settings.revealLetters; i++) {
+      const randomPos = Math.floor(Math.random() * wordState.targetWord.length);
+      if (!wordState.revealedLetters.includes(randomPos)) {
+          wordState.revealedLetters.push(randomPos);
+      }
+  }
 
-    // Reveal letters based on difficulty
-    for (let i = 0; i < settings.revealLetters; i++) {
-        const randomPos = Math.floor(Math.random() * wordState.targetWord.length);
-        if (!wordState.revealedLetters.includes(randomPos)) {
-            wordState.revealedLetters.push(randomPos);
-        }
-    }
+  // Update UI
+  if (wordGameEls.startBtn) wordGameEls.startBtn.disabled = true;
+  if (wordGameEls.scoreDisplay) wordGameEls.scoreDisplay.textContent = '0';
+  if (wordGameEls.results) wordGameEls.results.innerHTML = '';
+  if (wordGameEls.input) {
+      wordGameEls.input.value = '';
+      wordGameEls.input.focus();
+  }
+  if (wordGameEls.hintBtn) wordGameEls.hintBtn.disabled = false;
 
-    // Update UI
-    wordGameEls.startBtn.disabled = true;
-    wordGameEls.scoreDisplay.textContent = '0';
-    wordGameEls.results.innerHTML = '';
-    wordGameEls.input.value = '';
-    wordGameEls.input.focus();
-    wordGameEls.hintBtn.disabled = false;
-
-    startTimer();
-    updateWordGameUI();
-    playSound('start');
+  startTimer();
+  updateWordGameUI();
+  playSound('start');
 }
 
 // Timer functions

@@ -288,33 +288,42 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Word Game Screen -->
             <div class="screen word-game-screen">
-                <div class="card word-game-card">
+                <div id="word-game-container" class="card word-game-card">
                     <div class="word-game-header">
                         <h2>Word Guess Challenge</h2>
                         <div class="word-game-meta">
                             <span id="word-attempts">Attempts left: 6</span>
-                            <span id="word-hint">Hint: It's a 5-letter word</span>
+                            <span id="word-timer">1:00</span>
+                            <span id="word-score">Score: 0</span>
                         </div>
+                        <button id="mute-btn" class="btn icon-btn">
+                            <span class="material-icons">volume_up</span>
+                        </button>
                     </div>
+                    
                     <div class="difficulty-selector">
                         <button id="easy-btn" class="btn difficulty-btn easy">Easy</button>
                         <button id="medium-btn" class="btn difficulty-btn medium active">Medium</button>
                         <button id="hard-btn" class="btn difficulty-btn hard">Hard</button>
                     </div>
-                    <div id="word-difficulty" class="difficulty-label">Difficulty: MEDIUM</div>
+                    
+                    <div id="word-display" class="word-display"></div>
+                    
                     <div class="word-game-body">
-                        <div class="guess-grid" id="guess-grid"></div>
+                        <div id="word-results" class="guess-history"></div>
                         <div class="guess-input">
-                            <input type="text" id="word-guess" maxlength="5" placeholder="Enter a 5-letter word">
-                            <button id="submit-word" class="btn primary">Submit</button>
+                            <input type="text" id="word-input" maxlength="10" placeholder="Enter your guess">
+                            <button id="start-word-game" class="btn primary">Start Game</button>
                         </div>
-                        <div class="word-feedback" id="word-feedback"></div>
+                        <div id="word-feedback" class="word-feedback"></div>
                     </div>
+                    
                     <div class="word-game-footer">
+                        <button id="hint-btn" class="btn secondary">Get Hint</button>
                         <button id="new-word" class="btn secondary">New Game</button>
-                        <button id="word-hint-btn" class="btn secondary">Get Hint</button>
                     </div>
                 </div>
             </div>

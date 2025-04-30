@@ -109,8 +109,56 @@ function playSound(type) {
 
 // Handle guess submission (with sounds)
 function handleGuessSubmit() {
-  const guess = guessInput.value.toLowerCase().trim();
-  // ... (existing validation logic)
+    const guessInput = document.getElementById('word-guess');
+    const feedback = document.getElementById('word-feedback');
+    const guess = guessInput.value.toLowerCase().trim();
+
+    if (!/^[a-z]{5}$/.test(guess)) {
+        if (feedback) {
+            feedback.textContent = 'Please enter a valid 5-letter word';
+            feedback.className = 'word-feedback feedback-wrong';
+        }
+        return;
+    }
+
+    if (!wordState.wordList.includes(guess)) {
+        if (feedback) {
+            feedback.textContent = 'Word not in list. Try another!';
+            feedback.className = 'word-feedback feedback-wrong';
+        }
+        return;
+    }
+
+    wordState.guesses.push(guess);
+    wordState.attemptsLeft--;
+
+    if (guess === wordState.targetWord) {
+        if (feedback) {
+            feedback.textContent = '🎉 Correct! You guessed the word!';
+            feedback.className = 'word-feedback feedback-correct';
+        }
+        const submitButton = document.getElementById('submit-word');
+        if (submitButton) submitButton.disabled = true;
+        trackEvent('word_game_solved', 'word_game', wordState.maxAttempts - wordState.attemptsLeft);
+    } else if (wordState.attemptsLeft <= 0) {
+        if (feedback) {
+            feedback.textContent = `Game Over! The word was ${wordState.targetWord.toUpperCase()}`;
+            feedback.className = 'word-feedback feedback-wrong';
+        }
+        const submitButton = document.getElementById('submit-word');
+        if (submitButton) submitButton.disabled = true;
+        trackEvent('word_game_failed', 'word_game', wordState.targetWord);
+    } else {
+        if (feedback) {
+            feedback.textContent = 'Try again!';
+            feedback.className = 'word-feedback';
+        }
+    }
+
+    updateWordGameUI();
+    if (guessInput) guessInput.value = '';
+
+
 
   if (guess === wordState.targetWord) {
     playSound('correct');
@@ -127,8 +175,30 @@ function handleGuessSubmit() {
 
 // Hint with sound
 function giveHint() {
-  playSound('hint');
-  // ... (existing hint logic)
+    playSound('hint');
+    if (wordState.hintsUsed >= wordState.maxHints) {
+        alert('You have used all your hints!');
+        return;
+    }
+
+    wordState.hintsUsed++;
+    const unrevealedPositions = Array.from({ length: 5 }, (_, i) => i)
+        .filter(i => !wordState.guesses.some(g => g[i] === wordState.targetWord[i]));
+    if (unrevealedPositions.length === 0) {
+        alert('No more hints available!');
+        return;
+    }
+    const hintPosition = unrevealedPositions[Math.floor(Math.random() * unrevealedPositions.length)];
+    const hint = `Letter ${hintPosition + 1} is ${wordState.targetWord[hintPosition].toUpperCase()}`;
+
+    const feedback = document.getElementById('word-feedback');
+    if (feedback) {
+        feedback.textContent = hint;
+        feedback.className = 'word-feedback';
+    }
+    updateWordGameUI();
+    trackEvent('word_game_hint', 'word_game', wordState.hintsUsed);
+
 }
 
 // Initialize

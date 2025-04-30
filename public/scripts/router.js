@@ -113,8 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showHomeScreen() {
         setupScreen.classList.add('active');
         gameScreen.classList.remove('active');
-        blogTbankScreen.classList.remove('active');
-        blogTbankScreen.innerHTML = '';
         currentContentPath = '';
     }
 });

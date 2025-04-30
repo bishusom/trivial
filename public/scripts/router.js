@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (path === '/number-puzzle') {
             document.querySelector('.number-puzzle-screen').classList.add('active');
             try {
-                const { initPuzzle } = await import('/scripts/number-puzzle.js');
+                //const { initPuzzle } = await import('/scripts/number-puzzle.js');
                 initPuzzle();
             } catch (error) {
                 console.error('Error loading number-puzzle.js:', error);

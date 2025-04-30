@@ -93,9 +93,8 @@
         <div class="container">
             <div class="main-nav">
                     <a class="nav-link" href="/home">Home</a> | 
-                    <a class="nav-link" href="/tbank">Trivia Bank</a> | 
-                    <a class="nav-link" href="/blog">Blog</a> |
                     <a class="nav-link" href="/number-puzzle">Number Puzzle</a>
+                    <a class="nav-link" href="/tbank">Trivia Bank</a>
             </div>
             <!-- Setup Screen -->
             <div class="screen setup-screen active">
@@ -249,35 +248,35 @@
                 </div>
             </div>    
             <!-- Game Screen -->
-        <div class="screen game-screen">
-            <div class="card">
-                <div class="game-header">
-                    <div class="score-box">
-                        <span class="material-icons">emoji_events</span>
-                        <span id="score">0</span>
-                        <span id="question-counter">0/10</span>
+            <div class="screen game-screen">
+                <div class="card">
+                    <div class="game-header">
+                        <div class="score-box">
+                            <span class="material-icons">emoji_events</span>
+                            <span id="score">0</span>
+                            <span id="question-counter">0/10</span>
+                        </div>
+                        <div class="timer-box">
+                            <span class="material-icons">timer</span>
+                            <span id="question-timer">15</span>
+                            <span id="total-timer">2:30</span>
+                        </div>
+                        <button id="mute-btn" class="btn icon-btn">
+                            <span class="material-icons">volume_up</span>
+                        </button>
                     </div>
-                    <div class="timer-box">
-                        <span class="material-icons">timer</span>
-                        <span id="question-timer">15</span>
-                        <span id="total-timer">2:30</span>
-                    </div>
-                    <button id="mute-btn" class="btn icon-btn">
-                        <span class="material-icons">volume_up</span>
-                    </button>
-                </div>
 
-                <div id="question" class="question"></div>
-                <div id="options" class="options-grid"></div>
-                
-                <div class="game-footer">
-                    <button id="next-btn" class="btn primary">
-                        Next Question
-                        <span class="material-icons">arrow_forward</span>
-                    </button>
+                    <div id="question" class="question"></div>
+                    <div id="options" class="options-grid"></div>
+                    
+                    <div class="game-footer">
+                        <button id="next-btn" class="btn primary">
+                            Next Question
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
             <!-- Summary Screen -->
             <div class="screen summary-screen">

@@ -1,470 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KZ7XR85V"></script>
-        <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-K4KZ7XR85V');
-        </script>
-
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Triviaah: Free Daily Trivia Games | 20+ Categories & 5000 questions</title>
-        <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science, 5000+ questions. No signup required - start playing now!">
-        <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
-        <meta property="og:type" content="website">
-        <meta property="og:url" content="https://triviaah.com/">
-        <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
-        <meta property="og:description" content="Play free online trivia games daily with 5000+ questions across 20+ categories!">
-        <meta property="og:image" content="https://triviaah.com/social-preview.jpg">
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
-        <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
-        <meta name="twitter:image" content="https://triviaah.com/social-preview.jpg">
-        <link rel="canonical" href="https://www.triviaah.com/">
-        <link rel="icon" href="/favicon.ico" type="image/x-icon">
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Quiz",
-            "name": "Daily Trivia Challenge",
-            "description": "Free online trivia game with 5,000+ questions",
-            "url": "https://www.triviaah.com",
-            "author": {
-                "@type": "Organization",
-                "name": "Triviaah"
-            },
-            "typicalAgeRange": "13-",
-            "category": "Online Game",
-            "question": {
-                "@type": "Question",
-                "name": "Daily trivia questions",
-                "answerCount": 10
-            }
-        }
-        </script>
-        <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": [{
-            "@type": "Question",
-            "name": "Where can I find free music trivia questions questions and answers?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Triviaah offers 500+ music trivia questions with instant answers. Play free now!"
-            }
-          }]
-        }
-        </script>
-        <link rel="stylesheet" href="/styles/styles.css">
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
-    </head>
-    <body>
-        <div class="container">
-            <div class="main-nav">
-                <a class="nav-link" href="/home">Trivia</a> | 
-                <a class="nav-link" href="/number-puzzle">Number Puzzle</a> |
-                <a class="nav-link" href="/word-game">Word Game</a>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triviaah: Free Daily Trivia Games | 20+ Categories & 5000 questions</title>
+    <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science, 5000+ questions. No signup required - start playing now!">
+    <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://triviaah.com/">
+    <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
+    <meta property="og:description" content="Play free online trivia games daily with 5000+ questions across 20+ categories!">
+    <meta property="og:image" content="https://triviaah.com/social-preview.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
+    <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
+    <meta name="twitter:image" content="https://triviaah.com/social-preview.jpg">
+    <link rel="canonical" href="https://www.triviaah.com/">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="main-nav" role="navigation" aria-label="Main navigation">
+            <div class="nav-header">
+                <div class="logo-container-mobile">
+                    <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
+                </div>
+                <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+                    <span class="material-icons">menu</span>
+                </button>
             </div>
-            <!-- Setup Screen -->
-            <div class="screen setup-screen active">
-                <div class="hero-section">
-                    <div class="logo-container">
-                        <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
-                        <div class="tagline">Think You're Smart? Show Us What You've Got!</div>
-                    </div>
-                </div>    
-                <div class="setup-card">
-                    <div class="progress-tracker">
-                        <div class="progress-header">
-                            <h4><span class="material-icons" style="color:rgb(255, 213, 0)">emoji_events</span> Your Trivia Journey</h4>
-                        </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar-fill" id="user-progress"></div>
-                        </div>
-                        <div class="progress-message" id="progress-message">
-                            You're one game away from your first badge! Play now.
-                        </div>
-                    </div>
-                    <div class="time-toggle-container">
-                        <div class="setting-label">
-                            <span class="material-icons">timer</span>
-                            QUESTION TIMER
-                        </div>
-                        <span id="normal-timer">Normal (60s)</span>
-                        <label class="time-toggle-switch">
-                            <input type="checkbox" id="quick-mode-toggle">
-                            <span class="slider round"></span>
-                        </label>
-                        <span id="quick-timer">Quick (30s)</span>
-                    </div> 
-                    <div class="tabs-container">
-                        <div class="category-selection">
-                            <div class="section-header">
-                                <h3>Select a Category</h3>
-                                <div class="instruction-tooltip">
-                                    <span class="material-icons">info</span>
-                                    <span class="tooltip-text">Double-click any category to start</span>
-                                </div>
+            <div class="nav-menu">
+                <a class="nav-link" href="/home" aria-current="page">
+                    <span class="material-icons">home</span>
+                    Home
+                </a>
+                <div class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">quiz</span>
+                        Trivia
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <div class="submenu">
+                            <button class="submenu-toggle">Timed Challenges</button>
+                            <div class="submenu-content">
+                                <a href="/trivias/weekly">Weekly Quiz</a>
+                                <a href="/trivias/monthly">Monthly Quiz</a>
                             </div>
-                            <div class="category-grid">
-                                <div class="featured-card category-card" data-category="Weekly">
-                                    <span class="material-icons">event</span>
-                                    <span>Weekly Quiz</span>
-                                    <span class="popular-badge">Featured!</span>
-                                </div>
-                                <div class="category-card" data-category="Monthly">
-                                    <span class="material-symbols-outlined">date_range</span>
-                                    <span>Monthly Quiz</span>
-                                    <div class="progress-bar" style="width: 65%"></div>
-                                </div>
-                                <div class="category-card" data-category="General Knowledge">
-                                    <span class="material-symbols-outlined">psychology_alt</span>
-                                    <span>General</span>
-                                    <div class="progress-bar" style="width: 90%"></div>
-                                    <span class="popular-badge">Popular</span>
-                                </div>
-                                <div class="category-card" data-category="literature">
-                                    <span class="material-icons">menu_book</span>
-                                    <span>Literature</span>
-                                </div>
-                                <div class="category-card" data-category="arts">
-                                    <span class="material-icons">palette</span>
-                                    <span>Arts</span>
-                                </div>
-                                <div class="category-card" data-category="animals">
-                                    <span class="material-icons">pets</span>
-                                    <span>Animals</span>
-                                </div>
-                                <div class="category-card" data-category="science">
-                                    <span class="material-icons">science</span>
-                                    <span>Science</span>
-                                </div>
-                                <div class="category-card" data-category="food">
-                                    <span class="material-symbols-outlined">lunch_dining</span>
-                                    <span>Food</span>
-                                    <span class="popular-badge">Popular</span>
-                                </div>
-                                <div class="category-card" data-category="history">
-                                    <span class="material-icons">history</span>
-                                    <span>History</span>
-                                    <span class="popular-badge">Tough</span>
-                                </div>
-                                <div class="category-card" data-category="geography">
-                                    <span class="material-icons">public</span>
-                                    <span>Geography</span>
-                                    <span class="popular-badge">Tough</span>
-                                </div>
-                                <div class="category-card" data-category="movies">
-                                    <span class="material-icons">movie</span>
-                                    <span>Movies</span>
-                                    <span class="popular-badge">Trending</span>
-                                </div>
-                                <div class="category-card" data-category="music">
-                                    <span class="material-icons">music_note</span>
-                                    <span>Music</span>
-                                </div>
-                                <div class="category-card" data-category="tv/web series">
-                                    <span class="material-icons">tv</span>
-                                    <span>TV/Web Series</span>
-                                </div>
-                                <div class="category-card" data-category="sports">
-                                    <span class="material-symbols-outlined">sports_and_outdoors</span>
-                                    <span>Sports</span>
-                                </div>
-                                <div class="category-card" data-category="video-games">
-                                    <span class="material-symbols-outlined">stadia_controller</span>
-                                    <span>Video Games</span>
-                                </div>
-                                <div class="category-card" data-category="board-games">
-                                    <span class="material-symbols-outlined">casino</span>
-                                    <span>Board Games</span>
-                                </div>
-                                <div class="category-card" data-category="mythology">
-                                    <span class="material-symbols-outlined">castle</span>
-                                    <span>Mythology</span>
-                                </div>
-                                <div class="category-card" data-category="comics series">
-                                    <span class="material-symbols-outlined">comic_bubble</span>
-                                    <span>Comics</span>
-                                </div>
-                            </div>        
                         </div>
-                        <div id="loading-indicator" class="loading-indicator hidden">
-                            <div class="loading-spinner"></div>
-                            <p>Loading questions...</p>
+                        <div class="submenu">
+                            <button class="submenu-toggle">Culture & Entertainment</button>
+                            <div class="submenu-content">
+                                <a href="/trivias/geography">Literature</a>
+                                <a href="/trivias/arts">Arts</a>
+                                <a href="/trivias/movies">Movies</a>
+                                <a href="/trivias/tv-web-series">TV & Web Series</a>
+                                <a href="/trivias/music">Music</a>
+                                <a href="/trivias/celebrities">Celebrities</a>
+                            </div>
                         </div>
+                        <div class="submenu">
+                            <button class="submenu-toggle">Knowledge & History</button>
+                            <div class="submenu-content">
+                                <a href="/trivias/general-knowledge">General Knowledge</a>
+                                <a href="/trivias/science">Science</a>
+                                <a href="/trivias/history">History</a>
+                                <a href="/trivias/geography">Geography</a>
+                                <a href="/trivias/mythology">Mythology</a>
+                            </div>
+                        </div>
+                        <div class="submenu">
+                            <button class="submenu-toggle">Lifestyle & Society</button>
+                            <div class="submenu-content">
+                                <a href="/trivias/politics">Politics</a>
+                                <a href="/trivias/food">Food</a>
+                                <a href="/trivias/sports">Sports</a>
+                                <a href="/trivias/business">Business</a>
+                            </div>
+                        </div>
+                        <a href="/trivias/catalog">Browse All Categories</a>
+                    </div>
+                </div>
+                <div class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">calculate</span>
+                        Number Puzzles
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/number-puzzle/guess">Guess Number</a>
+                        <a href="/number-puzzle/scramble">Number Scramble</a>
+                        <a href="/number-puzzle/sequence">Number Sequence</a>
+                    </div>
+                </div>
+                <div class="nav-dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">text_fields</span>
+                        Word Games
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="/word-game/classic">Classic</a>
+                        <a href="/word-game/anagram">Anagram</a>
+                        <a href="/word-game/spelling">Spelling Bee</a>
                     </div>
                 </div>
             </div>
-            <!-- Game Screen -->
-            <div class="screen game-screen">
-                <div class="card">
-                    <div class="game-header">
-                        <div class="score-box">
-                            <span class="material-icons">emoji_events</span>
-                            <span id="score">0</span>
-                            <span id="question-counter">0/10</span>
-                        </div>
-                        <div class="timer-box">
-                            <span class="material-icons">timer</span>
-                            <span id="question-timer">15</span>
-                            <span id="total-timer">2:30</span>
-                        </div>
-                        <button id="mute-btn" class="btn icon-btn">
-                            <span class="material-icons">volume_up</span>
-                        </button>
-                    </div>
-                    <div id="question" class="question"></div>
-                    <div id="options" class="options-grid"></div>
-                    <div class="game-footer">
-                        <button id="next-btn" class="btn primary">
-                            Next Question
-                            <span class="material-icons">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <!-- Summary Screen -->
-            <div class="screen summary-screen">
-                <div class="card performance-card compact"></div>
-            </div>
-            <!-- High Scores -->
-            <div class="highscores">
-                <div class="highscores-header">
-                    <h3>Global Best Scores</h3>
-                </div>
-                <div id="highscores-list" class="highscores-list"></div>
-            </div>
-            <!-- Daily Challenge Modal -->
-            <div id="daily-challenge-modal" class="modal hidden">
-                <div class="modal-content challenge-modal">
-                    <h3>🔥 Daily Challenge Awaits!</h3>
-                    <p>Test your knowledge against others in today's special trivia!</p>
-                    <div class="modal-actions">
-                        <button id="decline-challenge" class="btn secondary">Not Now</button>
-                        <button id="accept-challenge" class="btn primary">Accept Challenge</button>
-                    </div>
-                </div>
-            </div>
-            <!-- Navigation Warning Modal -->
-            <div id="nav-warning-modal" class="modal hidden">
-                <div class="modal-content">
-                    <h3>Game in Progress</h3>
-                    <p>You have an active game. What would you like to do?</p>
-                    <div class="modal-actions">
-                        <button id="continue-game" class="btn secondary">Continue Playing</button>
-                        <button id="end-game" class="btn danger">End Game</button>
-                    </div>
-                </div>
-            </div>
-            <!-- Number Puzzle Screen -->
-            <div class="screen number-puzzle-screen">
-                <div class="card puzzle-card">
-                    <div class="puzzle-header">
-                        <h2>Number Puzzle Challenge</h2>
-                        <div class="puzzle-meta">
-                            <span id="puzzle-attempts">Attempts left: 5</span>
-                            <span id="puzzle-hint">Hint: It's between 1 and 100</span>
-                        </div>
-                    </div>
-                    <div class="puzzle-body">
-                        <div class="guess-history" id="guess-history"></div>
-                        <div class="guess-input">
-                            <input type="number" id="number-guess" min="1" max="100" placeholder="Enter your guess">
-                            <button id="submit-guess" class="btn primary">Submit</button>
-                        </div>
-                        <div class="puzzle-feedback" id="puzzle-feedback"></div>
-                    </div>
-                    <div class="puzzle-footer">
-                        <button id="new-puzzle" class="btn secondary">New Puzzle</button>
-                        <button id="puzzle-hint-btn" class="btn secondary">Get Hint</button>
-                    </div>
-                </div>
-            </div>
+        </nav>
 
-            <!-- Word Game Screen -->
-            <div class="screen word-game-screen">
-                <div id="word-game-container" class="card word-game-card">
-                    <div class="word-game-header">
-                        <h2>Word Guess Challenge</h2>
-                        <div class="word-game-meta">
-                            <span id="word-attempts">Attempts left: 6</span>
-                            <span id="word-timer">1:00</span>
-                            <span id="word-score">Score: 0</span>
-                        </div>
-                        <button id="mute-btn" class="btn icon-btn">
-                            <span class="material-icons">volume_up</span>
-                        </button>
-                    </div>
-                    
-                    <div class="difficulty-selector">
-                        <button onclick="setDifficulty('easy')" class="btn difficulty-btn easy">Easy</button>
-                        <button onclick="setDifficulty('medium')" class="btn difficulty-btn medium active">Medium</button>
-                        <button onclick="setDifficulty('hard')" class="btn difficulty-btn hard">Hard</button>
-                    </div>
-                    
-                    <div id="word-display" class="word-display"></div>
-                    
-                    <div class="word-game-body">
-                        <div id="word-results" class="guess-history"></div>
-                        <div class="guess-input">
-                            <input type="text" id="word-input" maxlength="10" placeholder="Enter your guess">
-                            <button id="start-word-game" class="btn primary">Start Game</button>
-                        </div>
-                        <div id="word-feedback" class="word-feedback"></div>
-                    </div>
-                    
-                    <div class="word-game-footer">
-                        <button id="hint-btn" class="btn secondary">Get Hint</button>
-                        <button id="new-word" class="btn secondary">New Game</button>
-                    </div>
+        <!-- Setup Screen -->
+        <div class="screen setup-screen active">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="logo-container-desktop">
+                    <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
                 </div>
+                <!--div class="tagline">Think You're Smart? Show Us What You've Got!</div-->
+                <h2 class="section-header">Featured Trivia Quizzes</h2>
+                <div class="game-categories">
+                    <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz.jpg" alt="Weekly Quiz" class="game-category-image">
+                        <span>Weekly Quiz</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly">
+                        <img src="/imgs/monthly-quiz.jpg" alt="Monthly Quiz" class="game-category-image">
+                        <span>Monthly Quiz</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
+                        <img src="/imgs/general-knowledge.jpg" alt="General Knowledge" class="game-category-image">
+                        <span>General Knowledge</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/trivias/geography" class="game-category-card featured-card" data-category="geography">
+                        <img src="/imgs/geography.jpg" alt="Geography" class="game-category-image">
+                        <span>Geography</span>
+                    </a>
+                </div>
+                <a href="/trivias/catalog" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    Check All Categories
+                </a>
+                <hr class="divider">
+                <h2 class="section-header">Popular Games</h2>
+                <div class="game-categories">
+                    <a href="/number-puzzle/guess" class="game-category-card featured-card" data-category="Guess the Number">
+                        <img src="/imgs/number-guess.jpg" alt="Guess the Number" class="game-category-image">
+                        <span>Guess the Number</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram">
+                        <img src="/imgs/anagram.jpg" alt="Anagram" class="game-category-image">
+                        <span>Anagram</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                </div>
+                
             </div>
-            
-            <!-- Privacy Screen -->
-            <div class="screen privacy-screen">
-                <div class="privacy-card">
-                    <button class="close-btn"><span class="material-icons">close</span></button>
-                    <h2>Privacy Policy</h2>
-                    <p class="last-updated">Last Updated: April 2025</p>
-                    <div class="privacy-content">
-                        <section>
-                            <h3>1. Information We Collect</h3>
-                            <p>When you play Triviaah, we may collect:</p>
-                            <ul>
-                                <li>Gameplay data (scores, categories played, performance metrics)</li>
-                                <li>Device information (browser type, operating system)</li>
-                                <li>High score information including player names (if provided)</li>
-                                <li>Analytics data via Google Analytics</li>
-                            </ul>
-                        </section>
-                        <section>
-                            <h3>2. How We Use Your Information</h3>
-                            <p>We use collected data to:</p>
-                            <ul>
-                                <li>Provide and improve our trivia game service</li>
-                                <li>Maintain leaderboards and high scores</li>
-                                <li>Analyze gameplay trends and improve question quality</li>
-                                <li>Understand user engagement through Google Analytics</li>
-                            </ul>
-                        </section>
-                        <section>
-                            <h3>3. Data Storage</h3>
-                            <p>Your data is stored:</p>
-                            <ul>
-                                <li>High scores are stored in Firebase Database</li>
-                                <li>Gameplay analytics are processed by Google Analytics</li>
-                                <li>Some data may be cached locally on your device</li>
-                            </ul>
-                        </section>
-                        <section>
-                            <h3>4. Third-Party Services</h3>
-                            <p>We use:</p>
-                            <ul>
-                                <li><strong>Google Analytics</strong> - To understand how users interact with our game</li>
-                                <li><strong>Firebase</strong> - For storing high scores and player data</li>
-                            </ul>
-                            <p>These services have their own privacy policies which we recommend reviewing.</p>
-                        </section>
-                        <section>
-                            <h3>5. Your Choices</h3>
-                            <p>You can:</p>
-                            <ul>
-                                <li>Opt not to provide a player name (scores will be recorded anonymously)</li>
-                                <li>Clear local storage data using your browser settings</li>
-                                <li>Use browser extensions to block analytics tracking</li>
-                            </ul>
-                        </section>
-                        <section>
-                            <h3>6. Children's Privacy</h3>
-                            <p>Triviaah is intended for general audiences. We do not knowingly collect personal information from children under 13.</p>
-                        </section>
-                        <section>
-                            <h3>7. Changes to This Policy</h3>
-                            <p>We may update this privacy policy periodically. The "Last Updated" date at the top will reflect changes.</p>
-                        </section>
-                        <section>
-                            <h3>8. Contact Us</h3>
-                            <p>For privacy-related questions, please contact us using the Contact Us Form</p>
-                        </section>
-                    </div>
-                </div>
+        </div>    
+        <!-- Dynamic Content Container -->
+        <div id="dynamic-content" class="screen"></div>
+        <footer class="app-footer">
+            <div class="footer-links">
+                <a href="/privacy" class="footer-link">Privacy Policy</a>
+                <span class="divider">|</span>
+                <a href="/contact" class="footer-link">Contact Us</a>
             </div>
-            <!-- Contact Us Screen -->
-            <div class="screen contact-screen">
-                <div class="contact-card">
-                    <button class="close-btn"><span class="material-icons">close</span></button>
-                    <h2>Contact Us</h2>
-                    <p class="contact-intro">Have questions or feedback? We'd love to hear from you!</p>
-                    <form name="contact" netlify class="contact-form" data-netlify="true" netlify-honeypot="bot-field">
-                        <input type="hidden" name="form-name" value="contact">
-                        <div class="form-group">
-                            <label for="name">Your Name</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="subject">Subject</label>
-                            <select id="subject" name="subject">
-                                <option value="general">General Inquiry</option>
-                                <option value="feedback">Game Feedback</option>
-                                <option value="technical">Technical Support</option>
-                                <option value="privacy">Privacy Concern</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Message</label>
-                            <textarea id="message" name="message" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn primary">Send Message</button>
-                    </form>
-                </div>
-            </div>
-            <footer class="app-footer">
-                <div class="footer-links">
-                    <a href="/privacy" class="footer-link">Privacy Policy</a>
-                    <span class="divider">|</span>
-                    <a href="/contact" class="footer-link">Contact Us</a>
-                </div>
-                <p class="copyright">© 2025 Triviaah. All rights reserved.</p>
-            </footer>
-        </div>
-
-        <audio id="tick-sound" src="/audio/tick.mp3" preload="auto"></audio>
-        <audio id="correct-sound" src="/audio/correct.mp3" preload="auto"></audio>
-        <audio id="wrong-sound" src="/audio/wrong.mp3" preload="auto"></audio>
-        <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
-        <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
-        <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
-
-        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-        <script>
-            const firebaseConfig = {
-                apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
-                authDomain: "triviaahdb.firebaseapp.com",
-                projectId: "triviaahdb",
-                storageBucket: "triviaahdb.firebasestorage.app",
-                messagingSenderId: "758082588437",
-                appId: "1:758082588437:web:9eada609e974b9e458631c",
-                measurementId: "G-ZT8Q78QYDQ"
-            };
-            firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-        <script type="module" src="/scripts/app.js"></script>
-        <script type="module" src="/scripts/router.js"></script>
-    </body>
+            <p class="copyright">© 2025 Triviaah. All rights reserved.</p>
+        </footer>
+    </div>
+    <audio id="tick-sound" src="/audio/tick.mp3" preload="auto"></audio>
+    <audio id="correct-sound" src="/audio/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="/audio/wrong.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
+    <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
+    <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
+            authDomain: "triviaahdb.firebaseapp.com",
+            projectId: "triviaahdb",
+            storageBucket: "triviaahdb.firebasestorage.app",
+            messagingSenderId: "758082588437",
+            appId: "1:758082588437:web:9eada609e974b9e458631c",
+            measurementId: "G-ZT8Q78QYDQ"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script type="module" src="/scripts/router.js"></script>
+</body>
 </html>

@@ -1,0 +1,92 @@
+.wordsearch-screen {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.wordsearch-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    background-color: var(--card-bg);
+    padding: 5px;
+    border-radius: 5px;
+    margin: 1rem 0;
+}
+
+.wordsearch-cell {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background-color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text);
+    font-size: clamp(16px, 3vw, 24px);
+}
+
+.wordsearch-cell.selected {
+    background-color: var(--primary);
+    color: white;
+}
+
+.wordsearch-cell.found {
+    background-color: var(--correct);
+    color: white;
+}
+
+.wordsearch-wordlist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.wordsearch-word {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.wordsearch-word.found {
+    text-decoration: line-through;
+    opacity: 0.6;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.wordsearch-feedback {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.wordsearch-feedback.success {
+    background-color: rgba(128, 230, 163, 0.2);
+    color: var(--correct);
+}
+
+.wordsearch-feedback.error {
+    background-color: rgba(255, 125, 125, 0.2);
+    color: var(--wrong);
+}
+
+.wordsearch-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+    .wordsearch-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    
+    .wordsearch-wordlist {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

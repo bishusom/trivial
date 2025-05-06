@@ -1,0 +1,294 @@
+/* Number Scramble Specific Styles */
+.puzzle-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 15px;
+    align-items: center;
+    justify-content: center;
+}
+
+.puzzle-meta span {
+    white-space: nowrap;
+}
+
+.scramble-display {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.scramble-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+}
+
+
+.scramble-tile {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.scramble-tile.used {
+    opacity: 0.5;
+    transform: scale(0.9);
+    cursor: not-allowed;
+}
+
+.scramble-tile:hover:not(.used) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.scramble-target {
+    color: #ffd700;
+    font-size: 1.2rem;
+}
+
+.scramble-buttons {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* Difficulty Indicators */
+.difficulty-easy { color: #4CAF50; }
+.difficulty-medium { color: #FFC107; }
+.difficulty-hard { color: #F44336; }
+.difficulty-expert { color: #9C27B0; }
+
+.scramble-operators {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* Increased from 0.8rem */
+    margin: 1rem 0;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.scramble-operators .btn {
+    width: 60px; /* Fixed width for consistency */
+    height: 60px; /* Fixed height for square buttons */
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: 12px; /* Slightly more rounded */
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--accent);
+    transition: all 0.2s ease;
+}
+
+.scramble-operators .btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.scramble-feedback {
+    padding: 1rem;
+    margin: 0 0 1rem 0;
+    border-radius: 8px;
+    min-height: 20px;
+    text-align: center;
+    transition: opacity 0.3s ease;
+}
+
+.scramble-feedback.hidden {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+#scramble-target {
+    transition: all 0.3s ease;
+    display: inline-block; /* Needed for transform */
+}
+
+/* Streak Styles */
+.streak-counter {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 10px;
+    font-weight: bold;
+    animation: pulse 0.5s;
+}
+
+.streak-fire {
+    margin-left: 5px;
+    color: #FF5722;
+}
+
+/* Timer Styles */
+.timer-container {
+    margin: 10px 0;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.timer-bar {
+    height: 100%;
+    background: #4CAF50;
+    width: 100%;
+    transition: width 1s linear;
+}
+
+.timer-critical {
+    background: #F44336;
+    animation: pulse 0.5s infinite;
+}
+
+/* Reward System */
+.reward-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(76, 175, 80, 0.9);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transform: translateX(200%);
+    transition: transform 0.3s ease-out;
+}
+
+.reward-notification.show {
+    transform: translateX(0);
+}
+
+.reward-notification .reward-amount {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* Challenge Modes */
+.challenge-mode {
+    border: 2px solid #FF9800;
+    position: relative;
+}
+
+.challenge-badge {
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: #FF9800;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* Timer Styles - Always Visible */
+.timer-container {
+    margin: 10px 0;
+    height: 8px; /* Slightly thicker */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    display: block; /* Always visible */
+}
+
+.timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    width: 100%;
+    transition: width 1s linear;
+}
+
+.timer-critical {
+    background: linear-gradient(90deg, #F44336, #FF9800);
+    animation: pulse 0.5s infinite;
+}
+
+.timer-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.timer-value {
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.timer-critical .timer-value {
+    animation: timeWarning 0.8s infinite;
+    color: #FF5722;
+    font-weight: bold;
+}
+
+@keyframes timeWarning {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .scramble-tile {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+    
+    .puzzle-meta {
+        gap: 0.6rem;
+        font-size: 0.9rem;
+    }
+
+    .scramble-operators {
+        gap: 0.8rem;
+    }
+    
+    .scramble-operators .btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .scramble-tile {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+    
+    .puzzle-meta {
+        gap: 0.4rem;
+        font-size: 0.85rem;
+    }
+    
+    .scramble-buttons {
+        gap: 0.5rem;
+    }
+
+    .scramble-operators {
+        gap: 0.6rem;
+    }
+    
+    .scramble-operators .btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+    }
+}

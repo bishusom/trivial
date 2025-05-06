@@ -1,0 +1,42 @@
+<link rel="stylesheet" href="/styles/number-puzzle/guess.css">
+<div class="card puzzle-card">
+    
+    <div class="puzzle-header">
+        <h2>Classic Number Puzzle</h2>
+        <div class="puzzle-meta">
+            <span id="puzzle-attempts">Attempts left: 5</span>
+            <span id="puzzle-hint">Hint: It's between 1 and 100</span>
+        </div>
+    </div>
+    
+    <div class="puzzle-body">
+        <div class="guess-history" id="guess-history"></div>
+        <div class="guess-input">
+            <input type="number" id="number-guess" min="1" max="100" placeholder="Enter your guess">
+            <button id="submit-guess" class="btn primary">Submit</button>
+        </div>
+        <div class="puzzle-feedback" id="puzzle-feedback"></div>
+    </div>
+    
+    <div class="progress-container">
+        <div class="stats-row">
+            <span class="stat-box">Level: <span id="current-level">1</span></span>
+            <span class="stat-box">Streak: <span id="current-streak">0</span></span>
+            <span class="stat-box">Points: <span id="current-points">0</span></span>
+            <span class="stat-box">Time: <span id="current-time">0</span>s</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+    
+    <div class="challenge-banner hidden" id="challenge-banner">
+        <h3>CHALLENGE MODE</h3>
+        <p id="challenge-description"></p>
+    </div>
+
+    <div class="puzzle-footer">
+        <button id="new-puzzle" class="btn secondary">New Puzzle</button>
+        <button id="puzzle-hint-btn" class="btn secondary">Get Hint</button>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+<link rel="stylesheet" href="/styles/word-game/classic.css">
+<div class="card word-game-screen">
+    <div id="word-game-container" class="card word-game-card">
+        <div class="word-game-header">
+            <h2>Word Guess Challenge</h2>
+            <button id="cwg-mute-btn" class="btn icon-btn">
+                <span class="material-icons">volume_up</span>
+            </button>
+            <div class="word-game-meta">
+                <span id="word-attempts">Attempts left: 6</span>
+                <span id="word-timer">1:00</span>
+                <span id="word-score">Score: 0</span>
+            </div>
+        </div>
+        
+        <div class="difficulty-selector">
+            <button class="btn difficulty-btn easy">Easy</button>
+            <button class="btn difficulty-btn medium active">Medium</button>
+            <button class="btn difficulty-btn hard">Hard</button>
+        </div>
+        
+        <div id="word-display" class="word-display"></div>
+        
+        <div class="word-game-body">
+            <div id="word-results" class="guess-history"></div>
+            <div class="guess-input">
+                <button id="start-word-game" class="btn primary">New Game</button>
+            </div>
+            <div id="word-feedback" class="word-feedback"></div>
+        </div>
+        
+        <div class="word-game-footer">
+            <button id="hint-btn" class="btn secondary">Get Hint</button>
+            <button id="new-word" class="btn secondary">Restart</button>
+        </div>
+    </div>
+</div>

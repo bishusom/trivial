@@ -1,0 +1,5 @@
+[
+    {"word": "apple", "category": "Fruit", "hint": "Common fruit"},
+    {"word": "banana", "category": "Fruit", "hint": "Yellow fruit"},
+    {"word": "computer", "category": "Technology", "hint": "Electronic device"}
+  ]

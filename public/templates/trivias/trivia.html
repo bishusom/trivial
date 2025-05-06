@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Quiz Game</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="/styles/trivias/trivia.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="screen game-screen active">
+            <div class="game-header">
+                <div class="score-box">
+                    <span class="material-icons">emoji_events</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="timer-box hidden" id="timer-container">
+                    <span class="material-icons">timer</span>
+                    <span id="question-timer">60</span>
+                </div>
+                <div class="timer-box hidden" id="total-timer-container">
+                    <span class="material-icons">hourglass_empty</span>
+                    <span id="total-timer">10:00</span>
+                </div>
+                <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">volume_up</span>
+                </button>
+                <button id="settings-btn" class="btn icon-btn" aria-label="Open settings">
+                    <span class="material-icons">settings</span>
+                </button>
+            </div>
+            <div class="question-container">
+                <div id="question"></div>
+                <div class="options-grid" id="options"></div>
+            </div>
+            <div class="game-footer">
+                <button id="next-btn" class="btn primary">
+                    Next Question
+                    <span class="material-icons">arrow_forward</span>
+                </button>
+            </div>
+            <div id="settings-panel" class="settings-panel hidden">
+                <div class="settings-content">
+                    <h3>Game Settings</h3>
+                    <div class="setting">
+                        <label>Quiz Mode:</label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="timed-mode">
+                            <span class="slider"></span>
+                        </div>
+                        <span id="mode-label">Non-Timed</span>
+                    </div>
+                    <button id="save-settings-btn" class="btn primary">Save</button>
+                    <button id="close-settings-btn" class="btn secondary">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen summary-screen">
+            <div class="card performance-card compact">
+                <h2>Game Report</h2>
+                <div class="stats-row">
+                    <div class="stat-item correct">
+                        <span class="material-icons">check_circle</span>
+                        <div><h3 id="correct-count">0/10</h3><small>Correct</small></div>
+                    </div>
+                    <div class="stat-item time">
+                        <span class="material-icons">timer</span>
+                        <div><h3 id="time-used">N/A</h3><small>Time</small></div>
+                    </div>
+                </div>
+                <div class="performance-message" id="result-message"></div>
+                <button class="btn primary" id="restart-btn">
+                    <span class="material-icons">replay</span>Play Again
+                </button>
+            </div>
+            <div class="highscores">
+                <h3>High Scores</h3>
+                <div id="highscores-list"></div>
+            </div>
+        </div>
+
+        <div id="nav-warning-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Game in Progress</h3>
+                <p>You have an active game. What would you like to do?</p>
+                <div class="modal-actions">
+                    <button id="continue-game" class="btn secondary">Continue Playing</button>
+                    <button id="end-game" class="btn danger">End Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/scripts/trivias/trivia.js"></script>
+</body>
+</html>

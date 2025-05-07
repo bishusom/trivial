@@ -6,6 +6,55 @@ export function initTriviaCatalog() {
     setupEvents();
 }
 
+// Add smooth scrolling behavior for mobile
+function initCarouselScroll() {
+    const carousel = document.querySelector('.carousel-wrapper');
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    carousel.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - carousel.offsetLeft;
+        scrollLeft = carousel.scrollLeft;
+    });
+
+    carousel.addEventListener('mouseleave', () => {
+        isDown = false;
+    });
+
+    carousel.addEventListener('mouseup', () => {
+        isDown = false;
+    });
+
+    carousel.addEventListener('mousemove', (e) => {
+        if(!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 2;
+        carousel.scrollLeft = scrollLeft - walk;
+    });
+
+    // Touch support
+    carousel.addEventListener('touchstart', (e) => {
+        isDown = true;
+        startX = e.touches[0].pageX - carousel.offsetLeft;
+        scrollLeft = carousel.scrollLeft;
+    });
+
+    carousel.addEventListener('touchend', () => {
+        isDown = false;
+    });
+
+    carousel.addEventListener('touchmove', (e) => {
+        if(!isDown) return;
+        e.preventDefault();
+        const x = e.touches[0].pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 2;
+        carousel.scrollLeft = scrollLeft - walk;
+    });
+}
+
 function setupCarousel() {
     const wrapper = document.querySelector('.carousel-wrapper');
     const track = document.querySelector('.carousel-track');
@@ -20,6 +69,11 @@ function setupCarousel() {
             left: direction * scrollAmount,
             behavior: 'smooth'
         });
+    }
+
+    // Initialize mobile touch scrolling only on mobile
+    if (window.matchMedia('(max-width: 768px)').matches) {
+        initCarouselScroll();
     }
 
     leftArrow?.addEventListener('click', () => scroll(-1));
@@ -77,13 +131,4 @@ function updateProgressTracker() {
     
     const message = messages.reverse().find(m => gamesPlayed >= m.threshold)?.text || messages[0].text;
     document.getElementById('progress-message').textContent = message;
-}
-
-function setupEvents() {
-    document.querySelector('#mute-btn')?.addEventListener('click', () => {
-        const isMuted = !JSON.parse(localStorage.getItem('triviaMasterMuteState') || 'false');
-        localStorage.setItem('triviaMasterMuteState', isMuted);
-        const icon = document.querySelector('#mute-btn .material-icons');
-        if (icon) icon.textContent = isMuted ? 'volume_off' : 'volume_up';
-    });
 }

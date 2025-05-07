@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="/styles/word-game/classic.css">
-<div class="card word-game-screen">
+<div class="card puzzle-card">
     <div id="word-game-container" class="card word-game-card">
         <div class="word-game-header">
             <h2>Word Guess Challenge</h2>
@@ -13,10 +13,9 @@
             </div>
         </div>
         
-        <div class="difficulty-selector">
-            <button class="btn difficulty-btn easy">Easy</button>
-            <button class="btn difficulty-btn medium active">Medium</button>
-            <button class="btn difficulty-btn hard">Hard</button>
+        <div class="difficulty-display">
+            <span id="current-difficulty">Difficulty: Easy</span>
+            <span id="progress-display">Progress: 0/5</span>
         </div>
         
         <div id="word-display" class="word-display"></div>

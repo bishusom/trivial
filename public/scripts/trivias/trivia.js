@@ -65,7 +65,8 @@ const els = {
     highscoresList: () => document.getElementById('highscores-list'),
     resultMessage: () => document.getElementById('result-message'),
     correctCount: () => document.getElementById('correct-count'),
-    timeUsed: () => document.getElementById('time-used')
+    timeUsed: () => document.getElementById('time-used'),
+    questionCounter: () => document.getElementById('question-counter')
 };
 
 const timers = { quick: 30, long: 60 };
@@ -93,7 +94,8 @@ let state = {
     usedQuestions: new Set(),
     fbUsedQuestions: JSON.parse(localStorage.getItem('fbUsedQuestions') || '[]'),
     fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds') || '[]'),
-    isTimedMode: false // Default to non-timed
+    isTimedMode: false,
+    timerDuration: 'long'
 };
 
 const QUIZ_TYPES = { WEEKLY: 'weekly', MONTHLY: 'monthly' };
@@ -152,6 +154,8 @@ function stopAllSounds() {
 
 function loadMuteState() {
     state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState') || 'false');
+    state.isTimedMode = JSON.parse(localStorage.getItem('triviaMasterTimedMode') || 'false');
+    state.timerDuration = localStorage.getItem('triviaMasterTimerDuration') || 'long';
     const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
     if (muteBtnIcon) {
         muteBtnIcon.textContent = state.isMuted ? 'volume_off' : 'volume_up';
@@ -299,8 +303,8 @@ function toInitCaps(str) {
 }
 
 function updateTimerUI() {
-    state.timeLeft = state.isTimedMode ? timers.long : null;
-    state.totalTime = state.isTimedMode ? 10 * state.timeLeft : null;
+    state.timeLeft = state.isTimedMode ? timers[state.timerDuration] : null;
+    state.totalTime = state.isTimedMode ? state.selectedQuestions * state.timeLeft : null;
     const questionTimerParent = els.questionTimer()?.parentElement;
     const totalTimerParent = els.totalTimer()?.parentElement;
     if (state.isTimedMode) {
@@ -324,10 +328,10 @@ export function initTriviaGame(category) {
     state.answers = [];
     state.isScoreSaved = false;
     state.isNextPending = false;
-    state.isTimedMode = false; // Default to non-timed
     updateTimerUI();
     els.score().textContent = '0';
     loadMuteState();
+    setupEvents(); // Moved here as it worked
     fetchQuestions(category).then(questions => {
         state.questions = questions;
         const quizContainer = document.querySelector('.quiz-container');
@@ -356,14 +360,18 @@ function showQuestion() {
     els.question().classList.remove('correct-bg', 'wrong-bg');
     const q = state.questions[state.current];
     if (!q) return endGame();
+    const displayCategory = q.category === 'general knowledge' ? 'General Knowledge' : toInitCaps(q.category);
     els.question().innerHTML = `
         <div class="question-text">${q.question}</div>
         <div class="question-meta">
-            <div class="question-category">${toInitCaps(q.category)}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+            <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
             ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
         </div>
     `;
     els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
+    if (els.questionCounter()) {
+        els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
+    }
     toggleClass(els.game(), 'add', 'active');
     toggleClass(els.summary(), 'remove', 'active');
     els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';
@@ -378,11 +386,11 @@ function setupOptionEvents() {
         console.error('Options container (#options) not found in DOM');
         return;
     }
-    console.log('Setting up option button events for #options');
     optionsContainer.querySelectorAll('button').forEach(button => {
-        button.removeEventListener('click', handleOptionClick); // Prevent duplicate listeners
+        button.removeEventListener('click', handleOptionClick);
         button.addEventListener('click', handleOptionClick);
     });
+    els.nextBtn().classList.remove('visible');
 }
 
 function handleOptionClick(e) {
@@ -395,8 +403,8 @@ function startTimer() {
     clearInterval(state.timerId);
     clearInterval(state.totalTimerId);
     if (state.isTimedMode) {
-        state.timeLeft = timers.long;
-        state.totalTime = 10 * state.timeLeft;
+        state.timeLeft = timers[state.timerDuration];
+        state.totalTime = state.selectedQuestions * state.timeLeft;
         els.questionTimer().textContent = state.timeLeft;
         els.totalTimer().textContent = `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}`;
         state.timerId = setInterval(() => {
@@ -410,7 +418,7 @@ function startTimer() {
             if (--state.totalTime <= 0) clearInterval(state.totalTimerId);
             els.totalTimer().textContent = `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}`;
         }, 1000);
-        playSound('tick');
+        if (!state.isMuted) playSound('tick');
     } else {
         els.questionTimer().textContent = 'N/A';
         els.totalTimer().textContent = 'N/A';
@@ -425,7 +433,6 @@ function handleTimeout() {
 }
 
 function checkAnswer(correct) {
-    console.log('Checking answer, correct:', correct, 'current question:', state.current, 'total questions:', state.selectedQuestions);
     stopSound('tick');
     playSound(correct ? 'correct' : 'wrong');
     state.answers.push({ correct });
@@ -449,20 +456,14 @@ function checkAnswer(correct) {
         `;
     }
     if (state.current < state.selectedQuestions - 1) {
-        console.log('Showing next button, setting isNextPending to true');
         els.nextBtn().classList.add('visible');
         state.isNextPending = true;
         if (state.isTimedMode) {
-            console.log('Scheduling auto-advance in 2000ms');
             setTimeout(() => {
-                if (state.isNextPending) {
-                    console.log('Auto-advancing to next question');
-                    handleNextQuestion();
-                }
+                if (state.isNextPending) handleNextQuestion();
             }, 2000);
         }
     } else {
-        console.log('Last question answered, ending game in 1000ms');
         setTimeout(endGame, 1000);
     }
 }
@@ -551,7 +552,7 @@ function restartGame() {
 
 async function showSummary(globalHigh) {
     console.log('Starting showSummary, globalHigh:', globalHigh);
-    const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers.long - state.totalTime) : 0;
+    const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.totalTime) : 0;
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = state.questions[0]?.category || 'General Knowledge';
     
@@ -613,7 +614,7 @@ async function showSummary(globalHigh) {
     
     const restartBtn = document.getElementById('restart-btn');
     if (restartBtn) {
-        restartBtn.removeEventListener('click', restartGame); // Prevent duplicate listeners
+        restartBtn.removeEventListener('click', restartGame);
         restartBtn.addEventListener('click', restartGame);
         console.log('Restart button event listener set');
     } else {
@@ -667,8 +668,6 @@ async function updateHighScores() {
 }
 
 function setupEvents() {
-    console.log('Setting up trivia game events');
-    
     const nextBtn = document.getElementById('next-btn');
     if (nextBtn) {
         nextBtn.addEventListener('click', handleNextQuestion);
@@ -689,32 +688,48 @@ function setupEvents() {
         });
     }
 
-    // Settings button and panel events
     const settingsBtn = document.getElementById('settings-btn');
     const settingsPanel = document.getElementById('settings-panel');
     const timedModeToggle = document.getElementById('timed-mode');
     const modeLabel = document.getElementById('mode-label');
     const saveSettingsBtn = document.getElementById('save-settings-btn');
     const closeSettingsBtn = document.getElementById('close-settings-btn');
+    const timerDurationSelect = document.getElementById('timer-duration');
 
     if (settingsBtn && settingsPanel) {
         settingsBtn.addEventListener('click', () => {
             toggleClass(settingsPanel, 'remove', 'hidden');
-            // Initialize toggle state
-            timedModeToggle.checked = state.isTimedMode;
-            modeLabel.textContent = state.isTimedMode ? 'Timed' : 'Non-Timed';
+            if (timedModeToggle) timedModeToggle.checked = state.isTimedMode;
+            if (modeLabel) modeLabel.textContent = state.isTimedMode ? 'Timed' : 'Non-Timed';
+            if (timerDurationSelect) {
+                timerDurationSelect.value = state.timerDuration;
+                timerDurationSelect.parentElement.style.display = state.isTimedMode ? 'flex' : 'none';
+            }
+        });
+    }
+
+    if (timedModeToggle) {
+        timedModeToggle.addEventListener('change', () => {
+            console.log('Timed mode toggled to:', timedModeToggle.checked);
+            modeLabel.textContent = timedModeToggle.checked ? 'Timed' : 'Non-Timed';
+            if (timerDurationSelect) {
+                timerDurationSelect.parentElement.style.display = timedModeToggle.checked ? 'flex' : 'none';
+            }
         });
     }
 
     if (saveSettingsBtn) {
         saveSettingsBtn.addEventListener('click', () => {
-            const newTimedMode = timedModeToggle.checked;
-            if (newTimedMode !== state.isTimedMode) {
+            const newTimedMode = timedModeToggle ? timedModeToggle.checked : state.isTimedMode;
+            const newTimerDuration = timerDurationSelect ? timerDurationSelect.value : state.timerDuration;
+            if (newTimedMode !== state.isTimedMode || newTimerDuration !== state.timerDuration) {
                 state.isTimedMode = newTimedMode;
-                localStorage.setItem('triviaMasterTimedMode', newTimedMode);
+                state.timerDuration = newTimerDuration;
+                localStorage.setItem('triviaMasterTimedMode', state.isTimedMode);
+                localStorage.setItem('triviaMasterTimerDuration', state.timerDuration);
+                state.current = 0;
                 updateTimerUI();
-                // Restart game to apply new mode
-                restartGame();
+                showQuestion();
             }
             toggleClass(settingsPanel, 'add', 'hidden');
         });
@@ -739,7 +754,6 @@ function setupStartQuizListener() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('trivia.js DOMContentLoaded');
-    setupEvents();
     setupStartQuizListener();
     loadMuteState();
     if (window.location.pathname.includes('catalog.html')) return;

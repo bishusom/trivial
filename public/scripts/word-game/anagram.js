@@ -25,6 +25,8 @@ export function initWordGame() {
     let foundWords = [];
     let score = 0;
     let allPossibleWords = [];
+    let usedBaseWords = [];
+    let autoStartTimeout = null;
     
     // DOM elements
     const scrambledLettersEl = document.getElementById('scrambled-letters');
@@ -34,128 +36,15 @@ export function initWordGame() {
     const shuffleBtn = document.getElementById('anagram-shuffle');
     const newBtn = document.getElementById('anagram-new');
     const hintBtn = document.getElementById('anagram-hint');
+    const revealBtn = document.getElementById('anagram-reveal'); // New: Reveal button
     const feedbackEl = document.getElementById('anagram-feedback');
     const targetEl = document.getElementById('anagram-target');
     const scoreEl = document.getElementById('anagram-score');
     const solutionsList = document.getElementById('solutions-list');
     
-    // Initialize the game
-    initGame();
-    
-    async function debugFirestore() {
-        try {
-          const wordsRef = collection(db, "dictionary");
-          const snapshot = await getDocs(wordsRef);
-          console.log("Total documents:", snapshot.size);
-          snapshot.forEach(doc => {
-            console.log("Document:", doc.id, "=>", doc.data());
-          });
-        } catch (error) {
-          console.error("Debug error:", error);
-        }
-      }
-
-    async function initGame() {
-        try {
-            //debugFirestore();
-            // Fetch a random 7-8 letter word from Firestore
-            const wordsRef = collection(db, "dictionary");
-            const q = query(
-                wordsRef, 
-                where("length","==", 8),
-                where("isCommon", "==", true),
-                limit(5)
-            );
-            
-            const querySnapshot = await getDocs(q);
-            const wordList = [];
-            
-            querySnapshot.forEach((doc) => {
-                wordList.push(doc.data().word.toUpperCase());
-            });
-            
-            if (wordList.length === 0) {
-                throw new Error("No words found in database");
-            }
-            
-            // Select a random word from the fetched list
-            baseWord = wordList[Math.floor(Math.random() * wordList.length)];
-            scrambledLetters = scrambleWord(baseWord).split('');
-            foundWords = [];
-            score = 0;
-            currentWord = [];
-            
-            // Generate all possible words
-            allPossibleWords = await generatePossibleWords(baseWord);
-            console.log('All possible words:', allPossibleWords);
-            
-            // Update UI
-            renderLetters();
-            updateCurrentAttempt();
-            updateFoundWords();
-            targetEl.textContent = `Word Length: ${baseWord.length}`;
-            scoreEl.textContent = `Score: ${score}`;
-            feedbackEl.textContent = '';
-            feedbackEl.className = 'anagram-feedback';
-            
-        } catch (error) {
-            console.error("Error initializing game:", error);
-            // Fallback to local word list
-            const localWordList = [
-                'CREATION', 'REACTION', 'EDUCATION', 'GENERATE', 
-                'TEAMWORK', 'NOTEBOOK', 'KEYBOARD', 'MONITOR'
-            ];
-            baseWord = localWordList[Math.floor(Math.random() * localWordList.length)];
-            scrambledLetters = scrambleWord(baseWord).split('');
-            foundWords = [];
-            score = 0;
-            currentWord = [];
-            allPossibleWords = generateLocalPossibleWords(baseWord);
-            
-            // Update UI with fallback word
-            renderLetters();
-            updateCurrentAttempt();
-            updateFoundWords();
-            targetEl.textContent = `Word Length: ${baseWord.length}`;
-            scoreEl.textContent = `Score: ${score}`;
-            feedbackEl.textContent = '';
-            feedbackEl.className = 'anagram-feedback';
-        }
-    }
-    
+    // Helper functions
     function scrambleWord(word) {
         return word.split('').sort(() => Math.random() - 0.5).join('');
-    }
-    
-    async function generatePossibleWords(baseWord) {
-        try {
-            const wordsRef = collection(db, "dictionary");
-            const q = query(
-                wordsRef,
-                where("letters", "array-contains", baseWord[0]),
-                where("length", "<=", baseWord.length),
-                where("length", ">=", 3)
-            );
-            
-            const querySnapshot = await getDocs(q);
-            const possibleWords = new Set();
-            
-            // Add the base word
-            possibleWords.add(baseWord);
-            
-            querySnapshot.forEach((doc) => {
-                const word = doc.data().word.toUpperCase();
-                if (canFormWord(baseWord, word)) {
-                    possibleWords.add(word);
-                }
-            });
-            
-            return Array.from(possibleWords) || [];
-            
-        } catch (error) {
-            console.error("Error fetching possible words:", error);
-            return generateLocalPossibleWords(baseWord);
-        }
     }
     
     function canFormWord(baseWord, word) {
@@ -180,6 +69,130 @@ export function initWordGame() {
         });
         
         return Array.from(words);
+    }
+    
+    async function generatePossibleWords(baseWord) {
+        try {
+            const wordsRef = collection(db, "dictionary");
+            const q = query(
+                wordsRef,
+                where("letters", "array-contains", baseWord[0]),
+                where("length", "<=", baseWord.length),
+                where("length", ">=", 3)
+            );
+            
+            const querySnapshot = await getDocs(q);
+            const possibleWords = new Set();
+            
+            possibleWords.add(baseWord);
+            
+            querySnapshot.forEach((doc) => {
+                const word = doc.data().word.toUpperCase();
+                if (canFormWord(baseWord, word)) {
+                    possibleWords.add(word);
+                }
+            });
+            
+            return Array.from(possibleWords) || [];
+            
+        } catch (error) {
+            console.error("Error fetching possible words:", error);
+            return generateLocalPossibleWords(baseWord);
+        }
+    }
+    
+    async function debugFirestore() {
+        try {
+            const wordsRef = collection(db, "dictionary");
+            const snapshot = await getDocs(wordsRef);
+            console.log("Total documents:", snapshot.size);
+            snapshot.forEach(doc => {
+                console.log("Document:", doc.id, "=>", doc.data());
+            });
+        } catch (error) {
+            console.error("Debug error:", error);
+        }
+    }
+    
+    async function initGame() {
+        try {
+            if (autoStartTimeout) {
+                clearTimeout(autoStartTimeout);
+                autoStartTimeout = null;
+            }
+            
+            const wordsRef = collection(db, "dictionary");
+            const q = query(
+                wordsRef, 
+                where("length", "==", 8),
+                where("isCommon", "==", true),
+                limit(10)
+            );
+            
+            const querySnapshot = await getDocs(q);
+            let wordList = [];
+            
+            querySnapshot.forEach((doc) => {
+                const word = doc.data().word.toUpperCase();
+                if (!usedBaseWords.includes(word)) {
+                    wordList.push(word);
+                }
+            });
+            
+            if (wordList.length === 0) {
+                throw new Error("No unused words found in database");
+            }
+            
+            baseWord = wordList[Math.floor(Math.random() * wordList.length)];
+            usedBaseWords.push(baseWord);
+            scrambledLetters = scrambleWord(baseWord).split('');
+            foundWords = [];
+            score = 0;
+            currentWord = [];
+            
+            allPossibleWords = await generatePossibleWords(baseWord);
+            console.log('All possible words:', allPossibleWords);
+            
+            renderLetters();
+            updateCurrentAttempt();
+            updateFoundWords();
+            targetEl.textContent = `Word Length: ${baseWord.length}`;
+            scoreEl.textContent = `Score: ${score}`;
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'anagram-feedback';
+            
+        } catch (error) {
+            console.error("Error initializing game:", error);
+            const localWordList = [
+                'CREATION', 'REACTION', 'EDUCATION', 'GENERATE', 
+                'TEAMWORK', 'NOTEBOOK', 'KEYBOARD', 'MONITOR'
+            ].filter(word => !usedBaseWords.includes(word));
+            
+            if (localWordList.length === 0) {
+                console.warn("No unused words available in fallback list. Resetting used words.");
+                usedBaseWords = [];
+                localWordList.push(...[
+                    'CREATION', 'REACTION', 'EDUCATION', 'GENERATE', 
+                    'TEAMWORK', 'NOTEBOOK', 'KEYBOARD', 'MONITOR'
+                ]);
+            }
+            
+            baseWord = localWordList[Math.floor(Math.random() * localWordList.length)];
+            usedBaseWords.push(baseWord);
+            scrambledLetters = scrambleWord(baseWord).split('');
+            foundWords = [];
+            score = 0;
+            currentWord = [];
+            allPossibleWords = generateLocalPossibleWords(baseWord);
+            
+            renderLetters();
+            updateCurrentAttempt();
+            updateFoundWords();
+            targetEl.textContent = `Word Length: ${baseWord.length}`;
+            scoreEl.textContent = `Score: ${score}`;
+            feedbackEl.textContent = '';
+            feedbackEl.className = 'anagram-feedback';
+        }
     }
     
     function renderLetters() {
@@ -236,6 +249,14 @@ export function initWordGame() {
             updateFoundWords();
             scoreEl.textContent = `Score: ${score}`;
             clearCurrentAttempt();
+            
+            if (autoStartTimeout) {
+                clearTimeout(autoStartTimeout);
+            }
+            autoStartTimeout = setTimeout(() => {
+                initGame();
+                autoStartTimeout = null;
+            }, 2500);
         } else {
             showFeedback('error', 'Not a valid word');
         }
@@ -268,6 +289,17 @@ export function initWordGame() {
         }
     }
     
+    function revealWord() {
+        showFeedback('info', `The word was: ${baseWord}`);
+        if (autoStartTimeout) {
+            clearTimeout(autoStartTimeout);
+        }
+        autoStartTimeout = setTimeout(() => {
+            initGame();
+            autoStartTimeout = null;
+        }, 2500);
+    }
+    
     function updateFoundWords() {
         solutionsList.innerHTML = '';
         foundWords.sort((a, b) => b.length - a.length).forEach(word => {
@@ -289,4 +321,8 @@ export function initWordGame() {
     shuffleBtn.addEventListener('click', shuffleLetters);
     newBtn.addEventListener('click', initGame);
     hintBtn.addEventListener('click', showHint);
+    revealBtn.addEventListener('click', revealWord); // New: Reveal button listener
+    
+    // Start the game
+    initGame();
 }

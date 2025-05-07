@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const setupScreen = document.querySelector('.setup-screen');
-    const highScores = document.querySelector('.highscores');
     const dynamicContent = document.getElementById('dynamic-content');
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
@@ -74,6 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        if (hamburger && navMenu) {
+            hamburger.addEventListener('click', () => {
+                const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+                hamburger.setAttribute('aria-expanded', !isExpanded);
+                navMenu.classList.toggle('active');
+                hamburger.querySelector('.material-icons').textContent = isExpanded ? 'menu' : 'close';
+            });
+        }
+
         const link = e.target.closest('a[href]');
         if (!link) return;
 
@@ -114,6 +122,70 @@ document.addEventListener('DOMContentLoaded', () => {
             handleRouting(path);
         }
     });
+
+    document.querySelectorAll('.submenu-toggle').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            if (window.innerWidth > 768) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const submenu = e.target.closest('.submenu');
+            const isActive = submenu.classList.contains('active');
+            
+            // Close all other submenus first
+            document.querySelectorAll('.submenu').forEach(sm => {
+                if (sm !== submenu) {
+                    sm.classList.remove('active');
+                }
+            });
+            
+            // Toggle current submenu
+            submenu.classList.toggle('active');
+        });
+    });
+
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                const dropdown = this.closest('.dropdown');
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown').forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.remove('active');
+                        d.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+                    }
+                });
+                
+                // Toggle current dropdown
+                dropdown.classList.toggle('active');
+                this.setAttribute('aria-expanded', !isExpanded);
+            }
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown') && window.innerWidth <= 768) {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+                dropdown.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+            });
+        }
+    });
+
+    const navClose = document.querySelector('.nav-close');
+    if (navClose && navMenu) {
+        navClose.addEventListener('click', () => {
+            navMenu.classList.remove('active');
+            hamburger.setAttribute('aria-expanded', 'false');
+            hamburger.querySelector('.material-icons').textContent = 'menu';
+            navClose.style.display = 'none';
+            hamburger.style.display = 'block';
+        });
+    }
 
     window.addEventListener('popstate', () => {
         if (!isRouting) {
@@ -161,24 +233,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (path === currentPath) return;
         currentPath = path;
         path = path === '/' ? '/home' : path.replace(/\/$/, '');
-        
+    
+        // Track navigation event with Google Analytics
+        const pathParts = path.split('/').filter(part => part);
+        const baseRoute = pathParts.length > 0 ? `/${pathParts[0]}` : '/home';
+        let eventCategory = '';
+        let eventLabel = path;
+    
+        if (path === '/home') {
+            eventCategory = 'Page View';
+            eventLabel = 'Home';
+        } else if (path.includes('/privacy')) {
+            eventCategory = 'Page View';
+            eventLabel = 'Privacy Policy';
+        } else if (path.includes('/contact')) {
+            eventCategory = 'Page View';
+            eventLabel = 'Contact Us';
+        } else if (path.startsWith('/trivias')) {
+            eventCategory = 'Trivia';
+            eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Trivia Catalog';
+        } else if (path.startsWith('/number-puzzle')) {
+            eventCategory = 'Number Puzzle';
+            eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Number Puzzle Catalog';
+        } else if (path.startsWith('/word-game')) {
+            eventCategory = 'Word Game';
+            eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Word Game Catalog';
+        }
+    
+        // Send gtag event
+        if (window.gtag) {
+            window.gtag('event', 'navigate', {
+                event_category: eventCategory,
+                event_label: eventLabel,
+                path: path
+            });
+        }
+    
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
-
+    
         const validChildren = {
             '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts', 'animals', 'science', 'history', 'geography', 'movies', 'tv-web-series', 'music', 'celebrities', 'politics', 'food', 'sports', 'business', 'mythology', 'catalog'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'catalog']
         };
-        const pathParts = path.split('/').filter(part => part);
-        const baseRoute = pathParts.length > 0 ? `/${pathParts[0]}` : '/home';
-
+    
         if (validChildren[baseRoute] && pathParts.length === 1) {
             showHomeScreen();
             return;
         }
-
+    
         if (path.includes('/privacy')) {
             await loadTemplate('/templates/privacy.html', dynamicContent);
         } else if (path.includes('/contact')) {

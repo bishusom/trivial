@@ -200,8 +200,8 @@
 
 @media (max-width: 480px) {
     .honeycomb {
-        width: 180px;
-        height: 180px;
+        width: 160px;
+        height: 160px;
     }
     
     .hexagon {
@@ -212,14 +212,5 @@
     
     .current-word {
         font-size: 1.3rem;
-    }
-
-    .spelling-controls {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .spelling-controls .btn {
-        width: 100%;
     }
 }

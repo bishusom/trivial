@@ -1,30 +1,28 @@
 <link rel="stylesheet" href="/styles/number-puzzle/sequence.css">
-<div class="screen active" id="number-sequence-screen">
-    <div class="puzzle-card">
-        <div class="puzzle-header">
-            <h2>Guess The Number In Sequence</h2>
-            <div class="puzzle-meta">
-                <span id="sequence-level">Level: 1</span>
-                <span id="sequence-score">Score: 0</span>
-            </div>
+<div class="card puzzle-card">
+    <div class="puzzle-header">
+        <h2>Guess The Number In Sequence</h2>
+        <div class="puzzle-meta">
+            <span id="sequence-level">Level: 1</span>
+            <span id="sequence-score">Score: 0</span>
         </div>
+    </div>
+    
+    <div class="puzzle-body">
+        <div class="sequence-display" id="sequence-display"></div>
         
-        <div class="puzzle-body">
-            <div class="sequence-display" id="sequence-display"></div>
-            
-            <div class="sequence-options" id="sequence-options"></div>
-            
-            <div class="sequence-feedback" id="sequence-feedback"></div>
-            
-            <div class="sequence-hint-area">
-                <button class="btn secondary" id="sequence-hint">Get Hint</button>
-                <div class="hint-text" id="hint-text"></div>
-            </div>
-        </div>
+        <div class="sequence-options" id="sequence-options"></div>
         
-        <div class="puzzle-footer">
-            <button class="btn secondary" id="sequence-next">Next Sequence</button>
-            <button class="btn secondary" id="sequence-new">New Game</button>
+        <div class="sequence-feedback" id="sequence-feedback"></div>
+        
+        <div class="sequence-hint-area">
+            <button class="btn secondary" id="sequence-hint">Get Hint</button>
+            <div class="hint-text" id="hint-text"></div>
         </div>
+    </div>
+    
+    <div class="puzzle-footer">
+        <button class="btn secondary" id="sequence-next">Next Sequence</button>
+        <button class="btn secondary" id="sequence-new">New Game</button>
     </div>
 </div>

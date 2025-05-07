@@ -34,6 +34,7 @@ body {
     background: var(--card-bg);
     border-radius: 15px;
     padding: 20px;
+    padding-top: 80px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -213,26 +214,15 @@ input:checked + .slider:before {
 .game-header {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.score-box, .timer-box {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Game Screen */
-.game-screen {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.game-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+.game-screen .game-header { 
+    position: relative; 
+    padding-top: 70px; 
 }
 
 .score-box, .timer-box {
@@ -240,8 +230,9 @@ input:checked + .slider:before {
     padding: 1rem 2rem;
     border-radius: 50px;
     display: inline-flex;
+    align-items: center;
     gap: 1rem;
-    margin: 1rem 0;
+    margin: 0;
 }
 
 .icon-btn {
@@ -255,6 +246,21 @@ input:checked + .slider:before {
     align-items: center;
     justify-content: center;
     font-weight: normal;
+    transition: background 0.2s;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.game-header .icon-btn {
+    padding: 0;
+    border-radius: 50%;
+    background: #d8d8d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
     transition: background 0.2s;
 }
 
@@ -703,17 +709,7 @@ input:checked + .slider:before {
 }
 
 /* Settings Panel */
-.settings-panel:not(.hidden)::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 1998;
-}
-
+/* Add or update in .settings-panel */
 .settings-panel {
     position: fixed;
     top: 50%;
@@ -721,27 +717,18 @@ input:checked + .slider:before {
     transform: translate(-50%, -50%);
     max-width: 90%;
     width: 400px;
-    z-index: 1999;
+    z-index: 2000;
     display: none;
     color: var(--text);
     background: var(--card-bg);
     border-radius: 15px;
     padding: 1rem;
     box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
+    pointer-events: auto; /* Ensure panel is clickable */
 }
 
 .settings-panel:not(.hidden) {
     display: block;
-}
-
-.settings-content {
-    padding: 1rem;
-}
-
-.settings-content h3 {
-    color: var(--accent);
-    margin-bottom: 1rem;
-    text-align: center;
 }
 
 .settings-content .setting {
@@ -749,6 +736,69 @@ input:checked + .slider:before {
     align-items: center;
     gap: 10px;
     margin: 1rem 0;
+    pointer-events: auto; /* Ensure settings are clickable */
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+    pointer-events: auto; /* Ensure slider is clickable */
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    cursor: pointer;
+    z-index: 1; /* Ensure input is above slider */
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+    pointer-events: none; /* Slider itself doesn't need to handle clicks, input does */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background: var(--primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Ensure no overlay blocks clicks */
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    pointer-events: auto;
 }
 
 .settings-content .btn {
@@ -775,32 +825,22 @@ input:checked + .slider:before {
     .setup-card { max-width: 600px; }
     .featured-card { margin: 0 auto; max-width: 150px; }
     .instruction-tooltip { bottom: auto; top: 100px; z-index: 150; }
-    .category-carousel { padding: 0 2rem; }
+    .category-carousel {  margin: 0 -10px; padding: 0 2rem; }
     .scroll-indicator { padding: 0 1.5rem; }
-    .carousel-wrapper {overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-    .carousel-track { scroll-snap-type: x mandatory; }
-    .category-card, .featured-card { flex: 0 0 150px; min-width: 150px; height: 180px; scroll-snap-align: center; }
-    .category-image { width: 100px; height: 100px; }
-    .carousel-arrow { width: 32px; height: 32px; }
+    .popular-badge { font-size: 0.6rem; padding: 1px 4px; }
+    .carousel-wrapper {overflow-x: auto; -webkit-overflow-scrolling: touch; 
+                       scroll-behavior: smooth; margin: 0 10px; padding: 10px 0;}
+    .carousel-track { scroll-snap-type: x mandatory; gap: 8px;}
+    .category-card, .featured-card { flex: 0 0 130px; min-width: 150px; height: 150px; 
+                                     scroll-snap-align: center; padding: 10px; }
+    .category-image { width: 70px;; height: 70px; }
+    .category-card span { font-size: 0.8rem; }
+    .carousel-arrow { display: none; }
     .carousel-arrow .material-icons { font-size: 20px; }
     .question-meta { gap: 6px; }
     .question-category,
     .question-subcategory,
     .question-difficulty { font-size: 0.7rem; padding: 2px 6px; }
-    .contact-card { max-width: 100%; padding: 0.8rem; }
-    .contact-card h2 { font-size: 1.3rem; }
-    .contact-card input,
-    .contact-card textarea,
-    .contact-card select { padding: 0.6rem; font-size: 0.8rem; }
-    .contact-card .btn.primary { max-width: 150px; }
-    .privacy-card { max-width: 100%; padding: 0.8rem; }
-    .privacy-card h2 { font-size: 1.3rem; }
-    .privacy-card h3 { font-size: 1.1rem; }
-    .privacy-card p,
-    .privacy-card li { font-size: 0.8rem; }
-    .close-btn { width: 28px; height: 28px; }
-    .close-btn .material-icons { font-size: 18px; }
-    .puzzle-card { width: 80%; }
 }
 
 @media (max-width: 480px) {
@@ -811,19 +851,19 @@ input:checked + .slider:before {
     .score-box, .timer-box { width: 100%; text-align: center; }
     .featured-card { max-width: 250px; }
     .progress-tracker { padding: 0.6rem; }
-    #normal-timer, #quick-timer { font-size: 0.8rem; }
+     #normal-timer, #quick-timer { font-size: 0.8rem; }
     .setup-card { max-width: 100%; }
     .scroll-indicator { padding: 0 1rem; }
-    .category-card, .featured-card { flex: 0 0 110px; min-width: 110px; height: 130px; }
-    .category-image { width: 70px; height: 70px; }
+    .category-card, .featured-card { flex: 0 0 110px; min-width: 110px; height: 140px; }
+    .category-image { width: 60px; height: 60px; }
     .category-carousel { padding: 0 1.5rem; }
     .carousel-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
     .carousel-track { scroll-snap-type: x mandatory; }
     .category-card, .featured-card { flex: 0 0 120px; min-width: 120px; height: 140px; scroll-snap-align: center; }
-    .category-image { width: 80px; height: 80px; }
+    .category-image { width: 70px; height: 70px; margin-bottom: 8px;}
     .carousel-arrow { display: none; }
     .question-meta { gap: 4px; }
-    .game-screen .game-header { position: relative; padding-top: 40px; flex-direction: row;
+    .game-screen .game-header { position: relative; padding-top: 70px; flex-direction: row;
                                 justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
     .game-screen .score-box, .game-screen .timer-box { width: 48%; padding: 0.5rem; font-size: 0.9rem; margin: 0; }
     .question-category, .question-subcategory, .question-difficulty { font-size: 0.65rem; padding: 1px 5px; }

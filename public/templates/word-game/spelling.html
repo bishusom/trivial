@@ -1,53 +1,51 @@
 <link rel="stylesheet" href="/styles/word-game/spelling.css">
-<div class="card spelling-screen" id="spelling-screen">
-    <div class="card word-game-card">
-        <div class="game-header">
-            <h2>Spelling Bee</h2>
-            <div class="game-meta">
-                <span id="spelling-center-letter">Center: A</span>
-                <span id="spelling-score">Score: 0</span>
-            </div>
+<div class="card puzzle-card">
+    <div class="game-header">
+        <h2>Spelling Bee</h2>
+        <div class="game-meta">
+            <span id="spelling-center-letter">Center: A</span>
+            <span id="spelling-score">Score: 0</span>
+        </div>
+    </div>
+    
+    <div class="game-body">
+        <div class="honeycomb">
+            <div class="hexagon center-letter" id="center-letter"></div>
+            <div class="hexagon outer-letter" id="letter-0"></div>
+            <div class="hexagon outer-letter" id="letter-1"></div>
+            <div class="hexagon outer-letter" id="letter-2"></div>
+            <div class="hexagon outer-letter" id="letter-3"></div>
+            <div class="hexagon outer-letter" id="letter-4"></div>
+            <div class="hexagon outer-letter" id="letter-5"></div>
         </div>
         
-        <div class="game-body">
-            <div class="honeycomb">
-                <div class="hexagon center-letter" id="center-letter"></div>
-                <div class="hexagon outer-letter" id="letter-0"></div>
-                <div class="hexagon outer-letter" id="letter-1"></div>
-                <div class="hexagon outer-letter" id="letter-2"></div>
-                <div class="hexagon outer-letter" id="letter-3"></div>
-                <div class="hexagon outer-letter" id="letter-4"></div>
-                <div class="hexagon outer-letter" id="letter-5"></div>
-            </div>
-            
-            <div class="current-word" id="current-word"></div>
-            
-            <div class="spelling-controls">
-                <button class="btn primary" id="spelling-submit">Submit</button>
-                <button class="btn secondary" id="spelling-clear">Clear</button>
-                <button class="btn secondary" id="spelling-shuffle">Shuffle</button>
-            </div>
-            
-            <div class="spelling-feedback" id="spelling-feedback"></div>
-            
-            <div class="spelling-words">
-                <h3>Found Words</h3>
-                <div class="words-list" id="words-list"></div>
-            </div>
-            <div id="spelling-rank">Rank: Beginner</div>
-                <div id="game-over-modal">
-                    <h2>Game Over!</h2>
-                    <div id="game-over-score">Final Score: 0</div>
-                    <div id="game-over-words">Words Found: None</div>
-                    <button id="play-again-btn">Play Again</button>
-                </div>
-            </div>    
+        <div class="current-word" id="current-word"></div>
+        
+        <div class="spelling-controls">
+            <button class="btn primary" id="spelling-submit">Submit</button>
+            <button class="btn secondary" id="spelling-clear">Clear</button>
+            <button class="btn secondary" id="spelling-shuffle">Shuffle</button>
         </div>
         
-        <div class="puzzle-footer">
-            <button class="btn secondary" id="spelling-new">New Game</button>
-            <button class="btn secondary" id="spelling-hint">Hint</button>
-            <button id="spelling-give-up">Give Up</button>
+        <div class="spelling-feedback" id="spelling-feedback"></div>
+        
+        <div class="spelling-words">
+            <h3>Found Words</h3>
+            <div class="words-list" id="words-list"></div>
         </div>
+        <div id="spelling-rank">Rank: Beginner</div>
+            <div id="game-over-modal">
+                <h2>Game Over!</h2>
+                <div id="game-over-score">Final Score: 0</div>
+                <div id="game-over-words">Words Found: None</div>
+                <button id="play-again-btn">Play Again</button>
+            </div>
+        </div>    
+    </div>
+    
+    <div class="puzzle-footer">
+        <button class="btn secondary" id="spelling-new">New Game</button>
+        <button class="btn secondary" id="spelling-hint">Hint</button>
+        <button id="spelling-give-up">Give Up</button>
     </div>
 </div>

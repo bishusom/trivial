@@ -1,37 +1,36 @@
 <link rel="stylesheet" href="/styles/word-game/anagram.css">
-<div class="card anagram-screen" id="anagram-screen">
-    <div class="word-game-card">
-        <div class="game-header">
-            <h2>Anagram Puzzle</h2>
-            <div class="game-meta">
-                <span id="anagram-target">Word Length: 0</span>
-                <span id="anagram-score">Score: 0</span>
-            </div>
+<div class="card puzzle-card" id="anagram-screen">
+    <div class="game-header">
+        <h2>Anagram Puzzle</h2>
+        <div class="game-meta">
+            <span id="anagram-target">Word Length: 0</span>
+            <span id="anagram-score">Score: 0</span>
+        </div>
+    </div>
+    
+    <div class="game-body">
+        <div class="anagram-display">
+            <div class="scrambled-letters" id="scrambled-letters"></div>
+            <div class="current-attempt" id="current-attempt"></div>
         </div>
         
-        <div class="game-body">
-            <div class="anagram-display">
-                <div class="scrambled-letters" id="scrambled-letters"></div>
-                <div class="current-attempt" id="current-attempt"></div>
-            </div>
-            
-            <div class="anagram-controls">
-                <button class="btn primary" id="anagram-submit">Submit</button>
-                <button class="btn secondary" id="anagram-clear">Clear</button>
-                <button class="btn secondary" id="anagram-shuffle">Shuffle</button>
-            </div>
-            
-            <div class="anagram-feedback" id="anagram-feedback"></div>
-            
-            <div class="anagram-solutions">
-                <h3>Found Words</h3>
-                <div class="solutions-list" id="solutions-list"></div>
-            </div>
+        <div class="anagram-controls">
+            <button class="btn primary" id="anagram-submit">Submit</button>
+            <button class="btn secondary" id="anagram-clear">Clear</button>
+            <button class="btn secondary" id="anagram-shuffle">Shuffle</button>
         </div>
         
-        <div class="game-footer">
-            <button class="btn secondary" id="anagram-new">New Puzzle</button>
-            <button class="btn secondary" id="anagram-hint">Hint</button>
+        <div class="anagram-feedback" id="anagram-feedback"></div>
+        
+        <div class="anagram-solutions">
+            <h3>Found Words</h3>
+            <div class="solutions-list" id="solutions-list"></div>
         </div>
+    </div>
+    
+    <div class="game-footer">
+        <button class="btn secondary" id="anagram-new">New Puzzle</button>
+        <button class="btn secondary" id="anagram-hint">Hint</button>
+        <button class="btn secondary" id="anagram-reveal">Reveal Word</button>
     </div>
 </div>

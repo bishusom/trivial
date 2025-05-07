@@ -69,18 +69,25 @@
     justify-content: center;
 }
 
-.difficulty-btn.easy { background: #4CAF50; }
-.difficulty-btn.medium { background: #FFC107; color: #333; }
-.difficulty-btn.hard { background: #F44336; }
-
-.difficulty-btn:not(.active):hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
+/* Add this to replace the difficulty-selector styles */
+.difficulty-display {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
 }
 
-.difficulty-label { 
-    font-size: 14px; 
-    color: #666; 
+.difficulty-display span {
+    font-weight: bold;
+}
+
+/* Remove the old difficulty-selector styles */
+.difficulty-selector {
+    display: none;
 }
 
 .word-game-card {

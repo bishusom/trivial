@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navClose.addEventListener('click', () => {
             navMenu.classList.remove('active');
             hamburger.setAttribute('aria-expanded', 'false');
-            hamburger.querySelector('.material-icons').textContent-Germain = 'menu';
+            hamburger.querySelector('.material-icons').textContent = 'menu';
             navClose.style.display = 'none';
             hamburger.style.display = 'block';
         });

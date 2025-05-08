@@ -1,0 +1,6 @@
+/css/*.css
+  Cache-Control: public, max-age=0, must-revalidate
+/scripts/*.js
+  Cache-Control: public, max-age=0, must-revalidate
+/templates/*.html
+  Cache-Control: public, max-age=0, must-revalidate

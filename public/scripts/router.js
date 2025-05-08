@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameScreen && gameScreen.classList.contains('active')) {
             handleGameInProgressNavigation(path);
         } else {
-            window.history.pushState({}, '', path);
+            window.history.pushState({ path }, '', path);
             handleRouting(path);
         }
     });
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navClose.addEventListener('click', () => {
             navMenu.classList.remove('active');
             hamburger.setAttribute('aria-expanded', 'false');
-            hamburger.querySelector('.material-icons').textContent = 'menu';
+            hamburger.querySelector('.material-icons').textContent-Germain = 'menu';
             navClose.style.display = 'none';
             hamburger.style.display = 'block';
         });
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.removeItem('triviaMasterGameState');
                 }
                 if (window.pendingNavigation) {
-                    window.history.pushState({}, '', window.pendingNavigation);
+                    window.history.pushState({ path: window.pendingNavigation }, '', window.pendingNavigation);
                     handleRouting(window.pendingNavigation);
                     window.pendingNavigation = null;
                 }
@@ -243,21 +243,51 @@ document.addEventListener('DOMContentLoaded', () => {
         if (path === '/home') {
             eventCategory = 'Page View';
             eventLabel = 'Home';
+            document.title = 'Triviaah - Play Trivia Games';
+            updateMetaDescription('Play fun and challenging trivia games on Triviaah!');
         } else if (path.includes('/privacy')) {
             eventCategory = 'Page View';
             eventLabel = 'Privacy Policy';
+            document.title = 'Triviaah - Privacy Policy';
+            updateMetaDescription('Read the privacy policy for Triviaah to understand how we handle your data.');
         } else if (path.includes('/contact')) {
             eventCategory = 'Page View';
             eventLabel = 'Contact Us';
+            document.title = 'Triviaah - Contact Us';
+            updateMetaDescription('Get in touch with Triviaah for support or inquiries.');
         } else if (path.startsWith('/trivias')) {
             eventCategory = 'Trivia';
             eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Trivia Catalog';
+            if (pathParts[1] && pathParts[1] !== 'catalog') {
+                const triviaTitle = pathParts[1].replace(/-/g, ' ');
+                document.title = `Triviaah - ${triviaTitle} Trivia`;
+                updateMetaDescription(`Play ${triviaTitle} trivia games on Triviaah! Test your knowledge now.`);
+            } else {
+                document.title = 'Triviaah - Trivia Catalog';
+                updateMetaDescription('Explore a variety of trivia games on Triviaah, from weekly challenges to general knowledge.');
+            }
         } else if (path.startsWith('/number-puzzle')) {
             eventCategory = 'Number Puzzle';
             eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Number Puzzle Catalog';
+            if (pathParts[1] && pathParts[1] !== 'catalog') {
+                const puzzleTitle = pathParts[1].replace(/-/g, ' ');
+                document.title = `Triviaah - ${puzzleTitle} Number Puzzle`;
+                updateMetaDescription(`Solve ${puzzleTitle} number puzzles on Triviaah! Challenge your math skills.`);
+            } else {
+                document.title = 'Triviaah - Number Puzzle Catalog';
+                updateMetaDescription('Discover fun number puzzles on Triviaah, including guess, scramble, and sequence games.');
+            }
         } else if (path.startsWith('/word-game')) {
             eventCategory = 'Word Game';
             eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Word Game Catalog';
+            if (pathParts[1] && pathParts[1] !== 'catalog') {
+                const gameTitle = pathParts[1].replace(/-/g, ' ');
+                document.title = `Triviaah - ${gameTitle} Word Game`;
+                updateMetaDescription(`Play ${gameTitle} word games on Triviaah! Test your vocabulary skills.`);
+            } else {
+                document.title = 'Triviaah - Word Game Catalog';
+                updateMetaDescription('Enjoy word games on Triviaah, including classic, anagram, and spelling challenges.');
+            }
         }
     
         // Send gtag event
@@ -338,6 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             showHomeScreen();
         }
+    }
+
+    function updateMetaDescription(content) {
+        let metaDescription = document.querySelector('meta[name="description"]');
+        if (!metaDescription) {
+            metaDescription = document.createElement('meta');
+            metaDescription.name = 'description';
+            document.head.appendChild(metaDescription);
+        }
+        metaDescription.content = content;
     }
 
     async function loadTemplate(url, container) {

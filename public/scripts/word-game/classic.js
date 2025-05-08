@@ -39,21 +39,11 @@ const wordGameMessages = {
     ]
 };
 
-// Sound effects
-const sounds = {
-    correct: document.getElementById('correct-sound'),
-    wrong: document.getElementById('wrong-sound'),
-    win: document.getElementById('win-sound'),
-    lose: document.getElementById('lose-sound'),
-    hint: document.getElementById('hint-sound'),
-    tick: document.getElementById('tick-sound')
-};
-
 // Difficulty settings
 const difficultySettings = {
-    easy: { maxAttempts: 8, maxHints: 3, revealLetters: 2, timePerGuess: 90, scoreMultiplier: 1 },
-    medium: { maxAttempts: 6, maxHints: 2, revealLetters: 1, timePerGuess: 60, scoreMultiplier: 1.5 },
-    hard: { maxAttempts: 4, maxHints: 1, revealLetters: 0, timePerGuess: 30, scoreMultiplier: 2 }
+    easy: { maxAttempts: 8, maxHints: 3, revealLetters: 2, scoreMultiplier: 1 },
+    medium: { maxAttempts: 6, maxHints: 2, revealLetters: 1, scoreMultiplier: 1.5 },
+    hard: { maxAttempts: 4, maxHints: 1, revealLetters: 0, scoreMultiplier: 2 }
 };
 
 // Game state
@@ -67,10 +57,8 @@ const wordState = JSON.parse(localStorage.getItem(GAME_STATE_KEY)) || {
     hintsUsed: 0,
     maxHints: 3,
     revealedLetters: [],
-    timeLeft: 90,
     score: 0,
     isDailyChallenge: false,
-    isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false,
     isPlaying: false,
     letterChoices: [],
     currentLetterIndex: 0,
@@ -85,12 +73,10 @@ const wordState = JSON.parse(localStorage.getItem(GAME_STATE_KEY)) || {
 const wordGameEls = {
     gameContainer: document.getElementById('word-game-container'),
     wordDisplay: document.getElementById('word-display'),
-    timer: document.getElementById('word-timer'),
     scoreDisplay: document.getElementById('word-score'),
     startBtn: document.getElementById('start-word-game'),
     results: document.getElementById('word-results'),
     hintBtn: document.getElementById('hint-btn'),
-    muteBtn: document.getElementById('cwg-mute-btn'),
     feedback: document.getElementById('word-feedback'),
     attemptsDisplay: document.getElementById('word-attempts'),
     newWordBtn: document.getElementById('new-word')
@@ -137,7 +123,6 @@ function updateDifficultyDisplay() {
 function saveGameState() {
     const stateToSave = {
         ...wordState,
-        timer: null,
         isPlaying: false
     };
     localStorage.setItem(GAME_STATE_KEY, JSON.stringify(stateToSave));
@@ -219,7 +204,6 @@ function selectRandomWord(words) {
         return FALLBACK_WORDS[Math.floor(Math.random() * FALLBACK_WORDS.length)];
     }
     
-    // Filter words by difficulty and if they haven't been used in this session
     const availableWords = words.filter(word => {
         const length = word.word.length;
         let difficultyMatch = false;
@@ -234,7 +218,6 @@ function selectRandomWord(words) {
     });
     
     if (availableWords.length === 0) {
-        // If no words left, clear session used words and try again
         wordState.sessionUsedWords = [];
         sessionStorage.setItem(SESSION_USED_WORDS_KEY, JSON.stringify(wordState.sessionUsedWords));
         return selectRandomWord(words);
@@ -278,7 +261,6 @@ function initializeGame() {
     wordState.attemptsLeft = settings.maxAttempts;
     wordState.maxHints = settings.maxHints;
     wordState.hintsUsed = 0;
-    wordState.timeLeft = settings.timePerGuess;
     wordState.score = 0;
     wordState.guesses = [];
     wordState.revealedLetters = [];
@@ -322,22 +304,14 @@ async function startWordGame() {
     }
     
     wordState.attemptsLeft = settings.maxAttempts;
-    wordState.timeLeft = settings.timePerGuess;
     wordState.guesses = [];
     
     updateGameUI();
-    startTimer();
     saveGameState();
-    
-    if (!wordState.isMuted) sounds.start?.play();
 }
 
 function updateGameUI() {
     wordGameEls.attemptsDisplay.textContent = `Attempts left: ${wordState.attemptsLeft}`;
-    
-    const minutes = Math.floor(wordState.timeLeft / 60);
-    const seconds = wordState.timeLeft % 60;
-    wordGameEls.timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     
     wordGameEls.scoreDisplay.textContent = `Score: ${wordState.score}`;
     
@@ -395,23 +369,6 @@ function createGuessRow(guess) {
     return rowHTML;
 }
 
-function startTimer() {
-    if (wordState.timer) clearInterval(wordState.timer);
-    
-    wordState.timer = setInterval(() => {
-        wordState.timeLeft--;
-        updateGameUI();
-        
-        if (wordState.timeLeft <= 10 && !wordState.isMuted) {
-            sounds.tick?.play();
-        }
-        
-        if (wordState.timeLeft <= 0) {
-            endWordGame(false);
-        }
-    }, 1000);
-}
-
 async function makeGuess(letter) {
     if (!wordState.isPlaying) return;
 
@@ -435,7 +392,6 @@ async function makeGuess(letter) {
         }
         
         if (placedCorrectly) {
-            if (!wordState.isMuted) sounds.correct?.play();
             updateGameUI();
             saveGameState();
             
@@ -448,7 +404,7 @@ async function makeGuess(letter) {
                 wordState.attemptsLeft--;
                 
                 if (guess === wordState.targetWord) {
-                    wordState.score += Math.floor(wordState.timeLeft * difficultySettings[wordState.difficulty].scoreMultiplier);
+                    wordState.score += difficultySettings[wordState.difficulty].scoreMultiplier * 10;
                     endWordGame(true);
                     return;
                 }
@@ -466,7 +422,6 @@ async function makeGuess(letter) {
                 } else {
                     updateGameUI();
                     saveGameState();
-                    if (!wordState.isMuted) sounds.wrong?.play();
                 }
             }
             return;
@@ -488,15 +443,11 @@ async function makeGuess(letter) {
     
     if (letterInWord) {
         letterBox.classList.add('present-feedback');
-        if (!wordState.isMuted) sounds.correct?.play();
-        
         setTimeout(() => {
             letterBox.classList.remove('present-feedback');
         }, 2000);
     } else {
         letterBox.classList.add('wrong-feedback');
-        if (!wordState.isMuted) sounds.wrong?.play();
-        
         setTimeout(() => {
             letterBox.classList.remove('wrong-feedback');
             wordState.guessedLetters[emptyIndex] = '';
@@ -516,7 +467,7 @@ async function makeGuess(letter) {
         wordState.attemptsLeft--;
         
         if (guess === wordState.targetWord) {
-            wordState.score += Math.floor(wordState.timeLeft * difficultySettings[wordState.difficulty].scoreMultiplier);
+            wordState.score += difficultySettings[wordState.difficulty].scoreMultiplier * 10;
             endWordGame(true);
             return;
         }
@@ -534,7 +485,6 @@ async function makeGuess(letter) {
         } else {
             updateGameUI();
             saveGameState();
-            if (!wordState.isMuted) sounds.wrong?.play();
         }
     }
 }
@@ -555,19 +505,10 @@ function getHint() {
     
     updateGameUI();
     saveGameState();
-    if (!wordState.isMuted) sounds.hint?.play();
 }
 
 async function endWordGame(won) {
     wordState.isPlaying = false;
-    clearInterval(wordState.timer);
-
-    Object.values(sounds).forEach(sound => {
-        if (sound) {
-            sound.pause();
-            sound.currentTime = 0;
-        }
-    });
 
     let message;
     if (won) {
@@ -576,7 +517,6 @@ async function endWordGame(won) {
         const winsData = JSON.parse(localStorage.getItem('word-game-wins')) || {};
         winsData[wordState.difficulty] = wordState.winsAtCurrentDifficulty;
         localStorage.setItem('word-game-wins', JSON.stringify(winsData));
-        if (!wordState.isMuted) sounds.win?.play();
 
         if (wordState.winsAtCurrentDifficulty >= WINS_REQUIRED_FOR_NEXT_LEVEL) {
             if (wordState.difficulty === 'easy') {
@@ -605,7 +545,6 @@ async function endWordGame(won) {
             ? wordGameMessages.nearWin[Math.floor(Math.random() * wordGameMessages.nearWin.length)]
             : wordGameMessages.default[Math.floor(Math.random() * wordGameMessages.default.length)];
         message += `<br><br>The word was: <strong>${wordState.targetWord}</strong>`;
-        if (!wordState.isMuted) sounds.lose?.play();
     }
 
     wordGameEls.feedback.innerHTML = message;
@@ -616,7 +555,6 @@ async function endWordGame(won) {
     `;
 
     updateDifficultyDisplay();
-    // Clear the target word to prevent restoring an ended game
     wordState.targetWord = '';
     wordState.category = '';
     wordState.hint = '';
@@ -641,28 +579,10 @@ async function endWordGame(won) {
     updateGameUI();
 }
 
-function toggleMute() {
-    wordState.isMuted = !wordState.isMuted;
-    localStorage.setItem('triviaMasterMuteState', wordState.isMuted);
-    wordGameEls.muteBtn.innerHTML = `<span class="material-icons">${wordState.isMuted ? 'volume_off' : 'volume_up'}</span>`;
-    
-    Object.values(sounds).forEach(sound => {
-        if (sound) {
-            sound.muted = wordState.isMuted;
-            if (wordState.isMuted) {
-                sound.pause();
-                sound.currentTime = 0;
-            }
-        }
-    });
-    saveGameState();
-}
-
 function setupWordGameEvents() {
     wordGameEls.startBtn.addEventListener('click', startWordGame);
     wordGameEls.newWordBtn.addEventListener('click', startWordGame);
     wordGameEls.hintBtn.addEventListener('click', getHint);
-    wordGameEls.muteBtn.addEventListener('click', toggleMute);
     
     document.addEventListener('click', (e) => {
         const letterBtn = e.target.closest('.letter-choice');
@@ -678,7 +598,6 @@ function setupWordGameEvents() {
                 wordState.guessedLetters[index] = '';
                 updateGameUI();
                 saveGameState();
-                if (!wordState.isMuted) sounds.wrong?.play();
             }
             return;
         }
@@ -689,17 +608,14 @@ async function initWordGame() {
     const savedState = JSON.parse(localStorage.getItem(GAME_STATE_KEY));
     const today = new Date().toISOString().split('T')[0];
 
-    // Restore session used words regardless of saved state
     wordState.sessionUsedWords = JSON.parse(sessionStorage.getItem(SESSION_USED_WORDS_KEY)) || [];
 
     if (savedState && savedState.lastPlayed === today && savedState.targetWord && savedState.isPlaying) {
-        // Only restore the state if the game was actively playing
         Object.assign(wordState, savedState);
         updateDifficultyDisplay();
         updateGameUI();
-        await startWordGame(); // Resume the game
+        await startWordGame();
     } else {
-        // Otherwise, start a fresh game
         wordState.sessionUsedWords = [];
         sessionStorage.setItem(SESSION_USED_WORDS_KEY, JSON.stringify(wordState.sessionUsedWords));
         initializeGame();
@@ -707,15 +623,6 @@ async function initWordGame() {
         saveGameState();
         await startWordGame();
     }
-
-    // Set up mute state
-    wordState.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
-    wordGameEls.muteBtn.innerHTML = `<span class="material-icons">${wordState.isMuted ? 'volume_off' : 'volume_up'}</span>`;
-    Object.values(sounds).forEach(sound => {
-        if (sound) {
-            sound.muted = wordState.isMuted;
-        }
-    });
 
     setupWordGameEvents();
 }

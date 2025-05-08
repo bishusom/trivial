@@ -1,171 +1,160 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trivia Quiz Catalog</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="/styles/trivias/trivia.css" rel="stylesheet">
-</head>
-<body>
-    <div class="quiz-container">
-        <div class="progress-tracker">
-            <h3><span class="material-icons">emoji_events</span> Your Progress</h3>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-            <p id="progress-message">Start playing to earn badges!</p>
+<div class="quiz-container">
+    <div class="progress-tracker">
+        <h3><span class="material-icons">emoji_events</span> Your Progress</h3>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
         </div>
-
-        <div class="category-carousel">
-            <button class="carousel-arrow left-arrow" aria-label="Previous categories">
-                <span class="material-icons">chevron_left</span>
-            </button>
-            
-            <div class="carousel-wrapper">
-                <div class="carousel-track">
-                    <a href="/trivias/general-knowledge" class="category-card" data-category="General Knowledge">
-                        <div class="category-card" data-category="General Knowledge">
-                            <img src="/imgs/general-knowledge.jpg" alt="General Knowledge" class="category-image">
-                            <span>General</span>
-                            <span class="popular-badge">Popular</span>
-                        </div>
-                   </a> 
-                   <a href="/trivias/literature" class="category-card" data-category="Literature">
-                        <div class="category-card" data-category="Literature">
-                            <img src="/imgs/literature.jpg" alt="Literature" class="category-image">
-                            <span>Literature</span>
-                        </div>
-                    </a>    
-                    
-                    <a href="/trivias/arts" class="category-card" data-category="Arts">
-                        <div class="category-card" data-category="arts">
-                            <img src="/imgs/arts.jpg" alt="Arts" class="category-image">
-                            <span>Arts</span>
-                        </div>
-                    </a>
-                    
-                    <a href="/trivias/animals" class="category-card" data-category="Animals">
-                        <div class="category-card" data-category="animals">
-                            <img src="/imgs/animals.jpg" alt="Animals" class="category-image">
-                            <span>Animals</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/science" class="category-card" data-category="Science">
-                        <div class="category-card" data-category="science">
-                            <img src="/imgs/science.jpg" alt="Science" class="category-image">
-                            <span>Science</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/history" class="category-card" data-category="History">
-                        <div class="category-card" data-category="history">
-                            <img src="/imgs/history.jpg" alt="History" class="category-image">
-                            <span>History</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/geography" class="category-card" data-category="Geography">
-                        <div class="category-card" data-category="geography">
-                            <img src="/imgs/geography.jpg" alt="Geography" class="category-image">
-                            <span>Geography</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/movie" class="category-card" data-category="Movies">
-                        <div class="category-card" data-category="movies">
-                            <img src="/imgs/movies.jpg" alt="Movies" class="category-image">
-                            <span>Movies</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/tv" class="category-card" data-category="TV/Web Series">
-                        <div class="category-card" data-category="tv/web series">
-                            <img src="/imgs/tv-series.jpg" alt="TV/Web Series" class="category-image">
-                            <span>TV/Web Series</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/music" class="category-card" data-category="Music">                       
-                        <div class="category-card" data-category="music">
-                            <img src="/imgs/music.jpg" alt="Music" class="category-image">
-                            <span>Music</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/celebrities" class="category-card" data-category="Celebrities">
-                        <div class="category-card" data-category="celebrities">
-                            <img src="/imgs/celebrities.jpg" alt="Celebrities" class="category-image">
-                            <span>Celebrities</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/politics" class="category-card" data-category="Politics">
-                        <div class="category-card" data-category="politics">
-                            <img src="/imgs/politics.jpg" alt="Politics" class="category-image">
-                            <span>Politics</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/food" class="category-card" data-category="Food">
-                        <div class="category-card" data-category="food">
-                            <img src="/imgs/food.jpg" alt="Food" class="category-image">
-                            <span>Food</span>
-                            <span class="popular-badge">Popular</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/sports" class="category-card" data-category="Sports">
-                        <div class="category-card" data-category="sports">
-                            <img src="/imgs/sports.jpg" alt="Sports" class="category-image">
-                            <span>Sports</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/business" class="category-card" data-category="Business">
-                        <div class="category-card" data-category="business">
-                            <img src="/imgs/business.jpg" alt="Board Games" class="category-image">
-                            <span>Business</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/mythology" class="category-card" data-category="Mythology">
-                        <div class="category-card" data-category="mythology">
-                            <img src="/imgs/mythology.jpg" alt="Mythology" class="category-image">
-                            <span>Mythology</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/weekly" class="category-card" data-category="Weekly">
-                        <div class="featured-card category-card" data-category="Weekly">
-                            <img src="/imgs/weekly-quiz.jpg" alt="Weekly Quiz" class="category-image">
-                            <span>Weekly Quiz</span>
-                        </div>
-                    </a>
-
-                    <a href="/trivias/monthly" class="category-card" data-category="Monthly">
-                        <div class="category-card" data-category="Monthly">
-                            <img src="/imgs/monthly-quiz.jpg" alt="Monthly Quiz" class="category-image">
-                            <span>Monthly Quiz</span>
-                        </div>
-                    </a>
-                    
-                </div>
-            </div>
-            
-            <button class="carousel-arrow right-arrow" aria-label="Next categories">
-                <span class="material-icons">chevron_right</span>
-            </button>
-        </div>
+        <p id="progress-message">Start playing to earn badges!</p>
     </div>
 
-    <script type="module">
-        import { initTriviaCatalog } from '/scripts/trivias/catalog.js';
-        import { initTriviaGame } from '/scripts/trivias/trivia.js';
+    <div class="category-carousel">
+        <button class="carousel-arrow left-arrow" aria-label="Previous categories">
+            <span class="material-icons">chevron_left</span>
+        </button>
+        
+        <div class="carousel-wrapper">
+            <div class="carousel-track">
+                <a href="/trivias/general-knowledge" class="category-card" data-category="General Knowledge">
+                    <div class="category-card" data-category="General Knowledge">
+                        <img src="/imgs/general-knowledge.jpg" alt="General Knowledge" class="category-image">
+                        <span>General</span>
+                        <span class="popular-badge">Popular</span>
+                    </div>
+                </a> 
+                <a href="/trivias/literature" class="category-card" data-category="Literature">
+                    <div class="category-card" data-category="Literature">
+                        <img src="/imgs/literature.jpg" alt="Literature" class="category-image">
+                        <span>Literature</span>
+                    </div>
+                </a>    
+                
+                <a href="/trivias/arts" class="category-card" data-category="Arts">
+                    <div class="category-card" data-category="arts">
+                        <img src="/imgs/arts.jpg" alt="Arts" class="category-image">
+                        <span>Arts</span>
+                    </div>
+                </a>
+                
+                <a href="/trivias/animals" class="category-card" data-category="Animals">
+                    <div class="category-card" data-category="animals">
+                        <img src="/imgs/animals.jpg" alt="Animals" class="category-image">
+                        <span>Animals</span>
+                    </div>
+                </a>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initTriviaCatalog();
-            initTriviaGame();
-        });
-    </script>
+                <a href="/trivias/science" class="category-card" data-category="Science">
+                    <div class="category-card" data-category="science">
+                        <img src="/imgs/science.jpg" alt="Science" class="category-image">
+                        <span>Science</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/history" class="category-card" data-category="History">
+                    <div class="category-card" data-category="history">
+                        <img src="/imgs/history.jpg" alt="History" class="category-image">
+                        <span>History</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/geography" class="category-card" data-category="Geography">
+                    <div class="category-card" data-category="geography">
+                        <img src="/imgs/geography.jpg" alt="Geography" class="category-image">
+                        <span>Geography</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/movie" class="category-card" data-category="Movies">
+                    <div class="category-card" data-category="movies">
+                        <img src="/imgs/movies.jpg" alt="Movies" class="category-image">
+                        <span>Movies</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/tv" class="category-card" data-category="TV/Web Series">
+                    <div class="category-card" data-category="tv/web series">
+                        <img src="/imgs/tv-series.jpg" alt="TV/Web Series" class="category-image">
+                        <span>TV/Web Series</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/music" class="category-card" data-category="Music">                       
+                    <div class="category-card" data-category="music">
+                        <img src="/imgs/music.jpg" alt="Music" class="category-image">
+                        <span>Music</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/celebrities" class="category-card" data-category="Celebrities">
+                    <div class="category-card" data-category="celebrities">
+                        <img src="/imgs/celebrities.jpg" alt="Celebrities" class="category-image">
+                        <span>Celebrities</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/politics" class="category-card" data-category="Politics">
+                    <div class="category-card" data-category="politics">
+                        <img src="/imgs/politics.jpg" alt="Politics" class="category-image">
+                        <span>Politics</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/food" class="category-card" data-category="Food">
+                    <div class="category-card" data-category="food">
+                        <img src="/imgs/food.jpg" alt="Food" class="category-image">
+                        <span>Food</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/sports" class="category-card" data-category="Sports">
+                    <div class="category-card" data-category="sports">
+                        <img src="/imgs/sports.jpg" alt="Sports" class="category-image">
+                        <span>Sports</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/business" class="category-card" data-category="Business">
+                    <div class="category-card" data-category="business">
+                        <img src="/imgs/business.jpg" alt="Board Games" class="category-image">
+                        <span>Business</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/mythology" class="category-card" data-category="Mythology">
+                    <div class="category-card" data-category="mythology">
+                        <img src="/imgs/mythology.jpg" alt="Mythology" class="category-image">
+                        <span>Mythology</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/weekly" class="category-card" data-category="Weekly">
+                    <div class="featured-card category-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz.jpg" alt="Weekly Quiz" class="category-image">
+                        <span>Weekly Quiz</span>
+                    </div>
+                </a>
+
+                <a href="/trivias/monthly" class="category-card" data-category="Monthly">
+                    <div class="category-card" data-category="Monthly">
+                        <img src="/imgs/monthly-quiz.jpg" alt="Monthly Quiz" class="category-image">
+                        <span>Monthly Quiz</span>
+                    </div>
+                </a>
+                
+            </div>
+        </div>
+        
+        <button class="carousel-arrow right-arrow" aria-label="Next categories">
+            <span class="material-icons">chevron_right</span>
+        </button>
+    </div>
+</div>
+
+<script type="module">
+    import { initTriviaCatalog } from '/scripts/trivias/catalog.js';
+    import { initTriviaGame } from '/scripts/trivias/trivia.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initTriviaCatalog();
+        initTriviaGame();
+    });
+</script>

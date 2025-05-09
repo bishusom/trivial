@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
     authDomain: "triviaahdb.firebaseapp.com",
@@ -562,19 +563,6 @@ async function endWordGame(won) {
     wordState.guessedLetters = [];
     wordState.revealedLetters = [];
     saveGameState();
-
-    if (wordState.score > 0) {
-        try {
-            await addDoc(collection(firestore, 'word-game-scores'), {
-                score: wordState.score,
-                difficulty: wordState.difficulty,
-                timestamp: new Date(),
-                isDailyChallenge: wordState.isDailyChallenge
-            });
-        } catch (error) {
-            console.error('Error saving score:', error);
-        }
-    }
 
     updateGameUI();
 }

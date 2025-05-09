@@ -3,7 +3,6 @@ export function initTriviaCatalog() {
     setupCarousel();
     setupCategoryCards();
     updateProgressTracker();
-    setupEvents();
 }
 
 // Add smooth scrolling behavior for mobile

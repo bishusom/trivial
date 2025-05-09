@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeDropdown = null;
     let currentPath = window.location.pathname;
     let isRouting = false;
-    let loadingTimeout = null;
 
     if (hamburger && navMenu) {
         hamburger.addEventListener('click', () => {
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.nav-menu a').forEach(link => {
-        link.addEventListener('click', () => {
+        link.addEventListener('click', (e) => {
             if (navMenu && hamburger) {
                 navMenu.classList.remove('active');
                 hamburger.setAttribute('aria-expanded', 'false');
@@ -33,13 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
         toggle.addEventListener('click', (e) => {
-            const dropdown = e.target.closest('.dropdown').querySelector('.dropdown-content');
+            const dropdown = e.target.closest('.nav-dropdown').querySelector('.dropdown-content');
             const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
 
             document.querySelectorAll('.dropdown-content').forEach(d => {
                 if (d !== dropdown) {
                     d.style.display = 'none';
-                    d.closest('.dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+                    d.closest('.nav-dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
                 }
             });
 
@@ -60,9 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.dropdown') && activeDropdown) {
+        if (!e.target.closest('.nav-dropdown') && activeDropdown) {
             activeDropdown.style.display = 'none';
-            activeDropdown.closest('.dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+            activeDropdown.closest('.nav-dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
             activeDropdown = null;
         }
 
@@ -74,16 +73,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        if (hamburger && navMenu) {
+            hamburger.addEventListener('click', () => {
+                const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+                hamburger.setAttribute('aria-expanded', !isExpanded);
+                navMenu.classList.toggle('active');
+                hamburger.querySelector('.material-icons').textContent = isExpanded ? 'menu' : 'close';
+            });
+        }
+
         const link = e.target.closest('a[href]');
         if (!link) return;
 
-        if (
-            link.hostname !== window.location.hostname ||
+        if (link.hostname !== window.location.hostname || 
             link.target ||
-            link.href.includes('.pdf') ||
+            link.href.includes('.pdf') || 
             link.href.includes('.jpg') ||
-            link.href.includes('.png')
-        ) {
+            link.href.includes('.png')) {
             return;
         }
 
@@ -97,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activeDropdown) {
             activeDropdown.style.display = 'none';
-            activeDropdown.closest('.dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
+            activeDropdown.closest('.nav-dropdown').querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
             activeDropdown = null;
         }
         if (navMenu) {
@@ -120,37 +126,41 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.submenu-toggle').forEach(toggle => {
         toggle.addEventListener('click', (e) => {
             if (window.innerWidth > 768) return;
-
+            
             e.preventDefault();
             e.stopPropagation();
-
+            
             const submenu = e.target.closest('.submenu');
             const isActive = submenu.classList.contains('active');
-
+            
+            // Close all other submenus first
             document.querySelectorAll('.submenu').forEach(sm => {
                 if (sm !== submenu) {
                     sm.classList.remove('active');
                 }
             });
-
+            
+            // Toggle current submenu
             submenu.classList.toggle('active');
         });
     });
 
     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-        toggle.addEventListener('click', function (e) {
+        toggle.addEventListener('click', function(e) {
             if (window.innerWidth <= 768) {
                 e.preventDefault();
                 const dropdown = this.closest('.dropdown');
                 const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
+                
+                // Close all other dropdowns
                 document.querySelectorAll('.dropdown').forEach(d => {
                     if (d !== dropdown) {
                         d.classList.remove('active');
                         d.querySelector('.dropdown-toggle').setAttribute('aria-expanded', 'false');
                     }
                 });
-
+                
+                // Toggle current dropdown
                 dropdown.classList.toggle('active');
                 this.setAttribute('aria-expanded', !isExpanded);
             }
@@ -181,9 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isRouting) {
             isRouting = true;
             handleRouting(window.location.pathname);
-            setTimeout(() => {
-                isRouting = false;
-            }, 100);
+            setTimeout(() => { isRouting = false; }, 100);
         }
     });
 
@@ -192,20 +200,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) {
             modal.classList.remove('hidden');
             window.pendingNavigation = path;
-
+            
             const continueBtn = document.getElementById('continue-game');
             const endBtn = document.getElementById('end-game');
-
+            
             const newContinueBtn = continueBtn.cloneNode(true);
             const newEndBtn = endBtn.cloneNode(true);
             continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
             endBtn.parentNode.replaceChild(newEndBtn, endBtn);
-
+            
             newContinueBtn.addEventListener('click', () => {
                 modal.classList.add('hidden');
                 window.pendingNavigation = null;
             });
-
+            
             newEndBtn.addEventListener('click', () => {
                 modal.classList.add('hidden');
                 if (typeof window.endGame === 'function') {
@@ -227,24 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPath = path;
         path = path === '/' ? '/home' : path.replace(/\/$/, '');
 
-        // Determine loading indicator delay based on route
-        let loadingDelay = 0; // Default: no loading indicator
-        if (path.startsWith('/number-puzzle')) {
-            loadingDelay = 300; // 0.3 seconds for number puzzles
-        } else if (path.startsWith('/trivias') || path.startsWith('/word-game')) {
-            loadingDelay = 2000; // 2 seconds for trivia and word games
-        }
-
-        // Show loading indicator if delay is set
-        let loadingPromise = Promise.resolve();
-        if (loadingDelay > 0) {
-            toggleLoading(true);
-            if (loadingTimeout) clearTimeout(loadingTimeout);
-            loadingPromise = new Promise(resolve => {
-                loadingTimeout = setTimeout(resolve, loadingDelay);
-            });
-        }
-
+        
         // Track navigation event with Google Analytics
         const pathParts = path.split('/').filter(part => part);
         const baseRoute = pathParts.length > 0 ? `/${pathParts[0]}` : '/home';
@@ -252,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let eventLabel = path;
 
         if (path === '/home') {
+            loadingIndicatorTime = 500;
             eventCategory = 'Page View';
             eventLabel = 'Home';
             document.title = 'Triviaah - Play Trivia Games';
@@ -261,7 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
             eventLabel = 'Privacy Policy';
             document.title = 'Triviaah - Privacy Policy';
             updateMetaDescription('Read the privacy policy for Triviaah to understand how we handle your data.');
+            loadingIndicatorTime = 200;
         } else if (path.includes('/contact')) {
+            loadingIndicatorTime = 200;
             eventCategory = 'Page View';
             eventLabel = 'Contact Us';
             document.title = 'Triviaah - Contact Us';
@@ -270,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             eventCategory = 'Trivia';
             eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Trivia Catalog';
             if (pathParts[1] && pathParts[1] !== 'catalog') {
+                loadingIndicatorTime = 3000;
                 const triviaTitle = pathParts[1].replace(/-/g, ' ');
                 document.title = `Triviaah - ${triviaTitle} Trivia`;
                 updateMetaDescription(`Play ${triviaTitle} trivia games on Triviaah! Test your knowledge now.`);
@@ -278,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateMetaDescription('Explore a variety of trivia games on Triviaah, from weekly challenges to general knowledge.');
             }
         } else if (path.startsWith('/number-puzzle')) {
+            loadingIndicatorTime = 500;
             eventCategory = 'Number Puzzle';
             eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Number Puzzle Catalog';
             if (pathParts[1] && pathParts[1] !== 'catalog') {
@@ -289,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateMetaDescription('Discover fun number puzzles on Triviaah, including guess, scramble, and sequence games.');
             }
         } else if (path.startsWith('/word-game')) {
+            loadingIndicatorTime = 2000;
             eventCategory = 'Word Game';
             eventLabel = pathParts[1] ? pathParts[1].replace(/-/g, ' ') : 'Word Game Catalog';
             if (pathParts[1] && pathParts[1] !== 'catalog') {
@@ -319,7 +316,12 @@ document.addEventListener('DOMContentLoaded', () => {
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'catalog']
         };
-
+        // Show loading indicator and set minimum display time
+        toggleLoading(true);
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        const loadingPromise = new Promise(resolve => {
+            loadingTimeout = setTimeout(resolve, loadingIndicatorTime); // Ensure 2-second minimum display
+        });
         try {
             if (validChildren[baseRoute] && pathParts.length === 1) {
                 showHomeScreen();
@@ -371,11 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Routing error:', error);
             showError(path.includes('number-puzzle') ? 'number-puzzle' : path.includes('word-game') ? 'word-game' : 'content');
         } finally {
-            // Wait for both content loading and minimum delay (if applicable)
+            // Wait for both content loading and minimum 2-second delay
             await loadingPromise;
-            if (loadingDelay > 0) {
-                toggleLoading(false);
-            }
+            toggleLoading(false);
             isRouting = false;
         }
     }
@@ -399,7 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = await response.text();
             container.classList.add('active');
         } catch (error) {
-            console.error('Template load error:', error);
             container.innerHTML = `
                 <div class="error">
                     <h3>Error Loading Content</h3>
@@ -408,7 +407,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             container.classList.add('active');
-            throw error; // Re-throw to trigger error handling in handleRouting
         }
     }
 
@@ -427,10 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showHomeScreen() {
         if (setupScreen) setupScreen.classList.add('active');
         if (dynamicContent) dynamicContent.classList.remove('active');
-        const gameScreen = document.querySelector('.game-screen');
-        if (gameScreen) gameScreen.classList.remove('active');
-        const summaryScreen = document.querySelector('.summary-screen');
-        if (summaryScreen) summaryScreen.classList.remove('active');
     }
 
     function toggleLoading(show) {
@@ -438,5 +432,4 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loadingIndicator) {
             loadingIndicator.classList[show ? 'remove' : 'add']('hidden');
         }
-    }
 });

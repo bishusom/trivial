@@ -14,10 +14,9 @@ export function initPuzzle() {
         level: 1,
         xp: 0,
         coins: 0,
-        timeLimit: 60,
-        timeLeft: 60,
-        timer: null,
         difficulty: 'easy',
+        gamesPlayed: { easy: 0, medium: 0, hard: 0 },
+        consecutiveHardWins: 0,
         unlockedFeatures: ['basic'],
         challengeMode: null,
         stats: {
@@ -41,10 +40,7 @@ export function initPuzzle() {
         scoreEl: document.getElementById('scramble-score'),
         levelEl: document.getElementById('scramble-level'),
         streakEl: document.getElementById('scramble-streak'),
-        timerContainer: document.getElementById('scramble-timer'),
-        timerBar: document.getElementById('scramble-timer-bar'),
-        timerText: document.getElementById('scramble-timer-text'),
-        historyList: document.getElementById('history-list'),
+        progressEl: document.getElementById('scramble-progress'),
         xpBar: document.getElementById('scramble-xp-bar'),
         coinsEl: document.getElementById('scramble-coins')
     };
@@ -66,16 +62,9 @@ export function initPuzzle() {
     
     // Generate new puzzle with progressive difficulty
     function generateNewPuzzle() {
-        clearTimer();
-        
         // Clear previous state
         gameState.currentExpression = '';
         gameState.usedNumbers = [];
-        
-        // Set time limit and start timer
-        gameState.timeLimit = calculateTimeLimit();
-        gameState.timeLeft = gameState.timeLimit;
-        startTimer();
         
         // Generate new puzzle
         gameState.numbers = generateNumbers();
@@ -139,67 +128,14 @@ export function initPuzzle() {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
     
-    // Calculate time limit based on difficulty
-    function calculateTimeLimit() {
-        let baseTime = 60;
-        
-        switch(gameState.difficulty) {
-            case 'easy': baseTime = 90; break;
-            case 'medium': baseTime = 60; break;
-            case 'hard': baseTime = 45; break;
-            case 'expert': baseTime = 30; break;
-        }
-    
-        const levelBonus = Math.min(30, gameState.level * 2);
-        return baseTime + levelBonus;
-    }
-    
-    // Update difficulty based on level
+    // Update difficulty based on games played
     function updateDifficulty() {
-        if (gameState.level < 5) gameState.difficulty = 'easy';
-        else if (gameState.level < 10) gameState.difficulty = 'medium';
-        else if (gameState.level < 20) gameState.difficulty = 'hard';
-        else gameState.difficulty = 'expert';
-    }
-    
-    // Start timer
-    function startTimer() {
-        clearTimer();
-        updateTimerDisplay();
-        
-        gameState.timer = setInterval(() => {
-            gameState.timeLeft--;
-            updateTimerDisplay();
-            
-            if (gameState.timeLeft <= 0) {
-                clearTimer();
-                updateFeedback('error', 'Time\'s up! Try a new puzzle.');
-                resetStreak();
-                setTimeout(generateNewPuzzle, 1500);
-            }
-        }, 1000);
-    }
-    
-    // Clear timer
-    function clearTimer() {
-        if (gameState.timer) {
-            clearInterval(gameState.timer);
-            gameState.timer = null;
-        }
-    }
-    
-    // Update timer display
-    function updateTimerDisplay() {
-        if (!elements.timerBar) return;
-        
-        const percentage = (gameState.timeLeft / gameState.timeLimit) * 100;
-        elements.timerBar.style.width = `${percentage}%`;
-        elements.timerText.textContent = `${gameState.timeLeft}s`;
-        
-        if (percentage < 20) {
-            elements.timerBar.classList.add('timer-critical');
+        if (gameState.gamesPlayed.easy < 5) {
+            gameState.difficulty = 'easy';
+        } else if (gameState.gamesPlayed.medium < 5) {
+            gameState.difficulty = 'medium';
         } else {
-            elements.timerBar.classList.remove('timer-critical');
+            gameState.difficulty = 'hard';
         }
     }
     
@@ -232,7 +168,6 @@ export function initPuzzle() {
     
     // Select number
     function selectNumber(index) {
-        // Allow clicking any number (no usedIndices check)
         gameState.currentExpression += gameState.numbers[index];
         renderTiles();
         updateFeedback('info', `Current: ${gameState.currentExpression}`);
@@ -248,19 +183,16 @@ export function initPuzzle() {
     
     // Submit solution
     function submitSolution() {
-        // Block empty or trivial inputs (e.g., "53" when target is 53)
         if (!gameState.currentExpression || gameState.currentExpression === gameState.target.toString()) {
             updateFeedback('error', 'Create an expression using the numbers!');
             return;
         }
     
-        // Check for at least one operator
         if (!/[\+\-\*\/]/.test(gameState.currentExpression)) {
             updateFeedback('error', 'Use at least one operator (+, -, *, /)');
             return;
         }
     
-        // Validate the math
         try {
             const result = eval(gameState.currentExpression);
             if (Math.abs(result - gameState.target) < 0.0001) {
@@ -289,18 +221,27 @@ export function initPuzzle() {
         if (gameState.streak >= 5) points *= 1.5;
         if (gameState.streak >= 10) points *= 2;
         
-        const timeBonus = Math.floor((gameState.timeLeft / gameState.timeLimit) * 15);
-        points += timeBonus;
-    
         points = Math.round(points) || 0;
         
         gameState.score += points;
         gameState.stats.puzzlesSolved++;
         gameState.stats.totalPoints += points;
+        gameState.gamesPlayed[gameState.difficulty]++;
+        
+        if (gameState.difficulty === 'hard') {
+            gameState.consecutiveHardWins++;
+            if (gameState.consecutiveHardWins >= 5) {
+                endGame();
+                return;
+            }
+        } else {
+            gameState.consecutiveHardWins = 0;
+        }
         
         addXP(points);
         addCoins(Math.floor(points / 2));
         
+        updateDifficulty();
         updateFeedback('success', `Correct! ${gameState.currentExpression} = ${gameState.target} (+${points} points)`);
         updateUI();
         
@@ -315,12 +256,29 @@ export function initPuzzle() {
     function handleIncorrectSolution(result) {
         updateFeedback('error', `Incorrect! ${gameState.currentExpression} = ${result} (Target: ${gameState.target})`);
         resetStreak();
+        if (gameState.difficulty === 'hard') {
+            gameState.consecutiveHardWins = 0;
+        }
     }
     
     // Reset streak
     function resetStreak() {
         gameState.streak = 0;
         updateUI();
+    }
+    
+    // End game after 5 consecutive hard wins
+    function endGame() {
+        updateFeedback('success', 'Congratulations! You won the game with 5 consecutive hard-level victories!');
+        elements.submitBtn.disabled = true;
+        elements.clearBtn.disabled = true;
+        elements.newBtn.disabled = true;
+        elements.hintBtn.disabled = true;
+        elements.tilesContainer.innerHTML = '';
+        elements.operatorsContainer.innerHTML = '';
+        if (elements.progressEl) {
+            elements.progressEl.textContent = '';
+        }
     }
     
     // Add XP and check for level up
@@ -400,6 +358,19 @@ export function initPuzzle() {
         
         if (elements.coinsEl) {
             elements.coinsEl.textContent = `Coins: ${gameState.coins}`;
+        }
+        
+        if (elements.progressEl) {
+            if (gameState.difficulty === 'easy') {
+                const remaining = 5 - gameState.gamesPlayed.easy;
+                elements.progressEl.textContent = `${remaining} more game${remaining === 1 ? '' : 's'} to Medium`;
+            } else if (gameState.difficulty === 'medium') {
+                const remaining = 5 - gameState.gamesPlayed.medium;
+                elements.progressEl.textContent = `${remaining} more game${remaining === 1 ? '' : 's'} to Hard`;
+            } else if (gameState.difficulty === 'hard') {
+                const remaining = 5 - gameState.consecutiveHardWins;
+                elements.progressEl.textContent = `${remaining} more consecutive win${remaining === 1 ? '' : 's'} to win the game`;
+            }
         }
     }
     

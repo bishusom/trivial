@@ -1,5 +1,3 @@
-const db = window.firebaseDb; // Already initialized in index.html
-
 const messages = {
     gold: [
         "🏆 Trivia Deity! The knowledge gods bow before you! Can you maintain your reign?",

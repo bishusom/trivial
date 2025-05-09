@@ -1,50 +1,43 @@
-    <div class="card puzzle-card">
-        <div class="puzzle-header">
-            <h2>Number Scramble</h2>
-            <div class="meta-row">
-                <span id="scramble-target">Target: 0</span>
-            </div>
-            <!-- Second row - Simplified stats -->
-            <div class="meta-row">
-                <span id="scramble-level">Level: 1</span>
-                <span id="scramble-score">Score: 0</span>
-                <span id="scramble-streak">
-                    Streak: <span class="streak-counter">0 <span class="streak-fire">🔥</span></span>
-                </span>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="scramble-xp-bar" style="width: 0%"></div>
-                </div>
-            </div>
-            <div class="timer-container" id="scramble-timer">
-                <div class="timer-bar" id="scramble-timer-bar"></div>
-                <div class="timer-label">
-                    <span>Time:</span>
-                    <span class="timer-value" id="scramble-timer-text">30s</span>
-                </div>
-            </div>
+<div class="card puzzle-card">
+    <div class="puzzle-header">
+        <h2>Number Scramble</h2>
+        <div class="meta-row">
+            <span id="scramble-target">Target: 0</span>
         </div>
-        
-        <div class="puzzle-body">
-            <div class="scramble-feedback" id="scramble-feedback"></div>
-            
-            <div class="scramble-display">
-                <div class="scramble-tiles" id="scramble-tiles"></div>
-            </div>
-            
-            <div class="scramble-controls">
-                <div class="scramble-operators" id="scramble-operators"></div>
-                <div class="scramble-buttons">
-                    <button class="btn primary" id="scramble-submit">Submit</button>
-                    <button class="btn secondary" id="scramble-clear">Clear</button>
-                </div>
-            </div>
+        <!-- Second row - Simplified stats -->
+        <div class="meta-row">
+            <span id="scramble-level">Level: 1</span>
+            <span id="scramble-score">Score: 0</span>
+            <span id="scramble-streak">
+                Streak: <span class="streak-counter">0 <span class="streak-fire">🔥</span></span>
+            </span>
+            <span id="scramble-progress"></span>
         </div>
-        
-        <div class="puzzle-footer">
-            <button class="btn secondary" id="scramble-new">New Puzzle</button>
-            <button class="btn secondary" id="scramble-hint">Hint</button>
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="scramble-xp-bar" style="width: 0%"></div>
+            </div>
         </div>
     </div>
-<!--/div>
+    
+    <div class="puzzle-body">
+        <div class="scramble-feedback" id="scramble-feedback"></div>
+        
+        <div class="scramble-display">
+            <div class="scramble-tiles" id="scramble-tiles"></div>
+        </div>
+        
+        <div class="scramble-controls">
+            <div class="scramble-operators" id="scramble-operators"></div>
+            <div class="scramble-buttons">
+                <button class="btn primary" id="scramble-submit">Submit</button>
+                <button class="btn secondary" id="scramble-clear">Clear</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="puzzle-footer">
+        <button class="btn secondary" id="scramble-new">New Puzzle</button>
+        <button class="btn secondary" id="scramble-hint">Hint</button>
+    </div>
+</div>

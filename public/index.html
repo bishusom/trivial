@@ -177,6 +177,10 @@
                     </a>
                 </div>
             </div>
+        </div>
+        <div id="loading-indicator" class="loading-indicator hidden">
+            <div class="loading-spinner"></div>
+                <p>Loading questions...</p>
         </div>    
         <!-- Dynamic Content Container -->
         <div id="dynamic-content" class="screen"></div>
@@ -212,7 +216,7 @@
             };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        window.firebaseDb = firebase.firestore();
+        db = firebase.firestore();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script type="module" src="/scripts/router.js" defer></script>

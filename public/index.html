@@ -17,7 +17,7 @@
     <meta name="twitter:image" content="https://triviaah.com/social-preview.jpg">
     <link rel="canonical" href="https://www.triviaah.com/">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
@@ -195,9 +195,12 @@
     <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
     <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
     <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js"></script>
+
     <script>
+        // Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
             authDomain: "triviaahdb.firebaseapp.com",
@@ -206,11 +209,12 @@
             messagingSenderId: "758082588437",
             appId: "1:758082588437:web:9eada609e974b9e458631c",
             measurementId: "G-ZT8Q78QYDQ"
-        };
+            };
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        window.firebaseDb = firebase.firestore();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script type="module" src="/scripts/router.js"></script>
+    <script type="module" src="/scripts/router.js" defer></script>
 </body>
 </html>

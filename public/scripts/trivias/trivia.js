@@ -1,22 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getFirestore, collection, getDocs, query, where, limit, doc, getDoc, setDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
-    authDomain: "triviaahdb.firebaseapp.com",
-    projectId: "triviaahdb",
-    storageBucket: "triviaahdb.appspot.com",
-    messagingSenderId: "758082588437",
-    appId: "1:758082588437:web:9eada609e974b9e458631c",
-    measurementId: "G-ZT8Q78QYDQ"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.db = db;
+const db = window.firebaseDb; // Already initialized in index.html
 
 const messages = {
     gold: [
@@ -107,27 +89,6 @@ function trackEvent(action, category, label, value) {
     }
 }
 
-async function setPlayerCount(category = 'Weekly', update = true) {
-    try {
-        const docRef = doc(db, 'playerCounts', category);
-        const docSnap = await getDoc(docRef);
-        const currentCount = docSnap.exists() ? docSnap.data().count : 0;
-        if (update) {
-            const newCount = currentCount + 1;
-            await setDoc(docRef, {
-                count: newCount,
-                lastUpdated: Timestamp.now(),
-                category: category
-            }, { merge: true });
-            return newCount;
-        }
-        return currentCount;
-    } catch (error) {
-        console.error('Error updating player count:', error);
-        return Math.floor(Math.random() * 40) + 100;
-    }
-}
-
 function toggleClass(el, action, cls) {
     el?.classList?.[action]?.(cls);
 }
@@ -180,10 +141,6 @@ function showError(msg) {
     error.classList.remove('hidden');
 }
 
-function hideError() {
-    document.getElementById('error-message')?.classList.add('hidden');
-}
-
 function getWeekNumber(date) {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
@@ -195,7 +152,6 @@ function getWeekNumber(date) {
 async function fetchQuestions(category) {
     try {
         console.log('Fetching questions for category:', category);
-        await setPlayerCount(category, true);
         if ([QUIZ_TYPES.WEEKLY, QUIZ_TYPES.MONTHLY].includes(category.toLowerCase())) {
             return await fetchfbQuiz(category.toLowerCase());
         }
@@ -213,21 +169,11 @@ async function fetchfbQuiz(type) {
     const cacheKey = `fb-quiz-${id}`;
     const cached = JSON.parse(localStorage.getItem('fbQuizCache'))?.[cacheKey];
     if (cached && Date.now() - cached.timestamp < CACHE.EXPIRY && !state.fbUsedQuizIds.includes(cacheKey)) {
-        console.log('Using cached quiz:', cached.questions);
         return shuffle(cached.questions);
     }
-    const docRef = doc(db, 'quizzes', type.toLowerCase(), 'periods', id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) {
-        console.warn(`No ${type} quiz available for ${id}`);
-        throw new Error(`No ${type} quiz available.`);
-    }
-    const data = docSnap.data();
-    if (!data.questions || !Array.isArray(data.questions)) {
-        console.error(`Invalid or missing questions for ${type} quiz ${id}`);
-        throw new Error(`Invalid ${type} quiz data.`);
-    }
-    const questions = data.questions.map(q => ({
+    const doc = await db.collection('quizzes').doc(type.toLowerCase()).collection('periods').doc(id).get();
+    if (!doc.exists) throw new Error(`No ${type} quiz available.`);
+    const questions = doc.data().questions.map(q => ({
         id: CryptoJS.MD5(q.question + q.correct_answer).toString(),
         question: q.question,
         correct: q.correct_answer,
@@ -240,25 +186,28 @@ async function fetchfbQuiz(type) {
     localStorage.setItem('fbQuizCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuizCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     state.fbUsedQuizIds.push(cacheKey);
     localStorage.setItem('fbUsedQuizIds', JSON.stringify(state.fbUsedQuizIds));
-    console.log(`Fetched ${type} quiz:`, questions);
     return shuffle(questions);
 }
 
 async function fetchfbQuestions(category, amount = 10) {
     const normalizedCategory = category.toLowerCase();
+    console.log('Fetching questions for category:', category);
     const cacheKey = `fb_questions-${normalizedCategory}`;
     const cache = JSON.parse(localStorage.getItem('fbQuestionsCache'))?.[cacheKey];
     if (cache && cache.questions.length >= amount && cache.questions.filter(q => !state.fbUsedQuestions.includes(q.id)).length >= amount) {
         console.log('Using cached questions:', cache.questions);
         return processfbQuestions(cache.questions, amount);
     }
-    let q = collection(db, 'triviaMaster', 'questions', 'items');
-    if (category.toLowerCase() !== 'general knowledge') q = query(q, where('category', '==', category));
-    q = query(q, where('randomIndex', '>=', Math.floor(Math.random() * 900)), orderBy('randomIndex'), limit(amount * 2));
-    const snapshot = await getDocs(q);
+    let query = db.collection('triviaMaster').doc('questions').collection('items');
+    if (category !== 'General Knowledge') query = query.where('category', '==', category);
+    query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
+            .orderBy('randomIndex')
+            .limit(amount * 2);
+    const snapshot = await query.get();
     if (snapshot.empty) {
-        console.warn(`No questions found for ${category}`);
-        throw new Error(`No questions available for ${category}.`);
+        console.warn(`No questions found for ${category}, falling back to General Knowledge`);
+        showError(`No questions available for ${category}. Loading General Knowledge instead.`);
+        return fetchfbQuestions('General Knowledge', amount);
     }
     const questions = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -270,8 +219,8 @@ async function fetchfbQuestions(category, amount = 10) {
         difficulty: doc.data().difficulty || 'medium',
         titbits: doc.data().titbits || ''
     }));
-    localStorage.setItem('fbQuestionsCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     console.log('Fetched questions:', questions);
+    localStorage.setItem('fbQuestionsCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     return processfbQuestions(questions, amount);
 }
 
@@ -331,10 +280,9 @@ export function initTriviaGame(category) {
     updateTimerUI();
     els.score().textContent = '0';
     loadMuteState();
-    setupEvents(); // Moved here as it worked
     fetchQuestions(category).then(questions => {
         state.questions = questions;
-        const quizContainer = document.querySelector('.quiz-container');
+        /*const quizContainer = document.querySelector('.quiz-container');
         const gameScreen = els.game();
         console.log('Transitioning UI:', { quizContainer: !!quizContainer, gameScreen: !!gameScreen });
         if (quizContainer) {
@@ -347,12 +295,13 @@ export function initTriviaGame(category) {
             gameScreen.classList.add('active');
         } else {
             console.error('Game screen (.game-screen) not found');
-        }
+        } */
         showQuestion();
     }).catch(err => {
         console.error('Error fetching questions:', err);
         showError(err.message || 'Failed to load questions.');
     });
+    setupEvents(); // Moved here as it worked
 }
 
 function showQuestion() {
@@ -632,11 +581,17 @@ async function showSummary(globalHigh) {
     }
 }
 
+
 async function saveHighScore() {
     if (state.isScoreSaved || !state.score) return;
     const category = state.questions[0]?.category || 'General Knowledge';
     const name = prompt('Enter your name:', 'Anonymous') || 'Anonymous';
-    await addDoc(collection(db, 'scores'), { name, score: state.score, category, timestamp: Timestamp.now() });
+    await db.collection('scores').add({
+        name, 
+        score: state.score, 
+        category, 
+        timestamp: Timestamp.now()
+    });
     state.isScoreSaved = true;
     updateHighScores();
 }
@@ -647,9 +602,11 @@ async function updateHighScores() {
 
     const category = state.questions[0]?.category || 'General Knowledge';
     try {
-        const snapshot = await getDocs(query(collection(db, 'scores'), 
-                        where('category', '==', category), 
-                        orderBy('score', 'desc'), limit(5)));
+        const snapshot = await db.collection('scores')
+            .where('category', '==', category)
+            .orderBy('score', 'desc')
+            .limit(5)
+            .get(); // Changed
             
         state.highScores = snapshot.docs.map(doc => doc.data());
         highscoresList.innerHTML = state.highScores.length ? 

@@ -1,5 +1,7 @@
-export function initWordSearch() {
+export function initWordGame() {
     console.log('Initializing Word Search game');
+    console.log('Checking for feedback element:', document.getElementById('wordsearch-feedback'));
+    console.log('Current document body:', document.body.innerHTML);
     
     // Game configuration
     const config = {
@@ -23,10 +25,27 @@ export function initWordSearch() {
     const wordListElement = document.getElementById('wordsearch-wordlist');
     const wordsLeftElement = document.getElementById('wordsearch-words-left');
     const timeElement = document.getElementById('wordsearch-time');
-    const feedbackElement = document.getElementById('wordsearch-feedback');
+    let feedbackElement = document.getElementById('wordsearch-feedback');
     const newGameBtn = document.getElementById('wordsearch-new');
     const hintBtn = document.getElementById('wordsearch-hint');
     
+    // Create fallback feedback element if missing
+    if (!feedbackElement) {
+        console.warn('Feedback element not found, creating fallback');
+        feedbackElement = document.createElement('div');
+        feedbackElement.id = 'wordsearch-feedback';
+        feedbackElement.className = 'wordsearch-feedback';
+        document.body.appendChild(feedbackElement);
+    }
+
+    // Check if all required elements are present
+    if (!gridElement || !wordListElement || !wordsLeftElement || !timeElement || !feedbackElement || !newGameBtn || !hintBtn) {
+        console.error('One or more required DOM elements are missing:', {
+            gridElement, wordListElement, wordsLeftElement, timeElement, feedbackElement, newGameBtn, hintBtn
+        });
+        return;
+    }
+
     // Initialize the game
     initGame();
     
@@ -94,6 +113,7 @@ export function initWordSearch() {
             let placed = false;
             let attempts = 0;
             
+            console.log(`Attempting to place word: ${word}`);
             while (!placed && attempts < 100) {
                 attempts++;
                 const direction = Math.floor(Math.random() * 4); // 0: horizontal, 1: vertical, 2: diagonal down, 3: diagonal up
@@ -103,9 +123,13 @@ export function initWordSearch() {
                 if (canPlaceWord(word, row, col, direction)) {
                     placed = true;
                     placeWord(word, row, col, direction);
+                    console.log(`Successfully placed ${word} at (${row}, ${col}) in direction ${direction}`);
+                } else if (attempts === 100) {
+                    console.warn(`Failed to place word: ${word} after 100 attempts`);
                 }
             }
         });
+        console.log('Grid after placing words:', grid);
     }
     
     function canPlaceWord(word, row, col, direction) {
@@ -151,32 +175,35 @@ export function initWordSearch() {
     
     function fillEmptyCells() {
         const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        grid.forEach(cell => {
+        grid.forEach((cell, index) => {
             if (cell.letter === '') {
                 cell.letter = alphabet[Math.floor(Math.random() * alphabet.length)];
             }
         });
+        console.log('Grid after filling empty cells:', grid);
     }
     
     function renderGrid() {
         gridElement.style.gridTemplateColumns = `repeat(${config.gridSize}, 1fr)`;
         
+        gridElement.innerHTML = ''; // Clear existing grid
         grid.forEach((cell, index) => {
             const cellElement = document.createElement('div');
             cellElement.className = 'wordsearch-cell';
-            cellElement.textContent = cell.letter;
+            cellElement.textContent = cell.letter || ''; // Ensure text content is set
             cellElement.dataset.index = index;
             
             // Event listeners for selection
             cellElement.addEventListener('mousedown', startSelection);
-            cellElement.addEventListener('mouseenter', continueSelection);
-            cellElement.addEventListener('mouseup', endSelection);
+            cellElement.addEventListener('mouseenter', continueSelection, { passive: true });
+            cellElement.addEventListener('mouseup', endSelection, { passive: true });
             cellElement.addEventListener('touchstart', startSelection);
-            cellElement.addEventListener('touchmove', continueSelection);
-            cellElement.addEventListener('touchend', endSelection);
+            cellElement.addEventListener('touchmove', continueSelection, { passive: true });
+            cellElement.addEventListener('touchend', endSelection, { passive: true });
             
             gridElement.appendChild(cellElement);
             cell.element = cellElement;
+            console.log(`Rendered cell ${index} with letter: ${cell.letter}`);
         });
     }
     
@@ -333,3 +360,8 @@ export function initWordSearch() {
     newGameBtn.addEventListener('click', initGame);
     hintBtn.addEventListener('click', giveHint);
 }
+
+// Run initialization when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initWordGame();
+});

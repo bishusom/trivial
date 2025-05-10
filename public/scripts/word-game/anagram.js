@@ -1,20 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
-    authDomain: "triviaahdb.firebaseapp.com",
-    projectId: "triviaahdb",
-    storageBucket: "triviaahdb.appspot.com",
-    messagingSenderId: "758082588437",
-    appId: "1:758082588437:web:9eada609e974b9e458631c",
-    measurementId: "G-ZT8Q78QYDQ"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
 export function initWordGame() {
     console.log('Initializing Anagram game');
     
@@ -28,6 +11,16 @@ export function initWordGame() {
     let usedBaseWords = [];
     let autoStartTimeout = null;
     
+    // Level system
+    let currentLevel = 1;
+    let levels = [
+        { difficulty: 'easy', wordLength: [5, 6], games: 3 },
+        { difficulty: 'medium', wordLength: [7, 8], games: 3 },
+        { difficulty: 'hard', wordLength: [9, 10], games: 3 }
+    ];
+    let gamesCompletedInCurrentDifficulty = 0;
+    const totalGames = levels.reduce((sum, level) => sum + level.games, 0); // 9 games
+    
     // DOM elements
     const scrambledLettersEl = document.getElementById('scrambled-letters');
     const currentAttemptEl = document.getElementById('current-attempt');
@@ -36,11 +29,13 @@ export function initWordGame() {
     const shuffleBtn = document.getElementById('anagram-shuffle');
     const newBtn = document.getElementById('anagram-new');
     const hintBtn = document.getElementById('anagram-hint');
-    const revealBtn = document.getElementById('anagram-reveal'); // New: Reveal button
+    const revealBtn = document.getElementById('anagram-reveal');
     const feedbackEl = document.getElementById('anagram-feedback');
     const targetEl = document.getElementById('anagram-target');
     const scoreEl = document.getElementById('anagram-score');
     const solutionsList = document.getElementById('solutions-list');
+    const levelEl = document.getElementById('anagram-level');
+    const gamesRemainingEl = document.getElementById('anagram-games-remaining'); // New: Games remaining display
     
     // Helper functions
     function scrambleWord(word) {
@@ -101,19 +96,6 @@ export function initWordGame() {
         }
     }
     
-    async function debugFirestore() {
-        try {
-            const wordsRef = collection(db, "dictionary");
-            const snapshot = await getDocs(wordsRef);
-            console.log("Total documents:", snapshot.size);
-            snapshot.forEach(doc => {
-                console.log("Document:", doc.id, "=>", doc.data());
-            });
-        } catch (error) {
-            console.error("Debug error:", error);
-        }
-    }
-    
     async function initGame() {
         try {
             if (autoStartTimeout) {
@@ -121,12 +103,16 @@ export function initWordGame() {
                 autoStartTimeout = null;
             }
             
+            // Determine current difficulty
+            let currentDifficulty = levels.find(level => currentLevel <= level.games + (levels.slice(0, levels.indexOf(level)).reduce((sum, l) => sum + l.games, 0)));
+            let wordLength = currentDifficulty.wordLength[Math.floor(Math.random() * 2)];
+            
             const wordsRef = collection(db, "dictionary");
             const q = query(
                 wordsRef, 
-                where("length", "==", 8),
+                where("length", "==", wordLength),
                 where("isCommon", "==", true),
-                limit(10)
+                limit(50)
             );
             
             const querySnapshot = await getDocs(q);
@@ -147,7 +133,6 @@ export function initWordGame() {
             usedBaseWords.push(baseWord);
             scrambledLetters = scrambleWord(baseWord).split('');
             foundWords = [];
-            score = 0;
             currentWord = [];
             
             allPossibleWords = await generatePossibleWords(baseWord);
@@ -158,30 +143,33 @@ export function initWordGame() {
             updateFoundWords();
             targetEl.textContent = `Word Length: ${baseWord.length}`;
             scoreEl.textContent = `Score: ${score}`;
+            levelEl.textContent = `Level: ${currentLevel} (${currentDifficulty.difficulty})`;
+            updateGamesRemaining();
             feedbackEl.textContent = '';
             feedbackEl.className = 'anagram-feedback';
             
         } catch (error) {
             console.error("Error initializing game:", error);
             const localWordList = [
-                'CREATION', 'REACTION', 'EDUCATION', 'GENERATE', 
-                'TEAMWORK', 'NOTEBOOK', 'KEYBOARD', 'MONITOR'
+                'APPLE', 'BERRY', 'CLOUD', 'DREAM', 'EAGLE', 'FROST', // Easy (5-6)
+                'PICTURE', 'SILENCE', 'CAPTURE', 'MOUNTAIN', // Medium (7-8)
+                'ADVENTURE', 'DISCOVERY' // Hard (9+)
             ].filter(word => !usedBaseWords.includes(word));
             
-            if (localWordList.length === 0) {
+            let currentDifficulty = levels.find(level => currentLevel <= level.games + (levels.slice(0, levels.indexOf(level)).reduce((sum, l) => sum + l.games, 0)));
+            let wordLength = currentDifficulty.wordLength[Math.floor(Math.random() * 2)];
+            
+            let filteredWords = localWordList.filter(word => word.length === wordLength);
+            if (filteredWords.length === 0) {
                 console.warn("No unused words available in fallback list. Resetting used words.");
                 usedBaseWords = [];
-                localWordList.push(...[
-                    'CREATION', 'REACTION', 'EDUCATION', 'GENERATE', 
-                    'TEAMWORK', 'NOTEBOOK', 'KEYBOARD', 'MONITOR'
-                ]);
+                filteredWords = localWordList.filter(word => word.length === wordLength);
             }
             
-            baseWord = localWordList[Math.floor(Math.random() * localWordList.length)];
+            baseWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
             usedBaseWords.push(baseWord);
             scrambledLetters = scrambleWord(baseWord).split('');
             foundWords = [];
-            score = 0;
             currentWord = [];
             allPossibleWords = generateLocalPossibleWords(baseWord);
             
@@ -190,6 +178,8 @@ export function initWordGame() {
             updateFoundWords();
             targetEl.textContent = `Word Length: ${baseWord.length}`;
             scoreEl.textContent = `Score: ${score}`;
+            levelEl.textContent = `Level: ${currentLevel} (${currentDifficulty.difficulty})`;
+            updateGamesRemaining();
             feedbackEl.textContent = '';
             feedbackEl.className = 'anagram-feedback';
         }
@@ -254,7 +244,7 @@ export function initWordGame() {
                 clearTimeout(autoStartTimeout);
             }
             autoStartTimeout = setTimeout(() => {
-                initGame();
+                checkLevelProgress();
                 autoStartTimeout = null;
             }, 2500);
         } else {
@@ -295,7 +285,7 @@ export function initWordGame() {
             clearTimeout(autoStartTimeout);
         }
         autoStartTimeout = setTimeout(() => {
-            initGame();
+            checkLevelProgress();
             autoStartTimeout = null;
         }, 2500);
     }
@@ -315,13 +305,42 @@ export function initWordGame() {
         feedbackEl.className = `anagram-feedback ${type}`;
     }
     
+    function updateGamesRemaining() {
+        const gamesPlayed = (levels.slice(0, levels.findIndex(level => currentLevel <= level.games + (levels.slice(0, levels.indexOf(level)).reduce((sum, l) => sum + l.games, 0)))).reduce((sum, l) => sum + l.games, 0) + gamesCompletedInCurrentDifficulty;
+        const gamesRemaining = totalGames - gamesPlayed;
+        gamesRemainingEl.textContent = `Games to Win: ${gamesRemaining}`;
+    }
+    
+    function checkLevelProgress() {
+        gamesCompletedInCurrentDifficulty++;
+        let currentDifficulty = levels.find(level => currentLevel <= level.games + (levels.slice(0, levels.indexOf(level)).reduce((sum, l) => sum + l.games, 0)));
+        
+        if (gamesCompletedInCurrentDifficulty >= currentDifficulty.games) {
+            currentLevel++;
+            gamesCompletedInCurrentDifficulty = 0;
+        }
+        
+        if (currentLevel > totalGames) {
+            showFeedback('success', 'Congratulations! You won the game!');
+            setTimeout(() => {
+                currentLevel = 1;
+                gamesCompletedInCurrentDifficulty = 0;
+                usedBaseWords = [];
+                score = 0;
+                initGame();
+            }, 3000);
+        } else {
+            initGame();
+        }
+    }
+    
     // Event listeners
     submitBtn.addEventListener('click', submitWord);
     clearBtn.addEventListener('click', clearCurrentAttempt);
     shuffleBtn.addEventListener('click', shuffleLetters);
     newBtn.addEventListener('click', initGame);
     hintBtn.addEventListener('click', showHint);
-    revealBtn.addEventListener('click', revealWord); // New: Reveal button listener
+    revealBtn.addEventListener('click', revealWord);
     
     // Start the game
     initGame();

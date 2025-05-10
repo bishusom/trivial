@@ -1,20 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
-    authDomain: "triviaahdb.firebaseapp.com",
-    projectId: "triviaahdb",
-    storageBucket: "triviaahdb.appspot.com",
-    messagingSenderId: "758082588437",
-    appId: "1:758082588437:web:9eada609e974b9e458631c",
-    measurementId: "G-ZT8Q78QYDQ"
-};
-
-// Initialize Firebase
-const firebaseApp = initializeApp(firebaseConfig);
-const firestore = getFirestore(firebaseApp);
-
 export function initWordGame() {
     console.log('Initializing Spelling Bee game with DictionaryAPI.dev');
     

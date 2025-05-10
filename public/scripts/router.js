@@ -229,11 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Determine loading indicator delay based on route
         let loadingDelay = 0; // Default: no loading indicator
-        if (path.startsWith('/number-puzzle')) {
+        /*if (path.startsWith('/number-puzzle')) {
             loadingDelay = 300; // 0.3 seconds for number puzzles
         } else if (path.startsWith('/trivias') || path.startsWith('/word-game')) {
             loadingDelay = 2000; // 2 seconds for trivia and word games
-        }
+        }*/
 
         // Show loading indicator if delay is set
         let loadingPromise = Promise.resolve();
@@ -315,9 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const validChildren = {
-            '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts', 'animals', 'science', 'history', 'geography', 'movies', 'tv-web-series', 'music', 'celebrities', 'politics', 'food', 'sports', 'business', 'mythology', 'catalog'],
+            '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 'history', 'fashion', 'festivals', 'geography', 'movies', 'tv-web-series', 'music', 'celebrities', 'politics', 'food', 'sports', 'business', 'mythology', 'catalog'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'catalog'],
-            '/word-game': ['classic', 'anagram', 'spelling', 'catalog']
+            '/word-game': ['classic', 'anagram', 'spelling', 'wordsearch', 'catalog']
         };
 
         try {

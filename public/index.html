@@ -17,19 +17,32 @@
     <meta name="twitter:image" content="https://triviaah.com/social-preview.webp">
     <link rel="canonical" href="https://www.triviaah.com/">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNa.woff2" as="font" type="font/woff2" crossorigin>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-        :root { --font-poppins: 'Poppins', sans-serif; --font-material: 'Material Icons'; }
+        /* Critical CSS */
         .logo-container-desktop, .logo-container-mobile { display: flex; justify-content: center; }
         .logo { max-width: 200px; height: auto; }
         .hero-section { padding: 20px; }
         .section-header { font-size: 2rem; text-align: center; }
+        .game-categories { display: flex; gap: 1rem; justify-content: center; }
+        .game-category-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .game-category-image { width: 70px; height: 70px; }
+        @media (max-width: 768px) {
+            .logo-container-desktop { display: none; }
+            .logo-container-mobile .logo { max-width: 180px; }
+        }
+        @media (max-width: 480px) {
+            .logo-container-mobile .logo { max-width: 140px; }
+        }
+        /* Fallback font */
+        * { font-family: 'Poppins', sans-serif; }
     </style>
-    <<link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'">
-     <!-- Firebase SDKs -->
+    <link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'">
+    <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" defer></script>
     <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
@@ -42,7 +55,7 @@
                 <div class="logo-container-mobile">
                     <picture>
                         <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
-                        <img src="/imgs/triviaah-logo-180.webp" alt="Triviaah Logo" class="logo" loading="lazy">
+                        <img src="/imgs/triviaah-logo-180.webp" alt="Triviaah Logo" class="logo"">
                     </picture>
                 </div>
                 <div class="nav-controls">
@@ -147,7 +160,7 @@
                     <picture>
                         <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
                         <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp 180w">
-                        <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" loading="lazy">
+                        <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40">
                     </picture>
                 </div>
                 <div class="tagline">
@@ -156,22 +169,22 @@
                 <h2 class="section-header">Featured Trivia Quizzes</h2>
                 <div class="game-categories">
                     <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
-                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image">
+                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
                         <span>Weekly Quiz</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
-                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly">
+                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly"width="70" height="70">
                         <img src="/imgs/monthly-quiz-70.webp" alt="Monthly Quiz" class="game-category-image">
                         <span>Monthly Quiz</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
-                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image">
+                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70">
                         <span>General Knowledge</span>
                         <span class="popular-badge">Popular</span>
                     </a>
                     <a href="/trivias/geography" class="game-category-card featured-card" data-category="geography">
-                        <img src="/imgs/geography-70.webp" alt="Geography" class="game-category-image">
+                        <img src="/imgs/geography-70.webp" alt="Geography" class="game-category-image" width="70" height="70">
                         <span>Geography</span>
                         <span class="popular-badge">Tough</span>
                     </a>
@@ -186,22 +199,22 @@
                 <h2 class="section-header">Popular Games</h2>
                 <div class="game-categories">
                     <a href="/number-puzzle/guess" class="game-category-card featured-card" data-category="Guess the Number">
-                        <img src="/imgs/number-guess-70.webp" alt="Guess the Number" class="game-category-image">
+                        <img src="/imgs/number-guess-70.webp" alt="Guess the Number" class="game-category-image" width="70" height="70">
                         <span>Guess the Number</span>
                         <span class="popular-badge">Popular</span>
                     </a>
-                    <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram">
+                    <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
                         <img src="/imgs/anagram-70.webp" alt="Anagram" class="game-category-image">
                         <span>Anagram</span>
                         <span class="popular-badge">Popular</span>
                     </a>
                     <a href="/number-puzzle/sequence" class="game-category-card featured-card" data-category="Number Sequence">
-                        <img src="/imgs/number-sequence-70.webp" alt="Number Sequence" class="game-category-image">
+                        <img src="/imgs/number-sequence-70.webp" alt="Number Sequence" class="game-category-image" width="70" height="70">
                         <span>Number Sequence</span>
                         <span class="popular-badge">Featured</span>
                     </a>
                     <a href="/word-game/spelling" class="game-category-card featured-card" data-category="Spelling Bee">
-                        <img src="/imgs/spelling-70.webp" alt="Spelling Bee" class="game-category-image">
+                        <img src="/imgs/spelling-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
                         <span>Spelling Bee</span>
                         <span class="popular-badge">Popular</span>
                     </a>

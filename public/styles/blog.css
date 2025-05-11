@@ -28,9 +28,10 @@ body {
 }
 
 .blog-header h1 {
+    padding-top: 70px;
     font-size: 2.8rem;
     margin-bottom: 0.5rem;
-    color: #949494;
+    color: #fffefe;
     font-weight: 700;
     line-height: 1.2;
 }
@@ -83,7 +84,7 @@ body {
 }
 
 .blog-preview h2 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     margin: 0 0 1rem;
     color: #1a73e8;
 }
@@ -350,8 +351,6 @@ body {
         gap: 1rem;
     }
 }
-
-
 
 @media (max-width: 480px) {
     .blog-header h1 {

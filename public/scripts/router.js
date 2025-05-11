@@ -315,7 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const validChildren = {
-            '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 'history', 'fashion', 'festivals', 'geography', 'movies', 'tv-web-series', 'music', 'celebrities', 'politics', 'food', 'sports', 'business', 'mythology', 'catalog'],
+            '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 
+                         'history', 'fashion', 'festivals', 'geography', 'movies', 'tv-web-series', 'music', 
+                         'celebrities', 'politics', 'food', 'sports', 'business', 'mythology', 'catalog', 'tbank'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'wordsearch', 'catalog']
         };
@@ -330,18 +332,29 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (path === '/home') {
                 showHomeScreen();
             } else if (path.startsWith('/trivias')) {
-                const triviaType = pathParts[1];
-                if (triviaType === 'catalog') {
-                    await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
-                    const { initTriviaCatalog } = await import('/scripts/trivias/catalog.js');
-                    initTriviaCatalog();
-                } else if (validChildren['/trivias'].includes(triviaType)) {
-                    await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
-                    const { initTriviaGame } = await import('/scripts/trivias/trivia.js');
-                    initTriviaGame(triviaType.replace(/-/g, ' '));
-                } else {
-                    showHomeScreen();
-                }
+                    const triviaType = pathParts[1];
+                    if (triviaType === 'catalog') {
+                        await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
+                        const { initTriviaCatalog } = await import('/scripts/trivias/catalog.js');
+                        initTriviaCatalog();
+                    } else if (triviaType === 'tbank') {
+                        if (pathParts.length === 2) { // /trivias/tbank
+                            await loadTemplate('/templates/trivias/tbank.html', dynamicContent);
+                            const { initTbankFilters } = await import('/scripts/trivias/tbank.js');
+                            initTbankFilters();
+                        } else { // /trivias/tbank/some-category
+                            const category = pathParts[2];
+                            await loadTemplate('/templates/trivias/tbank/'+category+'.html', dynamicContent);
+                            const { initTBankControls } = await import('/scripts/trivias/tbank.js');
+                            initTBankControls();
+                        }       
+                    } else if (validChildren['/trivias'].includes(triviaType)) {
+                        await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
+                        const { initTriviaGame } = await import('/scripts/trivias/trivia.js');
+                        initTriviaGame(triviaType.replace(/-/g, ' '));
+                    } else {
+                        showHomeScreen();
+                    }
             } else if (path.startsWith('/number-puzzle')) {
                 const puzzleType = pathParts[1];
                 if (puzzleType === 'catalog') {

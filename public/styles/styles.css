@@ -49,6 +49,7 @@ body {
     width: 100%;
     min-height: 48px;
     line-height: 1;
+    text-decoration: none;
 }
 
 .btn.primary {

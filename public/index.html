@@ -40,7 +40,8 @@
         /* Fallback font */
         * { font-family: 'Poppins', sans-serif; }
     </style>
-    <link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'">
+    <link rel="preload" href="/styles/styles.min.css" as="style">
+    <link rel="stylesheet" href="/styles/styles.min.css">
     <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
     <!-- Firebase SDKs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>

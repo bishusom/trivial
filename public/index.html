@@ -10,16 +10,26 @@
     <meta property="og:url" content="https://triviaah.com/">
     <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
     <meta property="og:description" content="Play free online trivia games daily with 5000+ questions across 20+ categories!">
-    <meta property="og:image" content="https://triviaah.com/social-preview.jpg">
+    <meta property="og:image" content="https://triviaah.com/social-preview.webp">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
     <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
-    <meta name="twitter:image" content="https://triviaah.com/social-preview.jpg">
+    <meta name="twitter:image" content="https://triviaah.com/social-preview.webp">
     <link rel="canonical" href="https://www.triviaah.com/">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/styles/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+        :root { --font-poppins: 'Poppins', sans-serif; --font-material: 'Material Icons'; }
+        .logo-container-desktop, .logo-container-mobile { display: flex; justify-content: center; }
+        .logo { max-width: 200px; height: auto; }
+        .hero-section { padding: 20px; }
+        .section-header { font-size: 2rem; text-align: center; }
+    </style>
+    <link rel="stylesheet" href="/styles/styles.css" media="print" onload="this.media='all'">
+    <noscript><<link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'"></noscript>
 </head>
 <body>
     <div class="container">
@@ -130,52 +140,58 @@
                 <div class="logo-container-desktop">
                     <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
                 </div>
+                <div class="tagline">
+                    Play Free Quizzes Daily – No Signup Needed!</p>
+                </div>
                 <h2 class="section-header">Featured Trivia Quizzes</h2>
                 <div class="game-categories">
                     <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
-                        <img src="/imgs/weekly-quiz.jpg" alt="Weekly Quiz" class="game-category-image">
+                        <img src="/imgs/weekly-quiz.webp" alt="Weekly Quiz" class="game-category-image">
                         <span>Weekly Quiz</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly">
-                        <img src="/imgs/monthly-quiz.jpg" alt="Monthly Quiz" class="game-category-image">
+                        <img src="/imgs/monthly-quiz.webp" alt="Monthly Quiz" class="game-category-image">
                         <span>Monthly Quiz</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
-                        <img src="/imgs/general-knowledge.jpg" alt="General Knowledge" class="game-category-image">
+                        <img src="/imgs/general-knowledge.webp" alt="General Knowledge" class="game-category-image">
                         <span>General Knowledge</span>
                         <span class="popular-badge">Popular</span>
                     </a>
                     <a href="/trivias/geography" class="game-category-card featured-card" data-category="geography">
-                        <img src="/imgs/geography.jpg" alt="Geography" class="game-category-image">
+                        <img src="/imgs/geography.webp" alt="Geography" class="game-category-image">
                         <span>Geography</span>
                         <span class="popular-badge">Tough</span>
                     </a>
                 </div>
-                <a href="/trivias/catalog" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                <a href="/trivias/weekly" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
+                    Start Quiz Now
+                </a>
+                <a href="/trivias/catalog" class="btn secondary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
                     Browse Categories
                 </a>
                 <hr class="divider">
                 <h2 class="section-header">Popular Games</h2>
                 <div class="game-categories">
                     <a href="/number-puzzle/guess" class="game-category-card featured-card" data-category="Guess the Number">
-                        <img src="/imgs/number-guess.jpg" alt="Guess the Number" class="game-category-image">
+                        <img src="/imgs/number-guess.webp" alt="Guess the Number" class="game-category-image">
                         <span>Guess the Number</span>
                         <span class="popular-badge">Popular</span>
                     </a>
                     <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram">
-                        <img src="/imgs/anagram.jpg" alt="Anagram" class="game-category-image">
+                        <img src="/imgs/anagram.webp" alt="Anagram" class="game-category-image">
                         <span>Anagram</span>
                         <span class="popular-badge">Popular</span>
                     </a>
                     <a href="/number-puzzle/sequence" class="game-category-card featured-card" data-category="Number Sequence">
-                        <img src="/imgs/number-sequence.jpg" alt="Number Sequence" class="game-category-image">
+                        <img src="/imgs/number-sequence.webp" alt="Number Sequence" class="game-category-image">
                         <span>Number Sequence</span>
                         <span class="popular-badge">Featured</span>
                     </a>
                     <a href="/word-game/spelling" class="game-category-card featured-card" data-category="Spelling Bee">
-                        <img src="/imgs/spelling.jpg" alt="Spelling Bee" class="game-category-image">
+                        <img src="/imgs/spelling.webp" alt="Spelling Bee" class="game-category-image">
                         <span>Spelling Bee</span>
                         <span class="popular-badge">Popular</span>
                     </a>
@@ -222,7 +238,7 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
     <script type="module" src="/scripts/router.js" defer></script>
 </body>
 </html>

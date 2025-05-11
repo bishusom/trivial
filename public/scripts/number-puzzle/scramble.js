@@ -45,6 +45,12 @@ export function initPuzzle() {
         coinsEl: document.getElementById('scramble-coins')
     };
 
+    function trackEvent(action, category, label, value) {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', action, { event_category: category, event_label: label, value: value });
+        }
+    }
+
     // Clear current input
     function clearInput() {
         gameState.currentExpression = '';
@@ -62,6 +68,7 @@ export function initPuzzle() {
     
     // Generate new puzzle with progressive difficulty
     function generateNewPuzzle() {
+        trackEvent('scramble_started', 'number_scramble',1);
         // Clear previous state
         gameState.currentExpression = '';
         gameState.usedNumbers = [];
@@ -232,6 +239,7 @@ export function initPuzzle() {
             gameState.consecutiveHardWins++;
             if (gameState.consecutiveHardWins >= 5) {
                 endGame();
+                trackEvent('scramble_end', 'number_scramble', 1);
                 return;
             }
         } else {

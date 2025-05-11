@@ -269,6 +269,7 @@ function updateTimerUI() {
 
 export function initTriviaGame(category) {
     console.log('Initializing game for category:', category);
+    trackEvent('game_start', 'game', category, 1);
     state.questions = [];
     state.current = 0;
     state.score = 0;
@@ -280,20 +281,6 @@ export function initTriviaGame(category) {
     loadMuteState();
     fetchQuestions(category).then(questions => {
         state.questions = questions;
-        /*const quizContainer = document.querySelector('.quiz-container');
-        const gameScreen = els.game();
-        console.log('Transitioning UI:', { quizContainer: !!quizContainer, gameScreen: !!gameScreen });
-        if (quizContainer) {
-            quizContainer.classList.add('hidden');
-        } else {
-            console.warn('Quiz container (.quiz-container) not found');
-        }
-        if (gameScreen) {
-            gameScreen.classList.remove('hidden');
-            gameScreen.classList.add('active');
-        } else {
-            console.error('Game screen (.game-screen) not found');
-        } */
         showQuestion();
     }).catch(err => {
         console.error('Error fetching questions:', err);

@@ -16,6 +16,13 @@ export function initPuzzle() {
     let sequencesSolved = 0;
     let timeoutId = null;
     
+
+    function trackEvent(action, category, label, value) {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', action, { event_category: category, event_label: label, value: value });
+        }
+    }
+
     // Initialize the game
     initGame();
     
@@ -30,6 +37,7 @@ export function initPuzzle() {
         sequencesSolved = 0;
         updateStats();
         generateSequence();
+        trackEvent('sequence_started','number_sequence',1)
     }
     
     // Sequence generation functions

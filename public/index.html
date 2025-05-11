@@ -28,8 +28,11 @@
         .hero-section { padding: 20px; }
         .section-header { font-size: 2rem; text-align: center; }
     </style>
-    <link rel="stylesheet" href="/styles/styles.css" media="print" onload="this.media='all'">
-    <noscript><<link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'"></noscript>
+    <<link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'">
+     <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -138,7 +141,7 @@
             <!-- Hero Section -->
             <div class="hero-section">
                 <div class="logo-container-desktop">
-                    <img src="/imgs/triviaah-logo.png" alt="Triviaah Logo" class="logo">
+                    <img src="/imgs/triviaah-logo.webp" alt="Triviaah Logo" class="logo">
                 </div>
                 <div class="tagline">
                     Play Free Quizzes Daily – No Signup Needed!</p>
@@ -219,10 +222,6 @@
     <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
     <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
     <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js"></script>
-
     <script>
         // Your Firebase configuration
         const firebaseConfig = {
@@ -238,7 +237,6 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
     <script type="module" src="/scripts/router.js" defer></script>
 </body>
 </html>

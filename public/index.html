@@ -43,8 +43,6 @@
     <link rel="stylesheet" href="/styles/styles.min.css" media="print" onload="this.media='all'">
     <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" defer></script>
-    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
 </head>
 <body>
@@ -242,6 +240,8 @@
     <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
     <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
     <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" ></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" ></script>
     <script>
         // Your Firebase configuration
         const firebaseConfig = {

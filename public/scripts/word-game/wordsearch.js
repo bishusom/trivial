@@ -557,29 +557,33 @@ export function initWordGame() {
   }
 
   function isInDirection(index1, index2, direction) {
-    if (!direction) return false;
+  if (!direction) return false;
 
-    const row1 = Math.floor(index1 / config.gridCols);
-    const col1 = index1 % config.gridCols;
-    const row2 = Math.floor(index2 / config.gridCols);
-    const col2 = index2 % config.gridCols;
-    
-    const rowDiff = row2 - row1;
-    const colDiff = col2 - col1;
+  const row1 = Math.floor(index1 / config.gridCols);
+  const col1 = index1 % config.gridCols;
+  const row2 = Math.floor(index2 / config.gridCols);
+  const col2 = index2 % config.gridCols;
+  
+  const rowDiff = row2 - row1;
+  const colDiff = col2 - col1;
 
-    // For horizontal: same row, one column step in direction
-    if (direction.row === 0) {
-      return rowDiff === 0 && colDiff === direction.col;
-    }
-    // For vertical: same column, one row step in direction
-    else if (direction.col === 0) {
-      return colDiff === 0 && rowDiff === direction.row;
-    }
-    // For diagonal: equal row and column steps in direction
-    else {
-      return rowDiff === direction.row && colDiff === direction.col;
-    }
+  // For horizontal: same row, one column step in direction
+  if (direction.row === 0) {
+    return rowDiff === 0 && colDiff === direction.col;
   }
+  // For vertical: same column, one row step in direction
+  else if (direction.col === 0) {
+    return colDiff === 0 && rowDiff === direction.row;
+  }
+  // For diagonal: equal row and column steps in direction
+  else {
+    return (
+      Math.sign(rowDiff) === Math.sign(direction.row) &&
+      Math.sign(colDiff) === Math.sign(direction.col) &&
+      Math.abs(rowDiff) === Math.abs(colDiff)
+    );
+  }
+}
 
   function endSelection() {
     if (!isSelecting) return;

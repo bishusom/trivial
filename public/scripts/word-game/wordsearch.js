@@ -1,367 +1,614 @@
 export function initWordGame() {
-    console.log('Initializing Word Search game');
-    console.log('Checking for feedback element:', document.getElementById('wordsearch-feedback'));
-    console.log('Current document body:', document.body.innerHTML);
-    
-    // Game configuration
-    const config = {
-        gridSize: 10,
-        minWordLength: 4,
-        maxWordLength: 8,
-        wordCount: 10
-    };
-    
-    // Game state
-    let grid = [];
-    let words = [];
-    let foundWords = [];
-    let selectedCells = [];
-    let isSelecting = false;
-    let startTime = null;
-    let timerInterval = null;
-    
-    // DOM elements
-    const gridElement = document.getElementById('wordsearch-grid');
-    const wordListElement = document.getElementById('wordsearch-wordlist');
-    const wordsLeftElement = document.getElementById('wordsearch-words-left');
-    const timeElement = document.getElementById('wordsearch-time');
-    let feedbackElement = document.getElementById('wordsearch-feedback');
-    const newGameBtn = document.getElementById('wordsearch-new');
-    const hintBtn = document.getElementById('wordsearch-hint');
-    
-    // Create fallback feedback element if missing
-    if (!feedbackElement) {
-        console.warn('Feedback element not found, creating fallback');
-        feedbackElement = document.createElement('div');
-        feedbackElement.id = 'wordsearch-feedback';
-        feedbackElement.className = 'wordsearch-feedback';
-        document.body.appendChild(feedbackElement);
-    }
+  // Game configuration
+  const config = {
+    gridCols: 12, // Increased from 10
+    gridRows: 8,  // Increased from 6
+    minWordLength: 4,
+    maxWordLength: 8,
+    wordCount: {
+      easy: 6,
+      medium: 8,
+      hard: 10
+    },
+    maxPlacementAttempts: 200, // Per word
+    maxTotalAttempts: 1000, // Total attempts across all words
+    maxRetries: 3 // Limit retries to avoid infinite loops
+  };
 
-    // Check if all required elements are present
-    if (!gridElement || !wordListElement || !wordsLeftElement || !timeElement || !feedbackElement || !newGameBtn || !hintBtn) {
-        console.error('One or more required DOM elements are missing:', {
-            gridElement, wordListElement, wordsLeftElement, timeElement, feedbackElement, newGameBtn, hintBtn
-        });
-        return;
-    }
+  // Game state
+  let grid = [];
+  let words = [];
+  let foundWords = [];
+  let selectedCells = [];
+  let isSelecting = false;
+  let difficulty = 'easy';
+  let consecutiveWins = 0;
+  let currentLevel = 1;
+  let usedWordsInGame = new Set();
+  let retryCount = 0; // Track retries to avoid infinite loops
 
-    // Initialize the game
-    initGame();
-    
-    function initGame() {
-        // Clear previous game
-        clearInterval(timerInterval);
-        gridElement.innerHTML = '';
-        wordListElement.innerHTML = '';
-        selectedCells = [];
-        foundWords = [];
-        isSelecting = false;
-        
-        // Generate words
-        words = generateWordList();
-        
+  // Direction tracking for balanced placement
+  let directionCounts = { horizontal: 0, vertical: 0, diagonal: 0 };
+
+  // DOM elements
+  const gridElement = document.getElementById('wordsearch-grid');
+  const wordListElement = document.getElementById('wordsearch-wordlist');
+  const wordsLeftElement = document.getElementById('wordsearch-words-left');
+  let feedbackElement = document.getElementById('wordsearch-feedback');
+  const newGameBtn = document.getElementById('wordsearch-new');
+  const hintBtn = document.getElementById('wordsearch-hint');
+  const levelElement = document.createElement('span');
+  levelElement.id = 'wordsearch-level';
+  const gamesRemainingElement = document.createElement('span');
+  gamesRemainingElement.id = 'wordsearch-games-remaining';
+
+  // Create fallback feedback element if missing
+  if (!feedbackElement) {
+    feedbackElement = document.createElement('div');
+    feedbackElement.id = 'wordsearch-feedback';
+    feedbackElement.className = 'word-feedback';
+    document.querySelector('.game-body').appendChild(feedbackElement);
+  }
+
+  // Add level info to game meta
+  const gameMeta = document.querySelector('.word-game-meta');
+  if (gameMeta) {
+    gameMeta.appendChild(levelElement);
+    gameMeta.appendChild(gamesRemainingElement);
+  }
+
+  // Initialize the game
+  initGame();
+
+  async function initGame() {
+    // Clear previous game
+    gridElement.innerHTML = '';
+    wordListElement.innerHTML = '';
+    selectedCells = [];
+    foundWords = [];
+    isSelecting = false;
+    usedWordsInGame.clear();
+    directionCounts = { horizontal: 0, vertical: 0, diagonal: 0 };
+
+    try {
+      // Generate words from Firebase
+      words = await generateWordList(config);
+      // Sort words by length (descending) to place longer words first
+      words.sort((a, b) => b.letters.length - a.letters.length);
+      console.log('Words fetched and sorted:', words);
+
+      let placedSuccessfully = false;
+      let totalGameAttempts = 0;
+      const maxGameAttempts = 3; // Retry entire game up to 3 times
+
+      while (!placedSuccessfully && totalGameAttempts < maxGameAttempts) {
+        totalGameAttempts++;
+        console.log(`Attempt ${totalGameAttempts} to place all words`);
+
         // Initialize grid
-        grid = Array(config.gridSize * config.gridSize).fill().map(() => ({
-            letter: '',
-            element: null
+        grid = Array(config.gridCols * config.gridRows).fill().map(() => ({
+          letter: '',
+          element: null,
+          word: null
         }));
-        
-        // Place words
-        placeWords();
-        
-        // Fill empty cells
-        fillEmptyCells();
-        
-        // Render grid
-        renderGrid();
-        
-        // Render word list
-        renderWordList();
-        
-        // Start timer
-        startTime = Date.now();
-        timerInterval = setInterval(updateTimer, 1000);
-        
-        // Update UI
-        updateWordsLeft();
-        showFeedback('Find the hidden words!', 'info');
-    }
-    
-    function generateWordList() {
-        // Replace with your own word list or API call
-        const wordPool = [
-            'JAVASCRIPT', 'FUNCTION', 'VARIABLE', 'REACT', 'VUE', 'ANGULAR',
-            'COMPONENT', 'PROGRAM', 'ALGORITHM', 'DATABASE', 'NETWORK',
-            'INTERNET', 'BROWSER', 'SERVER', 'CLIENT', 'STYLES', 'ROUTER',
-            'MODULE', 'PACKAGE', 'DEPENDENCY', 'FRAMEWORK', 'LIBRARY',
-            'DEVELOPER', 'DEBUGGING', 'ITERATION', 'SYNTAX', 'OPERATOR',
-            'CONDITION', 'LOOP', 'ARRAY', 'OBJECT', 'CLASS', 'METHOD',
-            'PROPERTY', 'CALLBACK', 'PROMISE', 'ASYNC', 'AWAIT', 'FETCH',
-            'RESPONSE', 'REQUEST', 'JSON', 'QUERY', 'SELECTOR', 'EVENT'
-        ];
-        
-        // Filter by length and randomize
-        return wordPool
-            .filter(word => word.length >= config.minWordLength && word.length <= config.maxWordLength)
-            .sort(() => Math.random() - 0.5)
-            .slice(0, config.wordCount);
-    }
-    
-    function placeWords() {
-        words.forEach(word => {
-            let placed = false;
-            let attempts = 0;
-            
-            console.log(`Attempting to place word: ${word}`);
-            while (!placed && attempts < 100) {
-                attempts++;
-                const direction = Math.floor(Math.random() * 4); // 0: horizontal, 1: vertical, 2: diagonal down, 3: diagonal up
-                const row = Math.floor(Math.random() * config.gridSize);
-                const col = Math.floor(Math.random() * config.gridSize);
-                
-                if (canPlaceWord(word, row, col, direction)) {
-                    placed = true;
-                    placeWord(word, row, col, direction);
-                    console.log(`Successfully placed ${word} at (${row}, ${col}) in direction ${direction}`);
-                } else if (attempts === 100) {
-                    console.warn(`Failed to place word: ${word} after 100 attempts`);
-                }
-            }
-        });
-        console.log('Grid after placing words:', grid);
-    }
-    
-    function canPlaceWord(word, row, col, direction) {
-        for (let i = 0; i < word.length; i++) {
-            let r = row, c = col;
-            
-            switch (direction) {
-                case 0: c += i; break; // Horizontal
-                case 1: r += i; break; // Vertical
-                case 2: r += i; c += i; break; // Diagonal down
-                case 3: r -= i; c += i; break; // Diagonal up
-            }
-            
-            // Check bounds
-            if (r < 0 || r >= config.gridSize || c < 0 || c >= config.gridSize) {
-                return false;
-            }
-            
-            const index = r * config.gridSize + c;
-            // Check if cell is empty or has matching letter
-            if (grid[index].letter !== '' && grid[index].letter !== word[i]) {
-                return false;
-            }
+
+        const placedWords = [];
+        let totalAttempts = 0;
+        let availableWords = [...words];
+
+        // Calculate direction quotas
+        const totalWords = config.wordCount[difficulty];
+        const minPerDirection = Math.floor(totalWords / 3);
+        const directionQuotas = {
+          horizontal: minPerDirection,
+          vertical: minPerDirection,
+          diagonal: totalWords - 2 * minPerDirection // Assign remaining to diagonal
+        };
+
+        // Main placement loop
+        while (placedWords.length < config.wordCount[difficulty] && totalAttempts < config.maxTotalAttempts) {
+          if (availableWords.length === 0) {
+            availableWords = [...words].filter(wordObj => !placedWords.some(p => p.word === wordObj.word));
+            console.log('Resetting available words:', availableWords);
+          }
+
+          const wordObj = availableWords[0];
+          let placed = false;
+
+          // Try to place word with balanced direction
+          if (tryPlaceWord(wordObj, directionQuotas)) {
+            placedWords.push(wordObj);
+            usedWordsInGame.add(wordObj.word);
+            availableWords.shift();
+            console.log(`Placed word: ${wordObj.word}, Total placed: ${placedWords.length}`);
+            placed = true;
+          } else {
+            availableWords.shift();
+            console.log(`Failed to place word: ${wordObj.word}, Moving to next word`);
+            totalAttempts++;
+          }
         }
-        return true;
-    }
-    
-    function placeWord(word, row, col, direction) {
-        for (let i = 0; i < word.length; i++) {
-            let r = row, c = col;
-            
-            switch (direction) {
-                case 0: c += i; break;
-                case 1: r += i; break;
-                case 2: r += i; c += i; break;
-                case 3: r -= i; c += i; break;
+
+        words = placedWords;
+
+        if (words.length < config.wordCount[difficulty]) {
+          console.warn(`Only placed ${words.length} out of ${config.wordCount[difficulty]} words`);
+          // Fallback: Try simpler placement
+          const remainingWordsNeeded = config.wordCount[difficulty] - words.length;
+          const simplerWords = await generateWordList(config, remainingWordsNeeded);
+          const simplerAvailableWords = simplerWords.filter(wordObj => !usedWordsInGame.has(wordObj.word));
+          let simplerAttempts = 0;
+
+          while (words.length < config.wordCount[difficulty] && simplerAttempts < config.maxTotalAttempts && simplerAvailableWords.length > 0) {
+            const wordObj = simplerAvailableWords[0];
+            if (tryPlaceWord(wordObj, directionQuotas)) {
+              words.push(wordObj);
+              usedWordsInGame.add(wordObj.word);
+              simplerAvailableWords.shift();
+              console.log(`Simpler placement: Placed word: ${wordObj.word}, Total placed: ${words.length}`);
+            } else {
+              simplerAvailableWords.shift();
+              simplerAttempts++;
+              console.log(`Simpler placement failed for: ${wordObj.word}`);
             }
-            
-            const index = r * config.gridSize + c;
-            grid[index].letter = word[i];
+          }
         }
-    }
-    
-    function fillEmptyCells() {
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        grid.forEach((cell, index) => {
-            if (cell.letter === '') {
-                cell.letter = alphabet[Math.floor(Math.random() * alphabet.length)];
-            }
-        });
-        console.log('Grid after filling empty cells:', grid);
-    }
-    
-    function renderGrid() {
-        gridElement.style.gridTemplateColumns = `repeat(${config.gridSize}, 1fr)`;
-        
-        gridElement.innerHTML = ''; // Clear existing grid
-        grid.forEach((cell, index) => {
-            const cellElement = document.createElement('div');
-            cellElement.className = 'wordsearch-cell';
-            cellElement.textContent = cell.letter || ''; // Ensure text content is set
-            cellElement.dataset.index = index;
-            
-            // Event listeners for selection
-            cellElement.addEventListener('mousedown', startSelection);
-            cellElement.addEventListener('mouseenter', continueSelection, { passive: true });
-            cellElement.addEventListener('mouseup', endSelection, { passive: true });
-            cellElement.addEventListener('touchstart', startSelection);
-            cellElement.addEventListener('touchmove', continueSelection, { passive: true });
-            cellElement.addEventListener('touchend', endSelection, { passive: true });
-            
-            gridElement.appendChild(cellElement);
-            cell.element = cellElement;
-            console.log(`Rendered cell ${index} with letter: ${cell.letter}`);
-        });
-    }
-    
-    function renderWordList() {
-        wordListElement.innerHTML = '';
-        words.forEach(word => {
-            const wordElement = document.createElement('div');
-            wordElement.className = 'wordsearch-word';
-            wordElement.textContent = word;
-            wordElement.dataset.word = word;
-            wordListElement.appendChild(wordElement);
-        });
-    }
-    
-    function startSelection(e) {
-        e.preventDefault();
-        isSelecting = true;
-        const index = getCellIndex(e.target);
-        if (index !== null) {
-            selectedCells = [index];
-            updateSelection();
-        }
-    }
-    
-    function continueSelection(e) {
-        e.preventDefault();
-        if (!isSelecting) return;
-        
-        const index = getCellIndex(e.target);
-        if (index !== null && !selectedCells.includes(index)) {
-            // Only allow adjacent cells
-            const lastIndex = selectedCells[selectedCells.length - 1];
-            if (areAdjacent(lastIndex, index)) {
-                selectedCells.push(index);
-                updateSelection();
-            }
-        }
-    }
-    
-    function endSelection() {
-        if (!isSelecting) return;
-        isSelecting = false;
-        checkSelectedWord();
-    }
-    
-    function getCellIndex(target) {
-        // Handle touch events
-        if (target.classList.contains('wordsearch-cell')) {
-            return parseInt(target.dataset.index);
-        }
-        return null;
-    }
-    
-    function areAdjacent(index1, index2) {
-        const row1 = Math.floor(index1 / config.gridSize);
-        const col1 = index1 % config.gridSize;
-        const row2 = Math.floor(index2 / config.gridSize);
-        const col2 = index2 % config.gridSize;
-        
-        return Math.abs(row1 - row2) <= 1 && Math.abs(col1 - col2) <= 1;
-    }
-    
-    function updateSelection() {
-        // Clear previous selection
-        grid.forEach(cell => {
-            cell.element.classList.remove('selected');
-        });
-        
-        // Apply new selection
-        selectedCells.forEach(index => {
-            grid[index].element.classList.add('selected');
-        });
-    }
-    
-    function checkSelectedWord() {
-        if (selectedCells.length < config.minWordLength) {
-            selectedCells = [];
-            updateSelection();
-            return;
-        }
-        
-        const selectedWord = selectedCells.map(index => grid[index].letter).join('');
-        const reversedWord = selectedWord.split('').reverse().join('');
-        
-        // Check if word is in the list (forward or backward)
-        const matchedWord = words.find(word => 
-            word === selectedWord || word === reversedWord
-        );
-        
-        if (matchedWord && !foundWords.includes(matchedWord)) {
-            // Mark as found
-            foundWords.push(matchedWord);
-            
-            // Update cell styles
-            selectedCells.forEach(index => {
-                grid[index].element.classList.remove('selected');
-                grid[index].element.classList.add('found');
-            });
-            
-            // Update word list
-            const wordElements = wordListElement.querySelectorAll('.wordsearch-word');
-            wordElements.forEach(el => {
-                if (el.dataset.word === matchedWord) {
-                    el.classList.add('found');
-                }
-            });
-            
-            // Update UI
-            updateWordsLeft();
-            showFeedback(`Found: ${matchedWord}`, 'success');
-            
-            // Check for game completion
-            if (foundWords.length === words.length) {
-                clearInterval(timerInterval);
-                const timeTaken = Math.floor((Date.now() - startTime) / 1000);
-                showFeedback(`Congratulations! You found all words in ${timeTaken} seconds!`, 'success');
-            }
+
+        if (words.length === config.wordCount[difficulty]) {
+          placedSuccessfully = true;
         } else {
-            showFeedback('Word not found in list', 'error');
+          console.warn(`Failed to place all words on attempt ${totalGameAttempts}`);
+          usedWordsInGame.clear(); // Clear to allow retry with new words
+          words = await generateWordList(config); // Fetch new words for next attempt
+          words.sort((a, b) => b.letters.length - a.letters.length); // Re-sort
+          directionCounts = { horizontal: 0, vertical: 0, diagonal: 0 }; // Reset direction counts
         }
-        
+      }
+
+      if (!placedSuccessfully) {
+        throw new Error(`Could only place ${words.length} out of ${config.wordCount[difficulty]} words after ${maxGameAttempts} attempts`);
+      }
+
+      // Fill empty cells
+      fillEmptyCells();
+
+      // Render game
+      renderGrid();
+      renderWordList();
+
+      updateWordsLeft();
+      updateLevelInfo();
+      showFeedback(`Find ${words.length} hidden words!`, 'info');
+
+      retryCount = 0; // Reset retry count on successful game
+
+    } catch (error) {
+      console.error("Game initialization failed:", error);
+      showFeedback("Failed to load puzzle. Retrying...", 'error');
+      retryCount++;
+      if (retryCount >= config.maxRetries) {
+        showFeedback("Failed to load puzzle after multiple attempts. Please refresh the page.", 'error');
+        return;
+      }
+      // Fallback to static words after delay
+      setTimeout(() => {
+        const staticWords = [
+          'FUNCTION', 'VARIABLE', 'OPERATOR', 'QUERY', 'JAVASCRIPT', 'REACT', 'ANGULAR', 'COMPONENT',
+          'MODULE', 'SCRIPT', 'CODING', 'DEBUG', 'ARRAY', 'LOOP', 'METHOD', 'CLASS',
+          'STRING', 'NUMBER', 'OBJECT', 'EVENT', 'STYLE', 'DESIGN', 'FORMAT', 'UPDATE',
+          'INSERT', 'DELETE', 'SELECT', 'TABLE', 'INDEX', 'FETCH', 'ROUTE', 'SERVER'
+        ].filter(word => word.length >= config.minWordLength && word.length <= config.maxWordLength);
+        const uniqueStaticWords = [...new Set(staticWords)]
+          .filter(word => !usedWordsInGame.has(word));
+        words = shuffleArray(uniqueStaticWords).slice(0, config.wordCount[difficulty])
+          .map(word => ({ word, letters: word.split('') }));
+        words.sort((a, b) => b.letters.length - a.letters.length); // Sort static words
+        initGame();
+      }, 2000);
+    }
+  }
+
+  async function generateWordList({ minWordLength, maxWordLength, wordCount }, limitOverride = null) {
+    try {
+      const limit = limitOverride || wordCount[difficulty] * 3;
+      const snapshot = await db.collection('dictionary')
+        .where('length', '>=', minWordLength)
+        .where('length', '<=', maxWordLength)
+        .limit(limit)
+        .get();
+
+      if (snapshot.empty) {
+        throw new Error("No words found in dictionary");
+      }
+
+      const wordPoolSet = new Set();
+      const wordData = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.word && data.letters) {
+          const word = data.word.toUpperCase();
+          if (!usedWordsInGame.has(word)) {
+            wordPoolSet.add(word);
+            wordData.push({ word, letters: word.split('').map(l => l.toUpperCase()) });
+          }
+        }
+      });
+
+      if (wordPoolSet.size === 0) {
+        throw new Error("No valid words found");
+      }
+
+      const shuffledWordData = shuffleArray(wordData);
+      const finalWords = shuffledWordData.slice(0, limitOverride || wordCount[difficulty]);
+      console.log('Generated word list:', finalWords);
+      return finalWords;
+    } catch (error) {
+      console.error("Error fetching words:", error);
+      const staticWords = [
+        'FUNCTION', 'VARIABLE', 'OPERATOR', 'QUERY', 'JAVASCRIPT', 'REACT', 'ANGULAR', 'COMPONENT',
+        'MODULE', 'SCRIPT', 'CODING', 'DEBUG', 'ARRAY', 'LOOP', 'METHOD', 'CLASS',
+        'STRING', 'NUMBER', 'OBJECT', 'EVENT', 'STYLE', 'DESIGN', 'FORMAT', 'UPDATE',
+        'INSERT', 'DELETE', 'SELECT', 'TABLE', 'INDEX', 'FETCH', 'ROUTE', 'SERVER'
+      ].filter(word => word.length >= minWordLength && word.length <= maxWordLength);
+      const uniqueStaticWords = [...new Set(staticWords)]
+        .filter(word => !usedWordsInGame.has(word));
+      const finalWords = shuffleArray(uniqueStaticWords).slice(0, limitOverride || wordCount[difficulty])
+        .map(word => ({ word, letters: word.split('') }));
+      console.log('Fallback word list:', finalWords);
+      return finalWords;
+    }
+  }
+
+  function tryPlaceWord(wordObj, directionQuotas) {
+    const directions = [
+      { id: 0, type: 'horizontal', rowStep: 0, colStep: 1 },
+      { id: 1, type: 'vertical', rowStep: 1, colStep: 0 },
+      { id: 2, type: 'diagonal', rowStep: 1, colStep: 1 }, // Diagonal down
+      { id: 3, type: 'diagonal', rowStep: -1, colStep: 1 } // Diagonal up
+    ];
+    const attemptsPerDirection = 50;
+
+    // Determine which directions are still needed based on quotas
+    const neededDirections = directions.filter(dir => {
+      if (dir.type === 'horizontal' && directionCounts.horizontal >= directionQuotas.horizontal) return false;
+      if (dir.type === 'vertical' && directionCounts.vertical >= directionQuotas.vertical) return false;
+      if (dir.type === 'diagonal' && directionCounts.diagonal >= directionQuotas.diagonal) return false;
+      return true;
+    });
+
+    // If no directions are needed, allow any direction
+    const directionsToTry = neededDirections.length > 0 ? neededDirections : directions;
+
+    // Shuffle directions to avoid bias
+    const shuffledDirections = shuffleArray([...directionsToTry]);
+
+    for (const dir of shuffledDirections) {
+      for (let i = 0; i < attemptsPerDirection; i++) {
+        const maxRow = dir.rowStep === 0 ? config.gridRows : config.gridRows - wordObj.letters.length * Math.abs(dir.rowStep);
+        const maxCol = dir.colStep === 0 ? config.gridCols : config.gridCols - wordObj.letters.length * Math.abs(dir.colStep);
+        const row = Math.floor(Math.random() * maxRow);
+        const col = Math.floor(Math.random() * maxCol);
+
+        if (canPlaceWord(wordObj, row, col, dir.id)) {
+          placeWord(wordObj, row, col, dir.id);
+          // Update direction count
+          if (dir.type === 'horizontal') directionCounts.horizontal++;
+          else if (dir.type === 'vertical') directionCounts.vertical++;
+          else if (dir.type === 'diagonal') directionCounts.diagonal++;
+          console.log(`Placed ${wordObj.word} in ${dir.type} direction at (${row}, ${col})`);
+          return true;
+        }
+      }
+    }
+
+    console.log(`Failed to place ${wordObj.word} after trying all directions`);
+    return false;
+  }
+
+  function canPlaceWord(wordObj, row, col, direction) {
+    const { letters } = wordObj;
+    for (let i = 0; i < letters.length; i++) {
+      let r = row, c = col;
+      
+      switch (direction) {
+        case 0: c += i; break; // Horizontal
+        case 1: r += i; break; // Vertical
+        case 2: r += i; c += i; break; // Diagonal down
+        case 3: r -= i; c += i; break; // Diagonal up
+      }
+      
+      if (r < 0 || r >= config.gridRows || c < 0 || c >= config.gridCols) {
+        return false;
+      }
+      
+      const index = r * config.gridCols + c;
+      if (grid[index].letter !== '' && grid[index].letter !== letters[i]) {
+        return false;
+      }
+    }
+    return true;
+  }   
+
+  function placeWord(wordObj, row, col, direction) {
+    const { word, letters } = wordObj;
+    for (let i = 0; i < letters.length; i++) {
+      let r = row, c = col;
+      
+      switch (direction) {
+        case 0: c += i; break;
+        case 1: r += i; break;
+        case 2: r += i; c += i; break;
+        case 3: r -= i; c += i; break;
+      }
+      
+      const index = r * config.gridCols + c;
+      grid[index].letter = letters[i];
+      grid[index].word = word;
+    }
+  }
+
+  function fillEmptyCells() {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    grid.forEach((cell, index) => {
+      if (cell.letter === '') {
+        cell.letter = alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+    });
+    console.log('Grid after filling empty cells:', grid);
+  }
+
+  function renderGrid() {
+    console.log(`Rendering grid with ${config.gridCols} cols and ${config.gridRows} rows`);
+    gridElement.style.display = 'grid';
+    gridElement.style.gridTemplateColumns = `repeat(${config.gridCols}, 1fr)`;
+    gridElement.style.gridTemplateRows = `repeat(${config.gridRows}, 1fr)`;
+    
+    gridElement.innerHTML = '';
+    grid.forEach((cell, index) => {
+      const cellElement = document.createElement('div');
+      cellElement.className = 'wordsearch-cell';
+      cellElement.textContent = cell.letter;
+      cellElement.dataset.index = index;
+      
+      cellElement.addEventListener('mousedown', startSelection);
+      cellElement.addEventListener('mouseenter', (e) => {
+        e.preventDefault();
+        continueSelection(e);
+      });
+      cellElement.addEventListener('mouseup', endSelection);
+      
+      gridElement.appendChild(cellElement);
+      cell.element = cellElement;
+    });
+  }
+
+  function renderWordList() {
+    wordListElement.innerHTML = '';
+    words.forEach(wordObj => {
+      const wordElement = document.createElement('div');
+      wordElement.className = 'wordsearch-word';
+      wordElement.textContent = wordObj.word;
+      wordElement.dataset.word = wordObj.word;
+      wordListElement.appendChild(wordElement);
+    });
+  }
+
+  function checkSelectedWord() {
+    if (selectedCells.length < config.minWordLength) {
         selectedCells = [];
         updateSelection();
+        return;
     }
     
-    function updateWordsLeft() {
-        wordsLeftElement.textContent = `Words: ${words.length - foundWords.length}/${words.length}`;
-    }
+    const selectedWord = selectedCells.map(index => grid[index].letter).join('');
+    const reversedWord = selectedWord.split('').reverse().join('');
     
-    function updateTimer() {
-        const seconds = Math.floor((Date.now() - startTime) / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        timeElement.textContent = `Time: ${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
+    // Convert both to uppercase for comparison
+    const selectedUpper = selectedWord.toUpperCase();
+    const reversedUpper = reversedWord.toUpperCase();
     
-    function showFeedback(message, type) {
-        feedbackElement.textContent = message;
-        feedbackElement.className = `wordsearch-feedback ${type}`;
-    }
+    // Find matching word object (compare with uppercase versions)
+    const matchedWordObj = words.find(wordObj => 
+        wordObj.word.toUpperCase() === selectedUpper || 
+        wordObj.word.toUpperCase() === reversedUpper
+    );
     
-    function giveHint() {
-        const remainingWords = words.filter(word => !foundWords.includes(word));
-        if (remainingWords.length > 0) {
-            const hintWord = remainingWords[Math.floor(Math.random() * remainingWords.length)];
-            const hint = hintWord.slice(0, 2);
-            showFeedback(`Try looking for a word starting with ${hint}...`, 'info');
-        } else {
-            showFeedback('You found all words!', 'success');
+    if (matchedWordObj && !foundWords.includes(matchedWordObj.word)) {
+        foundWords.push(matchedWordObj.word);
+      
+      selectedCells.forEach(index => {
+        grid[index].element.classList.remove('selected');
+        grid[index].element.classList.add('found');
+      });
+      
+      const wordElements = wordListElement.querySelectorAll('.wordsearch-word');
+      wordElements.forEach(el => {
+        if (el.dataset.word === matchedWordObj.word) {
+          el.classList.add('found');
         }
+      });
+      
+      updateWordsLeft();
+      showFeedback(`Found: ${matchedWordObj.word}`, 'success');
+      
+      if (foundWords.length === words.length) {
+        handleGameWin();
+      }
+    } else {
+      showFeedback('Word not found in list', 'error');
     }
     
-    // Event listeners
-    newGameBtn.addEventListener('click', initGame);
-    hintBtn.addEventListener('click', giveHint);
+    selectedCells = [];
+    updateSelection();
+  }
+
+  function handleGameWin() {
+    consecutiveWins++;
+    
+    if (consecutiveWins >= 3) {
+      if (difficulty === 'easy') {
+        difficulty = 'medium';
+        showFeedback('Advanced to Medium level!', 'success');
+      } else if (difficulty === 'medium') {
+        difficulty = 'hard';
+        showFeedback('Advanced to Hard level!', 'success');
+      } else {
+        showFeedback('Mastered all levels!', 'success');
+      }
+      consecutiveWins = 0;
+      currentLevel++;
+    } else {
+      showFeedback(`Great job! ${3 - consecutiveWins} more wins to advance.`, 'info');
+    }
+    
+    updateLevelInfo();
+    setTimeout(initGame, 2000);
+  }
+
+  function updateLevelInfo() {
+    levelElement.textContent = `Level: ${currentLevel} (${difficulty})`;
+    gamesRemainingElement.textContent = `Wins to next level: ${3 - consecutiveWins}`;
+  }
+
+  function updateWordsLeft() {
+    wordsLeftElement.textContent = `Words: ${words.length - foundWords.length}/${words.length}`;
+  }
+
+  function showFeedback(message, type) {
+    feedbackElement.textContent = message;
+    feedbackElement.className = `word-feedback ${type}`;
+  }
+
+  function giveHint() {
+    const remainingWords = words.filter(wordObj => !foundWords.includes(wordObj.word));
+    if (remainingWords.length > 0) {
+      const hintWordObj = remainingWords[Math.floor(Math.random() * remainingWords.length)];
+      const hint = hintWordObj.word.slice(0, 2);
+      showFeedback(`Try looking for a word starting with ${hint}...`, 'info');
+    } else {
+      showFeedback('You found all words!', 'success');
+    }
+  }
+
+  function shuffleArray(array) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
+  function startSelection(e) {
+    e.preventDefault();
+    isSelecting = true;
+    const index = getCellIndex(e.target);
+    if (index !== null) {
+      selectedCells = [index];
+      updateSelection();
+    }
+  }
+
+  function continueSelection(e) {
+    e.preventDefault();
+    if (!isSelecting || selectedCells.length === 0) return;
+
+    const index = getCellIndex(e.target);
+    if (index === null || selectedCells.includes(index)) return;
+
+    const lastIndex = selectedCells[selectedCells.length - 1];
+    const direction = getSelectionDirection();
+
+    // Allow first two cells to set direction, then enforce it
+    if (selectedCells.length > 1 && !isInDirection(lastIndex, index, direction)) {
+      return;
+    }
+
+    selectedCells.push(index);
+    updateSelection();
+  }
+
+  function getSelectionDirection() {
+    if (selectedCells.length < 2) return null;
+    
+    const first = selectedCells[0];
+    const second = selectedCells[1];
+    const row1 = Math.floor(first / config.gridCols);
+    const col1 = first % config.gridCols;
+    const row2 = Math.floor(second / config.gridCols);
+    const col2 = second % config.gridCols;
+    
+    const rowDiff = row2 - row1;
+    const colDiff = col2 - col1;
+
+    // Normalize direction
+    if (rowDiff === 0 && colDiff !== 0) {
+      return { row: 0, col: colDiff > 0 ? 1 : -1 }; // Horizontal
+    } else if (colDiff === 0 && rowDiff !== 0) {
+      return { row: rowDiff > 0 ? 1 : -1, col: 0 }; // Vertical
+    } else if (Math.abs(rowDiff) === Math.abs(colDiff)) {
+      return {
+        row: rowDiff > 0 ? 1 : -1,
+        col: colDiff > 0 ? 1 : -1
+      }; // Diagonal
+    }
+    
+    return null; // Invalid direction
+  }
+
+  function isInDirection(index1, index2, direction) {
+    if (!direction) return false;
+
+    const row1 = Math.floor(index1 / config.gridCols);
+    const col1 = index1 % config.gridCols;
+    const row2 = Math.floor(index2 / config.gridCols);
+    const col2 = index2 % config.gridCols;
+    
+    const rowDiff = row2 - row1;
+    const colDiff = col2 - col1;
+
+    // For horizontal: same row, one column step in direction
+    if (direction.row === 0) {
+      return rowDiff === 0 && colDiff === direction.col;
+    }
+    // For vertical: same column, one row step in direction
+    else if (direction.col === 0) {
+      return colDiff === 0 && rowDiff === direction.row;
+    }
+    // For diagonal: equal row and column steps in direction
+    else {
+      return rowDiff === direction.row && colDiff === direction.col;
+    }
+  }
+
+  function endSelection() {
+    if (!isSelecting) return;
+    isSelecting = false;
+    checkSelectedWord();
+  }
+
+  function getCellIndex(target) {
+    if (target.classList.contains('wordsearch-cell')) {
+      return parseInt(target.dataset.index);
+    }
+    return null;
+  }
+
+  function updateSelection() {
+    grid.forEach(cell => {
+      cell.element.classList.remove('selected');
+    });
+    
+    selectedCells.forEach(index => {
+      grid[index].element.classList.add('selected');
+    });
+  }
+
+  // Event listeners
+  newGameBtn.addEventListener('click', initGame);
+  hintBtn.addEventListener('click', giveHint);
 }
 
-// Run initialization when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    initWordGame();
+  initWordGame();
 });

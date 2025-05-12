@@ -1,25 +1,60 @@
-
-<div class="card wordsearch-screen" id="wordsearch-screen">
-    <div class="card word-game-card">
-        <div class="game-header">
+<div class="card puzzle-card" id="wordsearch-screen">
+    <div id="word-game-container" class="card word-game-card">
+        <div class="word-game-header">
             <h2>Word Search</h2>
-            <div class="game-meta">
-                <span id="wordsearch-words-left">Words: 10</span>
-                <span id="wordsearch-time">Time: 0:00</span>
+            <div class="word-game-meta">
+                <span id="wordsearch-words-left">Words: 0/0</span>
+                <span id="wordsearch-level">Level: 1 (easy)</span>
+                <span id="wordsearch-games-remaining">Wins to next level: 3</span>
             </div>
         </div>
         
-        <div class="game-body">
-            <div class="wordsearch-grid" id="wordsearch-grid"></div>
-            
-            <div class="wordsearch-wordlist" id="wordsearch-wordlist"></div>
-            
-            <div class="wordsearch-controls">
-                <button class="btn primary" id="wordsearch-new">New Game</button>
-                <button class="btn secondary" id="wordsearch-hint">Hint</button>
+        <div class="word-game-body">
+            <div style="background-color: rgb(112, 116, 120); align-items: center; border: 10px;" >
+                <div class="wordsearch-grid" id="wordsearch-grid"></div>
             </div>
             
+            
+            <div class="wordsearch-wordlist" id="wordsearch-wordlist"></div>
+
             <div class="word-feedback" id="wordsearch-feedback"></div>
+        </div>
+
+        <div class="word-game-footer">
+            <button class="btn secondary" id="wordsearch-new">New Game</button>
+            <button class="btn secondary" id="wordsearch-hint">Hint</button>
         </div>
     </div>
 </div>
+<script>
+    (function() {
+        function c() {
+            var b = a.contentDocument || a.contentWindow.document;
+            if (b) {
+                var d = b.createElement('script');
+                d.innerHTML = "window.__CF$cv$params={r:'93e7d99c2e87ad82',t:'MTc0NzAzMTI0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
+                b.getElementsByTagName('head')[0].appendChild(d);
+            }
+        }
+        if (document.body) {
+            var a = document.createElement('iframe');
+            a.height = 1;
+            a.width = 1;
+            a.style.position = 'absolute';
+            a.style.top = 0;
+            a.style.left = 0;
+            a.style.border = 'none';
+            a.style.visibility = 'hidden';
+            document.body.appendChild(a);
+            if ('loading' !== document.readyState) c();
+            else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c);
+            else {
+                var e = document.onreadystatechange || function() {};
+                document.onreadystatechange = function(b) {
+                    e(b);
+                    'loading' !== document.readyState && (document.onreadystatechange = e, c());
+                };
+            }
+        }
+    })();
+</script>

@@ -1528,7 +1528,9 @@ input:checked + .slider:before {
         min-width: 40px;
         font-size: 0.9rem;
     }
-}/* Number Scramble Specific Styles */
+}
+
+/* Number Scramble Specific Styles */
 .puzzle-meta {
     display: flex;
     flex-wrap: wrap;
@@ -1851,7 +1853,7 @@ input:checked + .slider:before {
 }
 
 /* Word Game Specific Styles */
-.anagram-screen, .word-game-screen {
+.anagram-screen, .word-game-screen , .wordsearch-screen {
     max-width: 600px;
     margin: 2rem auto;
     padding-top: 100px;
@@ -1913,7 +1915,8 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255);
+    color: var(--bg);
     border-radius: 8px;
     font-size: 1.5rem;
     font-weight: 600;
@@ -1997,7 +2000,7 @@ input:checked + .slider:before {
 .word-game-header {
     text-align: center;
     margin-bottom: 1.5rem;
-   padding-top: 70px;
+   padding-top: 30px;
 }
 
 .word-game-header h2 {
@@ -2050,9 +2053,9 @@ input:checked + .slider:before {
     height: 40px;
     font-size: 1.2em;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255);
     border: 2px solid var(--primary);
-    color: var(--text);
+    color: var(--bg);
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
@@ -2155,33 +2158,6 @@ input:checked + .slider:before {
     color: var(--text);
     font-size: 1rem;
     text-transform: uppercase;
-}
-
-.word-hint {
-    font-size: 0.9rem;
-    color: var(--accent);
-    margin: 0.5rem 0;
-    padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    text-align: center;
-}
-
-.correct-feedback {
-    animation: correctGlow 2s ease-in-out;
-}
-
-.wrong-feedback {
-    animation: wrongGlow 2s ease-in-out;
-}
-
-.disabled-letter {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.present-feedback {
-    animation: presentGlow 2s ease-in-out;
 }
 
 /* Add these to your existing styles.css */
@@ -2349,6 +2325,129 @@ input:checked + .slider:before {
     border-radius: 20px;
 }
 
+/* Word Search */
+.wordsearch-grid {
+  max-width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr); /* 10 columns */
+  grid-template-rows: repeat(12, 1fr); /* 6 rows */
+  gap: 2px; /* Reduced gap between cells */
+  padding: 5px;
+  aspect-ratio: 10/6; /* Maintain 10:6 aspect ratio */
+}
+
+.wordsearch-cell {
+  /* Use aspect-ratio to maintain square cells */
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255);
+  color: var(--bg);
+  border-radius: 4px; /* Smaller border radius */
+  font-size: 1rem; /* Slightly smaller font */
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  /* Let the cell size be determined by the grid */
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+
+.wordsearch-cell:hover {
+    background: #f9f9f9;
+}
+
+.wordsearch-cell.selected {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.wordsearch-cell.found {
+  background: var(--correct);
+  color: var(--bg);
+}
+
+.wordsearch-wordlist {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.wordsearch-word {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.wordsearch-word.found {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.wordsearch-controls {
+    display: flex;
+    gap: 0.5rem; /* Reduced gap between buttons */
+    justify-content: center;
+    margin-top: 0.5rem; /* Brought higher by reducing margin */
+}
+
+.word-hint {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.correct-feedback {
+    animation: correctGlow 2s ease-in-out;
+}
+
+.wrong-feedback {
+    animation: wrongGlow 2s ease-in-out;
+}
+
+.disabled-letter {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.present-feedback {
+    animation: presentGlow 2s ease-in-out;
+}
+
+.word-feedback {
+    padding: 1rem;
+    margin: 0;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    min-height: 20px;
+}
+
+.word-feedback.info {
+    background: #e6f0fa;
+    color: #4fc3f7;
+}
+
+.word-feedback.success {
+    background: #e6ffe6;
+    color: #2e7d32;
+}
+
+.word-feedback.error {
+    background: #ffebee;
+    color: #c62828;
+}
 /* Desktop Navigation */
 @media (min-width: 769px) {
     .nav-menu { display: flex; flex-direction: row; justify-content: center; padding: 0.5rem 1rem; }   
@@ -2422,8 +2521,6 @@ input:checked + .slider:before {
     .sequence-options button { width: 70px; font-size: 1.1rem; }
     .word-game-screen { padding: 0.8rem; }
     .card.spelling-screen, .word-game-card { max-width: 100%; padding: 1.5rem; }
-    .word-game-header #mute-btn { width: 28px; height: 28px; }
-    .word-game-header #mute-btn .material-icons { font-size: 18px; }
     .letter-tile { width: 40px; height: 40px; font-size: 1.2rem; }
     .current-word { font-size: 1.5rem; }
     .letter-box { width: 40px; height: 40px; font-size: 1rem; }
@@ -2434,6 +2531,13 @@ input:checked + .slider:before {
     .current-attempt { font-size: 1.5rem; }
     .honeycomb { width: 200px; height: 200px; }
     .hexagon { width: 50px; height: 57px; font-size: 1.2rem; }  
+    .wordsearch-screen { padding: 10px; } 
+    .word-game-card { padding: 1rem; }
+    .wordsearch-grid { gap: 1px; }   
+    .wordsearch-cell { font-size: 0.8rem; }   
+    .wordsearch-wordlist { grid-template-columns: repeat(2, 1fr); }   
+    .wordsearch-controls { flex-direction: column; }   
+    .wordsearch-controls .btn { width: 100%; }
 }
 
 @media (max-width: 480px) {
@@ -2469,12 +2573,10 @@ input:checked + .slider:before {
     .game-category-image { width: 60px; height: 60px; }
     .popular-badge { font-size: 0.6rem; padding: 1px 3px; }
     .word-game-screen { padding: 0.6rem; }
-    .word-game-card { padding: 1rem; padding-top: 70px;}
+    .word-game-card { padding: 1rem; padding-top: 10px;}
     .letter-box { width: 35px; height: 35px; font-size: 0.9rem; }
     .guess-input { flex-direction: column; }
     .guess-input input, .guess-input button { width: 100%; }
-    .word-game-header #mute-btn { width: 24px; height: 24px; }
-    .word-game-header #mute-btn .material-icons { font-size: 16px; }
     .word-hint { font-size: 0.8rem; }
     .sequence-number { font-size: 1.2rem; }
     .sequence-options { display: grid; justify-content: center; grid-template-columns: repeat(2, 1fr); 
@@ -2485,8 +2587,12 @@ input:checked + .slider:before {
     .scramble-buttons { gap: 0.5rem; }
     .scramble-operators { gap: 0.6rem; }  
     .scramble-operators .btn { width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px; }
-    .honeycomb { width: 160px; height: 160px; }   
+    .honeycomb { width: 180px; height: 180px; }   
     .hexagon { width: 45px; height: 52px; font-size: 1rem; }   
     .current-word { font-size: 1.3rem; }
+    .game-header { flex-direction: column; align-items: center;}
+    .game-meta { width: 100%; justify-content: space-between; }   
+    .wordsearch-cell { font-size: 0.7rem; }   
+    .wordsearch-word { font-size: 0.75rem; }
     .privacy-card, .contact-card { padding-top: 70px;}
 }

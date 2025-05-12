@@ -121,18 +121,15 @@ async function fetchWords() {
             return cached.words;
         }
 
-        const wordsRef = collection(firestore, 'wordLists');
         const randomFloor = Math.floor(Math.random() * 1000);
         
-        const q = query(
-            wordsRef,
-            where('difficulty', '==', wordState.difficulty),
-            where('randomIndex', '>=', randomFloor),
-            orderBy('randomIndex'),
-            limit(100)
-        );
+        const query = db.collection('wordLists')
+                     .where('difficulty', '==', wordState.difficulty)
+                     .where('randomIndex', '>=', randomFloor)
+                     .orderBy('randomIndex')
+                     .limit(100);
         
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await query.get();
         const words = [];
         
         querySnapshot.forEach((doc) => {
@@ -143,28 +140,6 @@ async function fetchWords() {
                 hint: data.hint || 'No hint available'
             });
         });
-
-        if (words.length < 50) {
-            const fallbackQ = query(
-                wordsRef,
-                where('difficulty', '==', wordState.difficulty),
-                where('randomIndex', '>=', 0),
-                orderBy('randomIndex'),
-                limit(200)
-            );
-            
-            const fallbackSnapshot = await getDocs(fallbackQ);
-            fallbackSnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (!words.some(w => w.word === data.word)) {
-                    words.push({
-                        word: data.word,
-                        category: data.category,
-                        hint: data.hint || 'No hint available'
-                    });
-                }
-            });
-        }
 
         if (words.length > 0) {
             localStorage.setItem(WORD_CACHE.WORDS, JSON.stringify({
@@ -575,25 +550,37 @@ function setupWordGameEvents() {
 }
 
 async function initWordGame() {
-    const savedState = JSON.parse(localStorage.getItem(GAME_STATE_KEY));
-    const today = new Date().toISOString().split('T')[0];
-
+    // Reset game state while preserving word tracking
     wordState.sessionUsedWords = JSON.parse(sessionStorage.getItem(SESSION_USED_WORDS_KEY)) || [];
+    wordState.usedWords = JSON.parse(localStorage.getItem('word-game-used-words')) || [];
+    
+    // Initialize fresh game state
+    Object.assign(wordState, {
+        targetWord: '',
+        category: '',
+        difficulty: 'easy',
+        attemptsLeft: difficultySettings.easy.maxAttempts,
+        maxAttempts: difficultySettings.easy.maxAttempts,
+        guesses: [],
+        hintsUsed: 0,
+        maxHints: difficultySettings.easy.maxHints,
+        revealedLetters: [],
+        score: 0,
+        isDailyChallenge: false,
+        isPlaying: false,
+        letterChoices: [],
+        currentLetterIndex: 0,
+        guessedLetters: [],
+        winsAtCurrentDifficulty: JSON.parse(localStorage.getItem('word-game-wins'))?.[wordState.difficulty] || 0,
+        lastPlayed: new Date().toISOString().split('T')[0]
+    });
 
-    if (savedState && savedState.lastPlayed === today && savedState.targetWord && savedState.isPlaying) {
-        Object.assign(wordState, savedState);
-        updateDifficultyDisplay();
-        updateGameUI();
-        await startWordGame();
-    } else {
-        wordState.sessionUsedWords = [];
-        sessionStorage.setItem(SESSION_USED_WORDS_KEY, JSON.stringify(wordState.sessionUsedWords));
-        initializeGame();
-        wordState.lastPlayed = today;
-        saveGameState();
-        await startWordGame();
-    }
-
+    // Initialize fresh game
+    initializeGame();
     setupWordGameEvents();
+    await startWordGame();
+    
+    // Save the fresh state
+    saveGameState();
 }
 export { initWordGame };

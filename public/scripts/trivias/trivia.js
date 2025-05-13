@@ -147,6 +147,29 @@ function getWeekNumber(date) {
     return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 }
 
+async function updatePlayerCount(category) {
+    try {
+        const countRef = db.collection('playerCounts').doc(category);
+        
+        // First try to get the current count
+        const doc = await countRef.get();
+        const currentCount = doc.exists ? doc.data().count : 0;
+        const newCount = currentCount + 1;
+        
+        // Try to update with the new count
+        await countRef.set({
+            count: newCount,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            category: category
+        }, { merge: true });
+        console.log('Updating player count: ', newCount);
+    } catch (error) {
+        console.error('Error updating player count:', error);
+        // Fallback to random number if update fails
+        return Math.floor(Math.random() * 40) + 100;
+    }
+}
+
 async function fetchQuestions(category) {
     try {
         console.log('Fetching questions for category:', category);
@@ -279,6 +302,7 @@ export function initTriviaGame(category) {
     updateTimerUI();
     els.score().textContent = '0';
     loadMuteState();
+    updatePlayerCount(category);
     fetchQuestions(category).then(questions => {
         state.questions = questions;
         showQuestion();

@@ -501,9 +501,13 @@ function restartGame() {
     updateTimerUI();
     els.score().textContent = '0';
     els.totalTimer().textContent = state.isTimedMode ? `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}` : 'N/A';
-    toggleClass(els.game(), 'add', 'active');
-    toggleClass(els.summary(), 'remove', 'active');
-    toggleClass(els.highscores(), 'add', 'hidden');
+    
+    // Fix: Remove hidden class and add active class
+    els.game().classList.remove('hidden');
+    els.game().classList.add('active');
+    
+    els.summary().classList.remove('active');
+    els.highscores().classList.add('hidden');
     localStorage.removeItem(CACHE.QUESTIONS);
     initTriviaGame(state.questions[0]?.category || 'General Knowledge');
 }

@@ -98,3 +98,17 @@ export function initTbankFilters(){
         });
     });
 }
+
+export function processSocialSharing() {
+    const blogTbankScreen = document.querySelector('.blog-content');
+    if (!blogTbankScreen) return;
+
+    const postUrl = encodeURIComponent(window.location.href);
+    const postTitle = encodeURIComponent(blogTbankScreen.querySelector('h1')?.textContent || '');
+    
+    blogTbankScreen.querySelectorAll('.social-button').forEach(link => {
+        link.href = link.href
+            .replace(/POST_URL/g, postUrl)
+            .replace(/POST_TITLE/g, postTitle);
+    });
+}

@@ -276,6 +276,10 @@ body {
     font-size: 1.2em;
 }
 
+.btn-icon {
+    font-size: 1.2em;
+}
+
 /* Social Sharing */
 .social-share-buttons {
     display: flex;
@@ -349,6 +353,47 @@ body {
     .social-share-buttons {
         gap: 1rem;
     }
+}
+
+/* For iframe embed */
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    margin: 1em 0;
+}
+
+.video-container iframe {
+    position: absolute;
+    justify-content: center;
+    top: 0;
+    left: 0;
+    width: 80%;
+    height: 80%;
+}
+
+/* For thumbnail style */
+.video-thumbnail {
+    display: block;
+    position: relative;
+    margin: 1em 0;
+}
+
+.video-thumbnail img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.video-thumbnail .play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    color: red;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
 @media (max-width: 480px) {

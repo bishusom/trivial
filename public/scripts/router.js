@@ -340,11 +340,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (triviaType === 'tbank') {
                         if (pathParts.length === 2) { // /trivias/tbank
                             await loadTemplate('/templates/trivias/tbank.html', dynamicContent);
-                            const { initTbankFilters } = await import('/scripts/trivias/tbank.js');
+                            const { initTbankFilters, processSocialSharing } = await import('/scripts/trivias/tbank.js');
                             initTbankFilters();
+                            processSocialSharing();
                         } else { // /trivias/tbank/some-category
                             const category = pathParts[2];
-                            await loadTemplate('/templates/trivias/tbank/'+category+'.html', dynamicContent);
+                            await loadTemplate(`/templates/trivias/tbank/${category}.html`, dynamicContent);
                             const { initTBankControls } = await import('/scripts/trivias/tbank.js');
                             initTBankControls();
                         }       
@@ -355,6 +356,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         showHomeScreen();
                     }
+            } else if (path.startsWith('/blog')) {
+                const pageName = pathParts[1];
+                console.log(pathParts);
+                if (pathParts.length === 2) {
+                    await loadTemplate(`/templates/blog/${pageName}.html`, dynamicContent);
+                    const { processSocialSharing } = await import('/scripts/trivias/tbank.js');
+                    processSocialSharing();
+                } else {
+                    showHomeScreen();
+                }        
             } else if (path.startsWith('/number-puzzle')) {
                 const puzzleType = pathParts[1];
                 if (puzzleType === 'catalog') {

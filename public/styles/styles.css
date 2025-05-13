@@ -2284,7 +2284,6 @@ input:checked + .slider:before {
     margin: 1rem 0;
 }
 
-
 .spelling-feedback.success {
     background: rgba(46, 125, 50, 0.3);
     color: var(--correct);

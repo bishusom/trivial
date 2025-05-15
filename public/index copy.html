@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Triviaah: Free Daily Trivia Games | 20+ Categories & 5000 questions</title>
+    <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science, 5000+ questions. No signup required - start playing now!">
+    <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://triviaah.com/">
+    <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
+    <meta property="og:description" content="Play free online trivia games daily with 5000+ questions across 20+ categories!">
+    <meta property="og:image" content="https://triviaah.com/social-preview.webp">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
+    <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
+    <meta name="twitter:image" content="https://triviaah.com/social-preview.webp">
+    <link rel="canonical" href="https://www.triviaah.com/">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
+    <style>
+        /* Critical CSS */
+        .logo-container-desktop, .logo-container-mobile { display: flex; justify-content: center; }
+        .logo { max-width: 200px; height: auto; }
+        .hero-section { padding: 20px; }
+        .section-header { font-size: 2rem; text-align: center; }
+        .game-categories { display: flex; gap: 1rem; justify-content: center; }
+        .game-category-card { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .game-category-image { width: 70px; height: 70px; }
+        @media (max-width: 768px) {
+            .logo-container-desktop { display: none; }
+            .logo-container-mobile .logo { max-width: 180px; }
+        }
+        @media (max-width: 480px) {
+            .logo-container-mobile .logo { max-width: 140px; }
+        }
+        /* Fallback font */
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
+    <link rel="preload" href="/styles/styles.min.css" as="style">
+    <link rel="stylesheet" href="/styles/styles.min.css">
+    <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
+    <!-- Firebase SDKs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="main-nav" role="navigation" aria-label="Main navigation">
+            <div class="nav-header">
+                <div class="logo-container-mobile">
+                    <picture>
+                        <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
+                        <img src="/imgs/triviaah-logo-180.webp" alt="Triviaah Logo" class="logo"">
+                    </picture>
+                </div>
+                <div class="nav-controls">
+                    <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+                        <span class="material-icons">menu</span>
+                    </button>
+                    <button class="nav-close" aria-label="Close navigation menu" style="display: none;">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+            </div>
+            <ul class="nav-menu">
+                <li>
+                    <a class="nav-link" href="/home" aria-current="page">
+                        <span class="material-icons">home</span>
+                        Home
+                    </a>
+                </li>
+                <li class="dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">quiz</span>
+                        Trivia
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <ul class="dropdown-content">
+                        <li class="submenu">
+                            <button class="submenu-toggle">Timed Challenges</button>
+                            <ul class="submenu-content">
+                                <li><a href="/trivias/weekly">Weekly Quiz</a></li>
+                                <li><a href="/trivias/monthly">Monthly Quiz</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <button class="submenu-toggle">Culture & Entertainment</button>
+                            <ul class="submenu-content">
+                                <li><a href="/trivias/literature">Literature</a></li>
+                                <li><a href="/trivias/arts">Arts</a></li>
+                                <li><a href="/trivias/movies">Movies</a></li>
+                                <li><a href="/trivias/tv">TV & Web Series</a></li>
+                                <li><a href="/trivias/music">Music</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <button class="submenu-toggle">Knowledge & History</button>
+                            <ul class="submenu-content">
+                                <li><a href="/trivias/general-knowledge">General Knowledge</a></li>
+                                <li><a href="/trivias/science">Science</a></li>
+                                <li><a href="/trivias/history">History</a></li>
+                                <li><a href="/trivias/geography">Geography</a></li>
+                                <li><a href="/trivias/mythology">Mythology</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <button class="submenu-toggle">Lifestyle & Society</button>
+                            <ul class="submenu-content">
+                                <li><a href="/trivias/politics">Politics</a></li>
+                                <li><a href="/trivias/food">Food</a></li>
+                                <li><a href="/trivias/sports">Sports</a></li>
+                                <li><a href="/trivias/business">Business</a></li>
+                                <li><a href="/trivias/food">Food</a></li>
+                                <li><a href="/trivias/fashion">Fashion</a></li>
+                                <li><a href="/trivias/festivals">Festivals</a></li>
+                                <li><a href="/trivias/celebrities">Celebrities</a></li>                                
+                            </ul>
+                        </li>
+                        <li><a href="/trivias/catalog">All Categories</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">calculate</span>
+                        Number Puzzles
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <ul class="dropdown-content">
+                        <li><a href="/number-puzzle/guess">Guess Number</a></li>
+                        <li><a href="/number-puzzle/scramble">Number Scramble</a></li>
+                        <li><a href="/number-puzzle/sequence">Number Sequence</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">text_fields</span>
+                        Word Games
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <ul class="dropdown-content">
+                        <li><a href="/word-game/classic">Word Guess</a></li>
+                        <li><a href="/word-game/anagram">Anagram</a></li>
+                        <li><a href="/word-game/spelling">Spelling Bee</a></li>
+                        <!--li><a href="/word-game/wordsearch">Word Search</a></li-->
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                        <span class="material-icons">article</span>
+                        Trivia Bank
+                        <span class="material-icons dropdown-icon">expand_more</span>
+                    </button>
+                    <ul class="dropdown-content">
+                        <li><a href="/trivias/tbank">Trivia Bank</a></li>
+                        <li><a href="/blog/list">Blog</a></li>
+                        <li><a href="/blog/videos">YouTube Trivias</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Setup Screen -->
+        <div class="screen setup-screen active">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="logo-container-desktop">
+                    <picture>
+                        <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
+                        <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp 180w">
+                        <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40">
+                    </picture>
+                </div>
+                <!--div class="tagline">
+                    Play Free Quizzes Daily – No Signup Needed!</p>
+                </div-->
+                <h2 class="section-header">Featured Trivia Quizzes</h2>
+                <div class="game-categories">
+                    <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Weekly Quiz</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly"width="70" height="70">
+                        <img src="/imgs/monthly-quiz-70.webp" alt="Monthly Quiz" class="game-category-image">
+                        <span>Monthly Quiz</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
+                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70">
+                        <span>General Knowledge</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/trivias/geography" class="game-category-card featured-card" data-category="geography">
+                        <img src="/imgs/geography-70.webp" alt="Geography" class="game-category-image" width="70" height="70">
+                        <span>Geography</span>
+                        <span class="popular-badge">Tough</span>
+                    </a>
+                </div>
+                <a href="/trivias/weekly" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
+                    Start Quiz Now
+                </a>
+                <a href="/trivias/catalog" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    Browse Categories
+                </a>
+                <hr class="divider">
+                <h2 class="section-header">Popular Games</h2>
+                <div class="game-categories">
+                    <a href="/number-puzzle/guess" class="game-category-card featured-card" data-category="Guess the Number">
+                        <img src="/imgs/number-guess-70.webp" alt="Guess the Number" class="game-category-image" width="70" height="70">
+                        <span>Guess the Number</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
+                        <img src="/imgs/anagram-70.webp" alt="Anagram" class="game-category-image">
+                        <span>Anagram</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/number-puzzle/sequence" class="game-category-card featured-card" data-category="Number Sequence">
+                        <img src="/imgs/number-sequence-70.webp" alt="Number Sequence" class="game-category-image" width="70" height="70">
+                        <span>Number Sequence</span>
+                        <span class="popular-badge">Featured</span>
+                    </a>
+                    <a href="/word-game/spelling" class="game-category-card featured-card" data-category="Spelling Bee">
+                        <img src="/imgs/spelling-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
+                        <span>Spelling Bee</span>
+                        <span class="popular-badge">Featured</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div id="loading-indicator" class="loading-indicator hidden">
+            <div class="loading-spinner"></div>
+                <p>Loading content...</p>
+        </div>    
+        <!-- Dynamic Content Container -->
+        <div id="dynamic-content" class="screen"></div>
+        <footer class="app-footer">
+            <div class="footer-links">
+                <a href="/privacy" class="footer-link">Privacy Policy</a>
+                <span class="divider">|</span>
+                <a href="/contact" class="footer-link">Contact Us</a>
+            </div>
+            <p class="copyright">© 2025 Triviaah. All rights reserved.</p>
+        </footer>
+    </div>
+    <audio id="tick-sound" src="/audio/tick.mp3" preload="auto"></audio>
+    <audio id="correct-sound" src="/audio/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="/audio/wrong.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
+    <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
+    <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KZ7XR85V"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-K4KZ7XR85V');
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" ></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" ></script>
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
+            authDomain: "triviaahdb.firebaseapp.com",
+            projectId: "triviaahdb",
+            storageBucket: "triviaahdb.firebasestorage.app",
+            messagingSenderId: "758082588437",
+            appId: "1:758082588437:web:9eada609e974b9e458631c",
+            measurementId: "G-ZT8Q78QYDQ"
+            };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+    </script>
+    <script type="module" src="/scripts/router.js" defer></script>
+</body>
+</html>

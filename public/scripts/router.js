@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const dynamicContent = document.getElementById('dynamic-content');
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
+    const scrollIndicator = document.querySelector('.scroll-indicator');
+    const scrollArrow = document.querySelector('.scroll-arrow');
 
     let activeDropdown = null;
     let currentPath = window.location.pathname;
@@ -187,6 +189,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const categoryGroups = document.querySelectorAll('.category-group');
+  
+  // Toggle category groups on mobile
+  if (window.innerWidth <= 768) {
+    categoryGroups.forEach(group => {
+      const header = group.querySelector('.group-header');
+      header.addEventListener('click', () => {
+        group.classList.toggle('active');
+      });
+    });
+  }
+  
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    const isMobile = window.innerWidth <= 768;
+    
+    categoryGroups.forEach(group => {
+      const header = group.querySelector('.group-header');
+      
+      if (isMobile) {
+        // Add click handler if mobile
+        header.addEventListener('click', () => {
+          group.classList.toggle('active');
+        });
+        
+        // Close all groups by default on mobile
+        group.classList.remove('active');
+      } else {
+        // Remove click handler if desktop
+        header.removeEventListener('click', () => {});
+        
+        // Show all groups on desktop
+        group.classList.add('active');
+      }
+    });
+  });
+
     function handleGameInProgressNavigation(path) {
         const modal = document.getElementById('nav-warning-modal');
         if (modal) {
@@ -302,8 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Send gtag event
-        if (window.gtag) {
-            window.gtag('event', 'navigate', {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'navigate', {
                 event_category: eventCategory,
                 event_label: eventLabel,
                 path: path
@@ -316,8 +355,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const validChildren = {
             '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 
-                         'history', 'fashion', 'festivals', 'geography', 'movies', 'tv-web-series', 'music', 
-                         'celebrities', 'politics', 'food', 'sports', 'business', 'mythology', 'catalog', 'tbank'],
+                         'history', 'fashion', 'festivals', 'geography', 'movies', 'tv', 'music', 'celebrities', 
+                         'politics', 'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games',
+                         'board-games','catalog', 'tbank'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'wordsearch', 'catalog']
         };
@@ -335,23 +375,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     const triviaType = pathParts[1];
                     if (triviaType === 'catalog') {
                         await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
-                        const { initTriviaCatalog } = await import('/scripts/trivias/catalog.js');
+                        const { initTriviaCatalog } = await import('/scripts/trivias/catalog.min.js');
                         initTriviaCatalog();
                     } else if (triviaType === 'tbank') {
                         if (pathParts.length === 2) { // /trivias/tbank
                             await loadTemplate('/templates/trivias/tbank.html', dynamicContent);
-                            const { initTbankFilters, processSocialSharing } = await import('/scripts/trivias/tbank.js');
+                            const { initTbankFilters, processSocialSharing } = await import('/scripts/trivias/tbank.min.js');
                             initTbankFilters();
                             processSocialSharing();
                         } else { // /trivias/tbank/some-category
                             const category = pathParts[2];
                             await loadTemplate(`/templates/trivias/tbank/${category}.html`, dynamicContent);
-                            const { initTBankControls } = await import('/scripts/trivias/tbank.js');
+                            const { initTBankControls } = await import('/scripts/trivias/tbank.min.js');
                             initTBankControls();
                         }       
                     } else if (validChildren['/trivias'].includes(triviaType)) {
                         await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
-                        const { initTriviaGame } = await import('/scripts/trivias/trivia.js');
+                        const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
                         initTriviaGame(triviaType.replace(/-/g, ' '));
                     } else {
                         showHomeScreen();
@@ -361,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(pathParts);
                 if (pathParts.length === 2) {
                     await loadTemplate(`/templates/blog/${pageName}.html`, dynamicContent);
-                    const { processSocialSharing } = await import('/scripts/trivias/tbank.js');
+                    const { processSocialSharing } = await import('/scripts/trivias/tbank.min.js');
                     processSocialSharing();
                 } else {
                     showHomeScreen();
@@ -463,4 +503,56 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingIndicator.classList[show ? 'remove' : 'add']('hidden');
         }
     }
+
+    // Scroll Indicator Logic
+    function updateScrollIndicator() {
+        if (!scrollIndicator || !scrollArrow) return;
+
+        // Always show on setup-screen when active
+        if (setupScreen.classList.contains('active')) {
+            scrollIndicator.style.display = 'flex';
+        } else {
+            scrollIndicator.style.display = 'none';
+            return;
+        }
+
+        // Toggle arrow direction based on scroll position
+        const docHeight = document.documentElement.scrollHeight;
+        const winHeight = window.innerHeight;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+        if (scrollTop + winHeight >= docHeight - 10) { // Near bottom
+            scrollArrow.textContent = 'keyboard_arrow_up';
+        } else {
+            scrollArrow.textContent = 'keyboard_arrow_down';
+        }
+
+        if (scrollTop + winHeight >= docHeight - 10) { // Near bottom
+            scrollArrow.textContent = 'arrow_upwards';
+        } else {
+            scrollArrow.textContent = 'arrow_downwards';
+        }
+    }
+
+    // Scroll to top or bottom on click
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', () => {
+            const docHeight = document.documentElement.scrollHeight;
+            const winHeight = window.innerHeight;
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+            if (scrollTop + winHeight >= docHeight - 10) {
+                // At bottom, scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Not at bottom, scroll to bottom
+                window.scrollTo({ top: docHeight - winHeight, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Update indicator on scroll, resize, and initial load
+    window.addEventListener('scroll', updateScrollIndicator);
+    window.addEventListener('resize', updateScrollIndicator);
+    updateScrollIndicator(); // Run immediately on load
 });

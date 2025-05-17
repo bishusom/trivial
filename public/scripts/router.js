@@ -1,3 +1,5 @@
+let categoryGroupClickHandlers = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     const setupScreen = document.querySelector('.setup-screen');
     const dynamicContent = document.getElementById('dynamic-content');
@@ -190,41 +192,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const categoryGroups = document.querySelectorAll('.category-group');
-  
-  // Toggle category groups on mobile
-  if (window.innerWidth <= 768) {
-    categoryGroups.forEach(group => {
-      const header = group.querySelector('.group-header');
-      header.addEventListener('click', () => {
-        group.classList.toggle('active');
-      });
-    });
-  }
-  
-  // Handle window resize
-  window.addEventListener('resize', () => {
-    const isMobile = window.innerWidth <= 768;
     
-    categoryGroups.forEach(group => {
-      const header = group.querySelector('.group-header');
-      
-      if (isMobile) {
-        // Add click handler if mobile
-        header.addEventListener('click', () => {
-          group.classList.toggle('active');
+    // Function to handle group toggling
+    const handleGroupToggle = (group) => {
+        group.classList.toggle('active');
+    };
+    
+    // Initialize groups based on screen size
+    function initCategoryGroups() {
+        // Remove all existing click handlers first
+        categoryGroupClickHandlers.forEach(({group, handler}) => {
+            group.querySelector('.group-header').removeEventListener('click', handler);
         });
+        categoryGroupClickHandlers = [];
         
-        // Close all groups by default on mobile
-        group.classList.remove('active');
-      } else {
-        // Remove click handler if desktop
-        header.removeEventListener('click', () => {});
+        const isMobile = window.innerWidth <= 768;
         
-        // Show all groups on desktop
-        group.classList.add('active');
-      }
+        categoryGroups.forEach(group => {
+            const header = group.querySelector('.group-header');
+            
+            if (isMobile) {
+                // Close all groups by default on mobile
+                group.classList.remove('active');
+                
+                // Create a specific handler for this group
+                const handler = () => handleGroupToggle(group);
+                header.addEventListener('click', handler);
+                
+                // Store reference for later removal
+                categoryGroupClickHandlers.push({group, handler});
+            } else {
+                // Show all groups on desktop
+                group.classList.add('active');
+            }
+        });
+    }
+    
+    // Initial setup
+    initCategoryGroups();
+    
+    // Handle window resize - throttled for performance
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(initCategoryGroups, 100);
     });
-  });
 
     function handleGameInProgressNavigation(path) {
         const modal = document.getElementById('nav-warning-modal');
@@ -268,11 +280,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Determine loading indicator delay based on route
         let loadingDelay = 0; // Default: no loading indicator
-        /*if (path.startsWith('/number-puzzle')) {
-            loadingDelay = 300; // 0.3 seconds for number puzzles
-        } else if (path.startsWith('/trivias') || path.startsWith('/word-game')) {
-            loadingDelay = 2000; // 2 seconds for trivia and word games
-        }*/
 
         // Show loading indicator if delay is set
         let loadingPromise = Promise.resolve();

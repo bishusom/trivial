@@ -133,7 +133,7 @@ function showError(msg) {
         error.innerHTML = `<div id="error-text">${msg}</div><button id="retry-btn" class="btn small primary">Retry</button>`;
         els.game().appendChild(error);
         document.getElementById('retry-btn').addEventListener('click', () => {
-            initTriviaGame(state.questions[0]?.category || 'General Knowledge');
+            initTriviaGame(state.questions[0]?.category || 'general knowledge');
         });
     }
     error.classList.remove('hidden');
@@ -220,15 +220,15 @@ async function fetchfbQuestions(category, amount = 10) {
         return processfbQuestions(cache.questions, amount);
     }
     let query = db.collection('triviaMaster').doc('questions').collection('items');
-    if (category !== 'General Knowledge') query = query.where('category', '==', category);
+    if (category !== 'general knowledge') query = query.where('category', '==', category);
     query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
             .orderBy('randomIndex')
             .limit(amount * 2);
     const snapshot = await query.get();
     if (snapshot.empty) {
-        console.warn(`No questions found for ${category}, falling back to General Knowledge`);
-        showError(`No questions available for ${category}. Loading General Knowledge instead.`);
-        return fetchfbQuestions('General Knowledge', amount);
+        console.warn(`No questions found for ${category}, falling back to general knowledge`);
+        showError(`No questions available for ${category}. Loading general knowledge instead.`);
+        return fetchfbQuestions('general knowledge', amount);
     }
     const questions = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -318,7 +318,7 @@ function showQuestion() {
     els.question().classList.remove('correct-bg', 'wrong-bg');
     const q = state.questions[state.current];
     if (!q) return endGame();
-    const displayCategory = q.category === 'general knowledge' ? 'General Knowledge' : toInitCaps(q.category);
+    const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
     els.question().innerHTML = `
         <div class="question-text">${q.question}</div>
         <div class="question-meta">
@@ -466,7 +466,7 @@ async function endGame() {
     clearInterval(state.totalTimerId);
     stopAllSounds();
 
-    const category = state.questions[0]?.category || 'General Knowledge';
+    const category = state.questions[0]?.category || 'general knowledge';
     let globalHigh = null;
     try {
         const highScoreSnapshot = await getDocs(query(collection(db, 'scores'), 
@@ -509,14 +509,14 @@ function restartGame() {
     els.summary().classList.remove('active');
     els.highscores().classList.add('hidden');
     localStorage.removeItem(CACHE.QUESTIONS);
-    initTriviaGame(state.questions[0]?.category || 'General Knowledge');
+    initTriviaGame(state.questions[0]?.category || 'general knowledge');
 }
 
 async function showSummary(globalHigh) {
     console.log('Starting showSummary, globalHigh:', globalHigh);
     const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.totalTime) : 0;
     const correctCount = state.answers.filter(a => a.correct).length;
-    const category = state.questions[0]?.category || 'General Knowledge';
+    const category = state.questions[0]?.category || 'general knowledge';
     
     let messageCategory, messageClass;
     if (correctCount === 0) {
@@ -597,7 +597,7 @@ async function showSummary(globalHigh) {
 
 async function saveHighScore() {
     if (state.isScoreSaved || !state.score) return;
-    const category = state.questions[0]?.category || 'General Knowledge';
+    const category = state.questions[0]?.category || 'general knowledge';
     const name = prompt('Enter your name:', 'Anonymous') || 'Anonymous';
     await db.collection('scores').add({
         name, 
@@ -613,7 +613,7 @@ async function updateHighScores() {
     const highscoresList = els.highscoresList();
     if (!highscoresList) return;
 
-    const category = state.questions[0]?.category || 'General Knowledge';
+    const category = state.questions[0]?.category || 'general knowledge';
     try {
         const snapshot = await db.collection('scores')
             .where('category', '==', category)
@@ -728,6 +728,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMuteState();
     if (window.location.pathname.includes('catalog.html')) return;
     const pathParts = window.location.pathname.split('/').filter(part => part);
-    const category = pathParts.length > 1 ? pathParts[1].replace(/-/g, ' ') : 'General Knowledge';
+    const category = pathParts.length > 1 ? pathParts[1].replace(/-/g, ' ') : 'general knowledge';
     initTriviaGame(category);
 });

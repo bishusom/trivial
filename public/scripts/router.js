@@ -358,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          'history', 'fashion', 'festivals', 'geography', 'movies', 'tv', 'music', 'celebrities', 
                          'politics', 'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games',
                          'board-games','catalog', 'tbank'],
-            '/number-puzzle': ['guess', 'scramble', 'sequence', 'catalog'],
+            '/number-puzzle': ['guess', 'scramble', 'sequence', 'primehunter', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'wordsearch', 'catalog']
         };
 
@@ -525,12 +525,6 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollArrow.textContent = 'keyboard_arrow_up';
         } else {
             scrollArrow.textContent = 'keyboard_arrow_down';
-        }
-
-        if (scrollTop + winHeight >= docHeight - 10) { // Near bottom
-            scrollArrow.textContent = 'arrow_upwards';
-        } else {
-            scrollArrow.textContent = 'arrow_downwards';
         }
     }
 

@@ -359,9 +359,15 @@ export function initWordGame() {
 
   function renderGrid() {
     console.log(`Rendering grid with ${config.gridCols} cols and ${config.gridRows} rows`);
+    
+    // Set CSS variables for grid dimensions
+    gridElement.style.setProperty('--cols', config.gridCols);
+    gridElement.style.setProperty('--rows', config.gridRows);
+    
     gridElement.style.display = 'grid';
-    gridElement.style.gridTemplateColumns = `repeat(${config.gridCols}, 1fr)`;
-    gridElement.style.gridTemplateRows = `repeat(${config.gridRows}, 1fr)`;
+    gridElement.style.width = '100%';
+    gridElement.style.maxWidth = '100%';
+    gridElement.style.overflow = 'hidden';
     
     gridElement.innerHTML = '';
     grid.forEach((cell, index) => {
@@ -370,12 +376,18 @@ export function initWordGame() {
       cellElement.textContent = cell.letter;
       cellElement.dataset.index = index;
       
+      // Mouse events
       cellElement.addEventListener('mousedown', startSelection);
       cellElement.addEventListener('mouseenter', (e) => {
         e.preventDefault();
         continueSelection(e);
       });
       cellElement.addEventListener('mouseup', endSelection);
+      
+      // Touch events
+      cellElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+      cellElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+      cellElement.addEventListener('touchend', handleTouchEnd);
       
       gridElement.appendChild(cellElement);
       cell.element = cellElement;
@@ -607,6 +619,30 @@ export function initWordGame() {
       grid[index].element.classList.add('selected');
     });
   }
+
+  // New touch event handlers
+function handleTouchStart(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains('wordsearch-cell')) {
+    startSelection({ target, preventDefault: () => {} });
+  }
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains('wordsearch-cell')) {
+    continueSelection({ target, preventDefault: () => {} });
+  }
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  endSelection();
+}
 
   // Event listeners
   newGameBtn.addEventListener('click', initGame);

@@ -21,6 +21,8 @@
     <link rel="preload" href="/styles/styles.min.css" as="style">
     <link rel="stylesheet" href="/styles/styles.min.css">
     <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
+    <link rel="preload" href="/imgs/triviaah-logo-140.webp" as="image" fetchpriority="high">
+     <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
     <!-- Firebase SDKs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
 </head>
@@ -30,7 +32,7 @@
             <div class="logo-container-mobile">
                 <picture>
                      <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-100.webp">
-                    <img src="/imgs/triviaah-logo-100.webp" alt="Triviaah Logo" class="logo" width="180" height="30" fetchpriority="high">
+                    <img src="/imgs/triviaah-logo-100.webp" alt="Triviaah Logo" class="logo" width="180" height="30" fetchpriority="high" loading="eager">
                 </picture>
             </div>
             <div class="nav-controls">
@@ -112,6 +114,7 @@
                     <li><a href="/number-puzzle/guess">Guess Number</a></li>
                     <li><a href="/number-puzzle/scramble">Number Scramble</a></li>
                     <li><a href="/number-puzzle/sequence">Number Sequence</a></li>
+                    <li><a href="/number-puzzle/primehunter">Prime Hunter</a></li>
                 </ul>
             </li>
             <li class="dropdown">
@@ -124,7 +127,7 @@
                     <li><a href="/word-game/classic">Word Guess</a></li>
                     <li><a href="/word-game/anagram">Anagram</a></li>
                     <li><a href="/word-game/spelling">Spelling Bee</a></li>
-                    <!--li><a href="/word-game/wordsearch">Word Search</a></li-->
+                    <li><a href="/word-game/wordsearch">Word Search</a></li>
                 </ul>
             </li>
             <li class="dropdown">
@@ -179,9 +182,9 @@
                 <a href="/trivias/weekly" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
                     Start Quiz Now
                 </a>
-                <!--a href="/trivias/catalog" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                <a href="/trivias/catalog" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
                     Browse Categories
-                </a-->
+                </a>
                 <hr class="divider">
                 <h2 class="section-header">Popular Games</h2>
                 <div class="game-categories">
@@ -206,6 +209,9 @@
                         <span class="popular-badge">Featured</span>
                     </a>
                 </div>
+                 <a href="/number-puzzle/catalog" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                        Browse Games
+                </a>
             </div>
             
             <hr class="divider">
@@ -241,7 +247,7 @@
                             <span>Music</span>
                         </a>
                         <a href="/trivias/video-games" class="mini-category-card">
-                            <img src="/imgs/video-games-50.webp" alt="Video Games" width="50" height="50">
+                            <img src="/imgs/video-games-50.webp" alt="Vidseo Games" width="50" height="50">
                             <span>Video Games</span>
                         </a>
                          <a href="/trivias/board-games" class="mini-category-card">
@@ -347,7 +353,11 @@
                         <a href="/number-puzzles/sequence" class="mini-category-card">
                             <img src="/imgs/number-sequence-50.webp" alt="Number Sequence" width="50" height="50">
                             <span>Number Sequence</span>
-                        </a>                       
+                        </a>
+                        <a href="/number-puzzles/primehunter" class="mini-category-card">
+                            <img src="/imgs/primehunter.webp" alt="Prime Hunter" width="50" height="50">
+                            <span>Prime Hunter</span>
+                        </a>                        
                     </div>
                 </div>    
                     <!-- Number Games Section -->
@@ -369,7 +379,11 @@
                         <a href="/word-games/spelling" class="mini-category-card">
                             <img src="/imgs/spelling-50.webp" alt="Spelling Bee" width="50" height="50">
                             <span>Spelling Bee</span>
-                        </a>                       
+                        </a> 
+                        <a href="/word-games/wordsearch" class="mini-category-card">
+                            <img src="/imgs/wordsearch-50.webp" alt="Word Search" width="50" height="50">
+                            <span>Word Search</span>
+                        </a>                         
                     </div>
                 </div>    
             </div>
@@ -385,8 +399,8 @@
 
     <!-- Scroll Indicator -->
     <div class="scroll-indicator">
-        <span class="material-icons scroll-arrow">arrow_downwards</span>
-        <span class="scroll-text">Scroll</span>
+        <span class="material-icons scroll-arrow">keyboard_arrow_down</span>
+        <span class="scroll-text">SCROLL</span>
     </div>
     
     <footer class="app-footer">
@@ -430,6 +444,6 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
     </script>
-    <script type="module" src="/scripts/router.min.js" defer></script>
+    <script type="module" src="/scripts/router.js" defer></script>
 </body>
 </html>

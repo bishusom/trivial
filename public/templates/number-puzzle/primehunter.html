@@ -1,0 +1,35 @@
+<link rel="stylesheet" href="/styles/number-puzzle/primehunter.css">
+<div class="card puzzle-card">
+    <div class="puzzle-header">
+        <h2>Prime Number Hunter</h2>
+        <div class="puzzle-meta">
+            <span id="hunter-level">Level: 1</span>
+            <span id="hunter-score">Score: 0</span>
+            <span id="hunter-time">Time: 60s</span>
+        </div>
+    </div>
+    
+    <div class="puzzle-body">
+        <div class="hunter-instructions">
+            <p>Click on all prime numbers in the grid before time runs out!</p>
+        </div>
+        
+        <div class="hunter-grid" id="hunter-grid"></div>
+        
+        <div class="hunter-feedback" id="hunter-feedback"></div>
+        
+        <div class="hunter-progress">
+            <div class="progress-container">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+                <span id="primes-found">0</span>/<span id="primes-total">0</span> primes found
+            </div>
+        </div>
+    </div>
+    
+    <div class="puzzle-footer">
+        <button class="btn secondary" id="hunter-hint">Hint</button>
+        <button class="btn secondary" id="hunter-new">New Game</button>
+    </div>
+</div>

@@ -2759,9 +2759,11 @@ input:checked + .slider:before {
     .current-word { font-size: 1.3rem; }
     .game-header { flex-direction: column; align-items: center;}
     .game-meta { width: 100%; justify-content: space-between; }
-    .wordsearch-grid { --cols: 10;--rows: 8; }   
-    .wordsearch-cell { font-size: clamp(0.5rem, 4vw, 0.7rem); }   
+    .word-game-body { width: 100%; }
+    .wordsearch-grid { gap: 3px; padding: 4px; --cols: 10;--rows: 8; height: 250px; }   
+    .wordsearch-cell { width: 22px; height: 25px; font-size: 1rem; min-width: 0; min-height: 0; color:#1a1a1a}
+    .wordsearch-wordlist { grid-template-columns: repeat(2, 1fr);  gap: 0.8rem; } 
     .wordsearch-word { font-size: 0.75rem; }
-     .word-game-meta { flex-direction: column; gap: 0.3rem; }
+     .word-game-meta { flex-direction: row; gap: 0.3rem; }
     .privacy-card, .contact-card { padding-top: 70px;}
 }

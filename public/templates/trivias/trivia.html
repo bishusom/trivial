@@ -1,4 +1,5 @@
-
+<script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" ></script>
+<script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" ></script>
 <div class="container">
     <div class="screen game-screen active">
         <div class="game-header">
@@ -67,22 +68,32 @@
             <div class="stats-row">
                 <div class="stat-item correct">
                     <span class="material-icons">check_circle</span>
-                    <div><h3 id="correct-count">0/10</h3><small>Correct</small></div>
+                    <div><h3 id="correct-count">0/5</h3><small>Correct</small></div>
+                </div>
+                <div class="stat-item score">
+                    <span class="material-icons">star</span>
+                    <div><h3 id="total-score">150</h3><small>Score</small></div>
                 </div>
                 <div class="stat-item time">
                     <span class="material-icons">timer</span>
-                    <div><h3 id="time-used">N/A</h3><small>Time</small></div>
-                </div>
+                    <div><h3 id="time-used">0:30</h3><small>Time</small></div>
+                </div>  
             </div>
+            
             <div class="performance-message" id="result-message"></div>
-            <button class="btn primary" id="restart-btn">
-                <span class="material-icons">replay</span>Play Again
-            </button>
-        </div>
-        <div class="highscores">
-            <h3>High Scores</h3>
-            <div id="highscores-list"></div>
-        </div>
+            
+            <div class="action-buttons">
+                <button class="btn primary" id="restart-btn">
+                    <span class="material-icons">replay</span>Play Again
+                </button>
+            </div>
+            
+            <div class="highscores compact">
+                <h3>High Scores</h3>
+                <div id="highscores-list"></div>
+            </div>
+            <div class="progress-message"></div>
+        </div>       
     </div>
 
     <div id="nav-warning-modal" class="modal hidden">

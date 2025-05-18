@@ -361,10 +361,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const validChildren = {
-            '/trivias': ['weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 
-                         'history', 'fashion', 'festivals', 'geography', 'movies', 'tv', 'music', 'celebrities', 
-                         'politics', 'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games',
-                         'board-games','catalog', 'tbank'],
+            '/trivias': ['daily', 'weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 
+                         'history', 'fashion', 'festivals', 'geography', 'movies', 'tv', 'music', 'celebrities', 'politics', 
+                         'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games','board-games','catalog', 
+                         'tbank'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'primehunter', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'wordsearch', 'catalog']
         };

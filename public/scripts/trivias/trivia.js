@@ -78,7 +78,7 @@ let state = {
     timerDuration: 'long'
 };
 
-const QUIZ_TYPES = { WEEKLY: 'weekly', MONTHLY: 'monthly' };
+const QUIZ_TYPES = { DAILY: 'daily', WEEKLY: 'weekly', MONTHLY: 'monthly'};
 const CACHE = { QUESTIONS: 'trivia-questions-v1', EXPIRY: 24 * 60 * 60 * 1000 };
 
 function trackEvent(action, category, label, value) {
@@ -173,7 +173,7 @@ async function updatePlayerCount(category) {
 async function fetchQuestions(category) {
     try {
         console.log('Fetching questions for category:', category);
-        if ([QUIZ_TYPES.WEEKLY, QUIZ_TYPES.MONTHLY].includes(category.toLowerCase())) {
+        if ([QUIZ_TYPES.DAILY, QUIZ_TYPES.WEEKLY, QUIZ_TYPES.MONTHLY].includes(category.toLowerCase())) {
             return await fetchfbQuiz(category.toLowerCase());
         }
         return await fetchfbQuestions(category);
@@ -185,6 +185,38 @@ async function fetchQuestions(category) {
 }
 
 async function fetchfbQuiz(type) {
+    // Add this at the beginning of the function
+    if (type === 'daily') {
+        const today = new Date().toISOString().split('T')[0];
+        const cacheKey = `fb-daily-quiz-${today}`;
+        const cached = JSON.parse(localStorage.getItem('fbdailyQuizCache'))?.[cacheKey];
+        
+        if (cached) return shuffle(cached.questions);
+        
+        // Fetch 5 general knowledge questions
+        const querySnapshot = await db.collection('basic_intro_questions')
+                             .where('randomIndex', '>=', Math.floor(Math.random() * 900))
+                             .orderBy('randomIndex')
+                             .limit(5) // Get 5 random basic questions
+                             .get();
+            
+        const questions = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            question: decodeHTML(doc.data().question),
+            correct: decodeHTML(doc.data().correct_answer),
+            options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
+            category: 'daily',
+            difficulty: doc.data().difficulty || 'medium',
+            titbits: doc.data().titbits || ''
+        })).slice(0, 5); // Take only 5 questions
+            
+        localStorage.setItem('fbdailyQuizCache', JSON.stringify({
+            ...JSON.parse(localStorage.getItem('fbdailyQuizCache') || '{}'),
+            [cacheKey]: { questions, timestamp: Date.now() }
+        }));
+        
+        return shuffle(questions);
+    }
     const now = new Date();
     const id = type === QUIZ_TYPES.WEEKLY ? `week-${getWeekNumber(now)}-${now.getFullYear()}` : `month-${now.getMonth()+1}-${now.getFullYear()}`;
     const cacheKey = `fb-quiz-${id}`;
@@ -291,6 +323,19 @@ function updateTimerUI() {
 }
 
 export function initTriviaGame(category) {
+    if (category === 'daily') {
+        state.isTimedMode = true;
+        state.timerDuration = 'quick'; // 30 seconds per question
+        state.selectedQuestions = 5;
+        localStorage.setItem('triviaMasterTimedMode', 'true');
+        localStorage.setItem('triviaMasterTimerDuration', 'quick');
+         messages.zero = [
+            "Don't worry! These were starter questions.",
+            "Everyone starts somewhere! Try again?",
+            "Basic knowledge builds up over time!",
+            "Ready for another quick try?"
+        ];
+    }
     console.log('Initializing game for category:', category);
     trackEvent('game_start', 'game', category, 1);
     state.questions = [];
@@ -469,13 +514,22 @@ async function endGame() {
     const category = state.questions[0]?.category || 'general knowledge';
     let globalHigh = null;
     try {
-        const highScoreSnapshot = await getDocs(query(collection(db, 'scores'), 
-                                        where('category', '==', category), 
-                                        orderBy('score', 'desc'), 
-                                        limit(1)));
+        const highScoreSnapshot = await db.collection('scores')
+                                        .where('category', '==', category)
+                                        .orderBy('score', 'desc')
+                                        .limit(1)
+                                        .get();
+        
+        console.log(highScoreSnapshot);                   
         globalHigh = highScoreSnapshot.empty ? null : highScoreSnapshot.docs[0].data();
     } catch (error) {
         console.error('endGame: Error fetching global high score:', error);
+    }
+
+    try {
+        saveHighScore();
+    } catch (error) {
+        console.error('endGame: Error in saveHighScore:', error);
     }
 
     try {
@@ -484,11 +538,26 @@ async function endGame() {
         console.error('endGame: Error in showSummary:', error);
     }
     
-    try {
-        saveHighScore();
-    } catch (error) {
-        console.error('endGame: Error in saveHighScore:', error);
+    
+    if (state.questions[0]?.category === 'daily') {
+        // Track basic quiz completions
+        const basicQuizzesCompleted = parseInt(localStorage.getItem('basicQuizzesCompleted')) || 0;
+        localStorage.setItem('basicQuizzesCompleted', basicQuizzesCompleted + 1);
+        
+        // Show progress message
+        const progressMsg = document.querySelector('.progress-message');
+        if ( progressMsg ){
+            progressMsg.innerHTML = `
+            <p>You've completed ${basicQuizzesCompleted + 1} basic quizzes! Ready to try more challenging questions?</p>
+            <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
+         `;
+        }
+        
+        document.getElementById('upgrade-btn').addEventListener('click', () => {
+            initTriviaGame('general knowledge');
+        });
     }
+
 }
 
 function restartGame() {
@@ -539,6 +608,11 @@ async function showSummary(globalHigh) {
         console.error('Highscores list (#highscores-list) not found in DOM');
         return;
     }
+
+    const perfMsg = document.querySelector('.performance-message');
+    if ( perfMsg ) {
+        perfMsg.classList.add(messageClass);
+    }
     
     highscoresList.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div><p>Loading high scores...</p></div>';
 
@@ -564,15 +638,26 @@ async function showSummary(globalHigh) {
         console.log('Adding global high score:', globalHigh);
         resultMessageEl.insertAdjacentHTML('afterend', `
             <div class="global-high-score">
-                <div class="trophy-icon">🏆</div>
                 <div class="global-high-details">
-                    <div class="global-high-text">Global High in ${category}:</div>
-                    <div class="global-high-value">${globalHigh.score} by ${globalHigh.name}</div>
+                    <div class="global-high-text"> 🏆 Global High in ${toInitCaps(category)}: ${globalHigh.score} by ${globalHigh.name}</div>
                 </div>
             </div>
             ${globalHigh.score > state.score ? `<div class="motivation-text">You're ${globalHigh.score - state.score} points behind the leader!</div>` : `<div class="global-champion-message">🎉 You beat the global high score! Submit your score to claim the crown!</div>`}
         `);
     }
+
+    // Update total score display
+    document.getElementById('total-score').textContent = state.score;
+
+    // Ensure high scores fit in compact view
+    els.highscoresList().innerHTML = state.highScores.length ? 
+        state.highScores.map((e, i) => `
+            <div class="highscore-entry compact">
+                <span class="name">${i+1}. ${e.name}</span>
+                <span class="score">${e.score}</span>
+            </div>
+        `).join('') : 
+        '<p class="no-scores">No high scores yet</p>';
     
     const restartBtn = document.getElementById('restart-btn');
     if (restartBtn) {
@@ -599,11 +684,12 @@ async function saveHighScore() {
     if (state.isScoreSaved || !state.score) return;
     const category = state.questions[0]?.category || 'general knowledge';
     const name = prompt('Enter your name:', 'Anonymous') || 'Anonymous';
+    
     await db.collection('scores').add({
         name, 
         score: state.score, 
         category, 
-        timestamp: Timestamp.now()
+        timestamp: firebase.firestore.Timestamp.now()
     });
     state.isScoreSaved = true;
     updateHighScores();
@@ -619,7 +705,7 @@ async function updateHighScores() {
             .where('category', '==', category)
             .orderBy('score', 'desc')
             .limit(5)
-            .get(); // Changed
+            .get();
             
         state.highScores = snapshot.docs.map(doc => doc.data());
         highscoresList.innerHTML = state.highScores.length ? 

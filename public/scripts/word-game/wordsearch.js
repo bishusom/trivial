@@ -245,10 +245,13 @@ export function initWordGame() {
 
   async function generateWordList({ minWordLength, maxWordLength, wordCount }, limitOverride = null) {
     try {
+      const randomFloor = Math.floor(Math.random() * 900000);
       const limit = limitOverride || wordCount[difficulty] * 3;
       const snapshot = await db.collection('dictionary')
         .where('length', '>=', minWordLength)
         .where('length', '<=', maxWordLength)
+        .where('randomIndex', '>=', randomFloor)
+        .orderBy('randomIndex')
         .limit(limit)
         .get();
 

@@ -57,6 +57,29 @@ export function initWordGame() {
     gameMeta.appendChild(gamesRemainingElement);
   }
 
+  function saveGameState() {
+    const gameState = {
+      difficulty,
+      consecutiveWins,
+      currentLevel
+    };
+    localStorage.setItem('wordGameState', JSON.stringify(gameState));
+  }
+
+  function loadGameState() {
+    const savedState = localStorage.getItem('wordGameState');
+    if (savedState) {
+      try {
+        return JSON.parse(savedState);
+      } catch (e) {
+        console.error('Failed to parse saved game state', e);
+        return null;
+      }
+    }
+    return null;
+  }
+
+
   // Initialize the game
   initGame();
 
@@ -69,6 +92,18 @@ export function initWordGame() {
     isSelecting = false;
     usedWordsInGame.clear();
     directionCounts = { horizontal: 0, vertical: 0, diagonal: 0 };
+
+    const savedState = loadGameState();
+    if (savedState) {
+      difficulty = savedState.difficulty || 'easy';
+      consecutiveWins = savedState.consecutiveWins || 0;
+      currentLevel = savedState.currentLevel || 1;
+    } else {
+      // Default values if no saved state
+      difficulty = 'easy';
+      consecutiveWins = 0;
+      currentLevel = 1;
+    }
 
     try {
       // Generate words from Firebase
@@ -474,6 +509,7 @@ export function initWordGame() {
     }
     
     updateLevelInfo();
+    saveGameState(); // Save the updated state
     setTimeout(initGame, 2000);
   }
 

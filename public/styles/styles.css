@@ -2760,7 +2760,7 @@ input:checked + .slider:before {
     .game-header { flex-direction: column; align-items: center;}
     .game-meta { width: 100%; justify-content: space-between; }
     .word-game-body { width: 100%; }
-    .wordsearch-grid { gap: 3px; padding: 4px; --cols: 10;--rows: 8; height: 250px; }   
+    .wordsearch-grid { gap: 3px; padding: 4px; --cols: 10;--rows: 12; height: 250px; }   
     .wordsearch-cell { width: 22px; height: 25px; font-size: 1rem; min-width: 0; min-height: 0; color:#1a1a1a}
     .wordsearch-wordlist { grid-template-columns: repeat(2, 1fr);  gap: 0.8rem; } 
     .wordsearch-word { font-size: 0.75rem; }

@@ -1,6 +1,44 @@
 let categoryGroupClickHandlers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+        // Update the quiz timers
+    const updateQuizTimers = () => {
+        const timeLeft = getTimeRemaining();
+        
+        // Update Daily Quiz
+        const dailyQuiz = document.querySelector('[data-category="Daily"]');
+        if (dailyQuiz) {
+            const dailyText = dailyQuiz.querySelector('span');
+            if (dailyText) {
+                dailyText.innerHTML = `Daily Quiz (Resets in <b>${timeLeft.daily} hrs</b>)`;
+            }
+        }
+        
+        // Update Weekly Quiz
+        const weeklyQuiz = document.querySelector('[data-category="Weekly"]');
+        if (weeklyQuiz) {
+            const weeklyText = weeklyQuiz.querySelector('span');
+            if (weeklyText) {
+                weeklyText.innerHTML = `Weekly Quiz (Expires in <b>${timeLeft.weekly} days</b>)`;
+            }
+        }
+        
+        // Update Monthly Quiz
+        const monthlyQuiz = document.querySelector('[data-category="Monthly"]');
+        if (monthlyQuiz) {
+            const monthlyText = monthlyQuiz.querySelector('span');
+            if (monthlyText) {
+                monthlyText.innerHTML = `Monthly Quiz (New Quiz in <b>${timeLeft.monthly} days</b>)`;
+            }
+        }
+    };
+    
+    // Call it initially
+    updateQuizTimers();
+    
+    // Set up interval to update every hour
+    setInterval(updateQuizTimers, 3600000); // 3600000ms = 1 hour
+    
     const setupScreen = document.querySelector('.setup-screen');
     const dynamicContent = document.getElementById('dynamic-content');
     const hamburger = document.querySelector('.hamburger');
@@ -383,19 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (triviaType === 'catalog') {
                         await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
                         const { initTriviaCatalog } = await import('/scripts/trivias/catalog.min.js');
-                        initTriviaCatalog();
-                    } else if (triviaType === 'tbank') {
-                        if (pathParts.length === 2) { // /trivias/tbank
-                            await loadTemplate('/templates/trivias/tbank.html', dynamicContent);
-                            const { initTbankFilters, processSocialSharing } = await import('/scripts/trivias/tbank.min.js');
-                            initTbankFilters();
-                            processSocialSharing();
-                        } else { // /trivias/tbank/some-category
-                            const category = pathParts[2];
-                            await loadTemplate(`/templates/trivias/tbank/${category}.html`, dynamicContent);
-                            const { initTBankControls } = await import('/scripts/trivias/tbank.min.js');
-                            initTBankControls();
-                        }       
+                        initTriviaCatalog();       
                     } else if (validChildren['/trivias'].includes(triviaType)) {
                         await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
                         const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
@@ -403,13 +429,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         showHomeScreen();
                     }
-            } else if (path.startsWith('/blog')) {
-                const pageName = pathParts[1];
+            } else if (path.startsWith('/tbank')) {
                 console.log(pathParts);
                 if (pathParts.length === 2) {
-                    await loadTemplate(`/templates/blog/${pageName}.html`, dynamicContent);
-                    const { processSocialSharing } = await import('/scripts/trivias/tbank.min.js');
-                    processSocialSharing();
+                   window.location.href = `/tbank${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
+                   return; // Exit early since we're doing a full page load 
+                } else {
+                    showHomeScreen();
+                }         
+            } else if (path.startsWith('/blog')) {
+                console.log(pathParts);
+                if (pathParts.length === 2) {
+                   window.location.href = `/blog${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
+                   return; // Exit early since we're doing a full page load 
                 } else {
                     showHomeScreen();
                 }        
@@ -556,4 +588,37 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', updateScrollIndicator);
     window.addEventListener('resize', updateScrollIndicator);
     updateScrollIndicator(); // Run immediately on load
+
+    function getTimeRemaining() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentDay = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+        const currentDate = now.getDate();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        // Calculate days in current month
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        
+        // Daily quiz resets at midnight (0:00)
+        const dailyReset = new Date(now);
+        dailyReset.setHours(24, 0, 0, 0);
+        const dailyHoursLeft = Math.floor((dailyReset - now) / (1000 * 60 * 60));
+        
+        // Weekly quiz resets on Sunday at midnight
+        const weeklyReset = new Date(now);
+        weeklyReset.setDate(weeklyReset.getDate() + (7 - currentDay));
+        weeklyReset.setHours(0, 0, 0, 0);
+        const weeklyDaysLeft = Math.ceil((weeklyReset - now) / (1000 * 60 * 60 * 24));
+        
+        // Monthly quiz resets on 1st of next month at midnight
+        const monthlyReset = new Date(currentYear, currentMonth + 1, 1);
+        const monthlyDaysLeft = daysInMonth - currentDate + 1;
+        
+        return {
+            daily: dailyHoursLeft,
+            weekly: weeklyDaysLeft,
+            monthly: monthlyDaysLeft
+    };
+}
 });

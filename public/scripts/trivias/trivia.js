@@ -186,18 +186,25 @@ async function fetchQuestions(category) {
 
 async function fetchfbQuiz(type) {
     // Add this at the beginning of the function
-    if (type === 'daily') {
-        const today = new Date().toISOString().split('T')[0];
+        if (type === 'daily') {
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
         const cacheKey = `fb-daily-quiz-${today}`;
-        const cached = JSON.parse(localStorage.getItem('fbdailyQuizCache'))?.[cacheKey];
         
-        if (cached) return shuffle(cached.questions);
+        // Check cache with the same expiration as router.js (midnight)
+        const cached = JSON.parse(localStorage.getItem('fbdailyQuizCache'))?.[cacheKey];
+        const midnight = new Date();
+        midnight.setHours(24, 0, 0, 0);
+        
+        if (cached && now < midnight) {
+            return shuffle(cached.questions);
+        }
         
         // Fetch 5 general knowledge questions
         const querySnapshot = await db.collection('basic_intro_questions')
                              .where('randomIndex', '>=', Math.floor(Math.random() * 900))
                              .orderBy('randomIndex')
-                             .limit(5) // Get 5 random basic questions
+                             .limit(5)
                              .get();
             
         const questions = querySnapshot.docs.map(doc => ({
@@ -208,11 +215,11 @@ async function fetchfbQuiz(type) {
             category: 'daily',
             difficulty: doc.data().difficulty || 'medium',
             titbits: doc.data().titbits || ''
-        })).slice(0, 5); // Take only 5 questions
+        })).slice(0, 5);
             
         localStorage.setItem('fbdailyQuizCache', JSON.stringify({
             ...JSON.parse(localStorage.getItem('fbdailyQuizCache') || '{}'),
-            [cacheKey]: { questions, timestamp: Date.now() }
+            [cacheKey]: { questions, timestamp: now.getTime() }
         }));
         
         return shuffle(questions);
@@ -538,26 +545,44 @@ async function endGame() {
         console.error('endGame: Error in showSummary:', error);
     }
     
-    
+    // Handle daily game specific UI
     if (state.questions[0]?.category === 'daily') {
-        // Track basic quiz completions
-        const basicQuizzesCompleted = parseInt(localStorage.getItem('basicQuizzesCompleted')) || 0;
-        localStorage.setItem('basicQuizzesCompleted', basicQuizzesCompleted + 1);
-        
-        // Show progress message
-        const progressMsg = document.querySelector('.progress-message');
-        if ( progressMsg ){
-            progressMsg.innerHTML = `
-            <p>You've completed ${basicQuizzesCompleted + 1} basic quizzes! Ready to try more challenging questions?</p>
-            <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
-         `;
+        const actionButtons = document.querySelector('.action-buttons');
+        if (actionButtons) {
+            actionButtons.innerHTML = `
+                <div class="progress-message">
+                    <p>You've completed today's daily challenge!</p>
+                    <p>New questions in <span id="daily-reset-timer"></span></p>
+                    <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
+                </div>
+            `;
+            
+            // Set up the upgrade button
+            document.getElementById('upgrade-btn').addEventListener('click', () => {
+                initTriviaGame('general knowledge');
+            });
+            
+            // Update the timer display
+            updateDailyResetTimer();
+            setInterval(updateDailyResetTimer, 1000);
         }
-        
-        document.getElementById('upgrade-btn').addEventListener('click', () => {
-            initTriviaGame('general knowledge');
-        });
     }
+}
 
+// Add this new function to update the daily reset timer
+function updateDailyResetTimer() {
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - now;
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    const timerElement = document.getElementById('daily-reset-timer');
+    if (timerElement) {
+        timerElement.textContent = `${hours}h ${minutes}m`;
+    }
 }
 
 function restartGame() {

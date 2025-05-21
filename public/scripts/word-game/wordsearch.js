@@ -1,4 +1,10 @@
 export function initWordGame() {
+  // Load saved state BEFORE setting defaults
+  const savedState = loadGameState();
+  let difficulty = savedState?.difficulty || 'easy';
+  let consecutiveWins = savedState?.consecutiveWins || 0;
+  let currentLevel = savedState?.currentLevel || 1;
+
   // Game configuration
   const config = {
     gridCols: 12, // Increased from 10
@@ -21,11 +27,6 @@ export function initWordGame() {
   let foundWords = [];
   let selectedCells = [];
   let isSelecting = false;
-  // Load saved state BEFORE setting defaults
-  const savedState = loadGameState();
-  let difficulty = savedState?.difficulty || 'easy';
-  let consecutiveWins = savedState?.consecutiveWins || 0;
-  let currentLevel = savedState?.currentLevel || 1;
   let usedWordsInGame = new Set();
   let retryCount = 0; // Track retries to avoid infinite loops
 

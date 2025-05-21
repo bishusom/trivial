@@ -97,6 +97,7 @@ export function initWordGame() {
   initGame();
 
   async function initGame() {
+    console.log('Initializing game with state:', { difficulty, currentLevel, consecutiveWins });
     // Clear previous game
     showFeedback('', 'info');
     gridElement.innerHTML = '';
@@ -520,11 +521,18 @@ export function initWordGame() {
   }
 
   function updateLevelInfo() {
+    // Only show current level info
     levelElement.textContent = `Level: ${currentLevel} (${difficulty})`;
-    const winsNeeded = 3 - consecutiveWins;
-    gamesRemainingElement.textContent = winsNeeded > 0 
-      ? `Wins to next level: ${winsNeeded}`
-      : 'Ready to advance!';
+    
+    // Only show wins needed if not at max level
+    if (difficulty !== 'hard') {
+      const winsNeeded = 3 - consecutiveWins;
+      gamesRemainingElement.textContent = winsNeeded > 0 
+        ? `Wins to next level: ${winsNeeded}`
+        : 'Ready to advance!';
+    } else {
+      gamesRemainingElement.textContent = 'Max level reached!';
+    }
   }
 
   function updateWordsLeft() {

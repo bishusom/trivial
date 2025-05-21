@@ -90,6 +90,12 @@ const FALLBACK_WORDS = [
     { word: "hospital", category: "Place", hint: "Where sick people are treated" }
 ];
 
+function trackEvent(action, category, label, value) {
+    if (typeof gtag !== 'undefined') {
+        gtag('event', action, { event_category: category, event_label: label, value: value });
+    }
+}
+
 function updateDifficultyDisplay() {
     const difficultyDisplay = document.getElementById('current-difficulty');
     const progressDisplay = document.getElementById('progress-display');
@@ -233,6 +239,7 @@ function initializeGame() {
     updateDifficultyDisplay();
     updateGameUI();
     saveGameState();
+    trackEvent('guess_word_started','guess_word',1);
 }
 
 async function startWordGame() {

@@ -42,6 +42,12 @@ export function initWordGame() {
   const gamesRemainingElement = document.createElement('span');
   gamesRemainingElement.id = 'wordsearch-games-remaining';
 
+  function trackEvent(action, category, label, value) {
+    if (typeof gtag !== 'undefined') {
+        gtag('event', action, { event_category: category, event_label: label, value: value });
+    }
+  }
+
   // Create fallback feedback element if missing
   if (!feedbackElement) {
     feedbackElement = document.createElement('div');
@@ -241,6 +247,7 @@ export function initWordGame() {
         initGame();
       }, 2000);
     }
+    trackEvent('word_search_started','word_search',1);
   }
 
   async function generateWordList({ minWordLength, maxWordLength, wordCount }, limitOverride = null) {

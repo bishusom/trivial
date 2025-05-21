@@ -38,8 +38,15 @@ export function initWordGame() {
     const gameOverWords = document.getElementById('game-over-words');
     const playAgainBtn = document.getElementById('play-again-btn');
 
+
     // Initialize the game
     initGame();
+
+    function trackEvent(action, category, label, value) {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', action, { event_category: category, event_label: label, value: value });
+        }
+    }
 
     async function initGame() {
         const vowels = ['A', 'E', 'I', 'O', 'U'];
@@ -86,6 +93,7 @@ export function initWordGame() {
         feedbackEl.className = 'spelling-feedback info';
         submitBtn.disabled = false;
         gameOverModal.style.display = 'none';
+        trackEvent('spelling_bee_started','spelling_bee',1);
     }
 
     async function validateWord(word) {

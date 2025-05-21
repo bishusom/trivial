@@ -332,17 +332,23 @@ function updateTimerUI() {
 export function initTriviaGame(category) {
     if (category === 'daily') {
         state.isTimedMode = true;
-        state.timerDuration = 'quick'; // 30 seconds per question
+        state.timerDuration = 'quick';
         state.selectedQuestions = 5;
         localStorage.setItem('triviaMasterTimedMode', 'true');
         localStorage.setItem('triviaMasterTimerDuration', 'quick');
-         messages.zero = [
+        messages.zero = [
             "Don't worry! These were starter questions.",
             "Everyone starts somewhere! Try again?",
             "Basic knowledge builds up over time!",
             "Ready for another quick try?"
         ];
     }
+    
+    // Ensure game screen is active
+    els.game().classList.add('active');
+    els.game().classList.remove('hidden');
+    els.summary().classList.remove('active');
+    
     console.log('Initializing game for category:', category);
     trackEvent('game_start', 'game', category, 1);
     state.questions = [];
@@ -355,6 +361,7 @@ export function initTriviaGame(category) {
     els.score().textContent = '0';
     loadMuteState();
     updatePlayerCount(category);
+    
     fetchQuestions(category).then(questions => {
         state.questions = questions;
         showQuestion();
@@ -362,7 +369,8 @@ export function initTriviaGame(category) {
         console.error('Error fetching questions:', err);
         showError(err.message || 'Failed to load questions.');
     });
-    setupEvents(); // Moved here as it worked
+    
+    setupEvents();
 }
 
 function showQuestion() {
@@ -557,14 +565,38 @@ async function endGame() {
                 </div>
             `;
             
-            // Set up the upgrade button
-            document.getElementById('upgrade-btn').addEventListener('click', () => {
-                initTriviaGame('general knowledge');
-            });
+            // Properly set up the upgrade button
+            const upgradeBtn = document.getElementById('upgrade-btn');
+            if (upgradeBtn) {
+                upgradeBtn.addEventListener('click', () => {
+                    // Reset game state for regular quiz
+                    state.isTimedMode = false;
+                    state.selectedQuestions = 10;
+                    localStorage.removeItem('triviaMasterTimedMode');
+                    localStorage.removeItem('triviaMasterTimerDuration');
+                    initTriviaGame('general knowledge');
+                });
+            }
             
             // Update the timer display
             updateDailyResetTimer();
             setInterval(updateDailyResetTimer, 1000);
+        }
+    } else {
+        // Show restart button for non-daily games
+        const actionButtons = document.querySelector('.action-buttons');
+        if (actionButtons) {
+            actionButtons.innerHTML = `
+                <button class="btn primary" id="restart-btn">
+                    <span class="material-icons">replay</span>Play Again
+                </button>
+            `;
+            
+            // Set up restart button
+            const restartBtn = document.getElementById('restart-btn');
+            if (restartBtn) {
+                restartBtn.addEventListener('click', restartGame);
+            }
         }
     }
 }

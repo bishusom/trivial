@@ -36,6 +36,12 @@ export function initWordGame() {
     const levelEl = document.getElementById('anagram-level');
     const gamesRemainingEl = document.getElementById('anagram-games-remaining');
 
+    function trackEvent(action, category, label, value) {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', action, { event_category: category, event_label: label, value: value });
+        }
+    }
+
     // Helper functions
     function scrambleWord(word) {
         return word.split('').sort(() => Math.random() - 0.5).join('');
@@ -131,6 +137,7 @@ export function initWordGame() {
             feedbackEl.textContent = '';
             feedbackEl.className = 'anagram-feedback';
         }
+        trackEvent('anagram_started','anagram',1);
     }
 
     function renderLetters() {

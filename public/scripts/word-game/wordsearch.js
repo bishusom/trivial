@@ -21,9 +21,11 @@ export function initWordGame() {
   let foundWords = [];
   let selectedCells = [];
   let isSelecting = false;
-  let difficulty = 'easy';
-  let consecutiveWins = 0;
-  let currentLevel = 1;
+  // Load saved state BEFORE setting defaults
+  const savedState = loadGameState();
+  let difficulty = savedState?.difficulty || 'easy';
+  let consecutiveWins = savedState?.consecutiveWins || 0;
+  let currentLevel = savedState?.currentLevel || 1;
   let usedWordsInGame = new Set();
   let retryCount = 0; // Track retries to avoid infinite loops
 
@@ -76,10 +78,15 @@ export function initWordGame() {
     const savedState = localStorage.getItem('wordGameState');
     if (savedState) {
       try {
-        return JSON.parse(savedState);
+        const parsed = JSON.parse(savedState);
+        // Validate the loaded state
+        if (['easy', 'medium', 'hard'].includes(parsed.difficulty) && 
+            typeof parsed.consecutiveWins === 'number' && 
+            typeof parsed.currentLevel === 'number') {
+          return parsed;
+        }
       } catch (e) {
-        console.error('Failed to parse saved game state', e);
-        return null;
+        console.error('Invalid saved game state', e);
       }
     }
     return null;
@@ -91,6 +98,7 @@ export function initWordGame() {
 
   async function initGame() {
     // Clear previous game
+    showFeedback('', 'info');
     gridElement.innerHTML = '';
     wordListElement.innerHTML = '';
     selectedCells = [];
@@ -98,18 +106,6 @@ export function initWordGame() {
     isSelecting = false;
     usedWordsInGame.clear();
     directionCounts = { horizontal: 0, vertical: 0, diagonal: 0 };
-
-    const savedState = loadGameState();
-    if (savedState) {
-      difficulty = savedState.difficulty || 'easy';
-      consecutiveWins = savedState.consecutiveWins || 0;
-      currentLevel = savedState.currentLevel || 1;
-    } else {
-      // Default values if no saved state
-      difficulty = 'easy';
-      consecutiveWins = 0;
-      currentLevel = 1;
-    }
 
     try {
       // Generate words from Firebase
@@ -525,7 +521,10 @@ export function initWordGame() {
 
   function updateLevelInfo() {
     levelElement.textContent = `Level: ${currentLevel} (${difficulty})`;
-    gamesRemainingElement.textContent = `Wins to next level: ${3 - consecutiveWins}`;
+    const winsNeeded = 3 - consecutiveWins;
+    gamesRemainingElement.textContent = winsNeeded > 0 
+      ? `Wins to next level: ${winsNeeded}`
+      : 'Ready to advance!';
   }
 
   function updateWordsLeft() {

@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await loadTemplate('/templates/number-puzzle/catalog.html', dynamicContent);
                 } else if (validChildren['/number-puzzle'].includes(puzzleType)) {
                     await loadTemplate(`/templates/number-puzzle/${puzzleType}.html`, dynamicContent);
-                    const { initPuzzle } = await import(`/scripts/number-puzzle/${puzzleType}.js`);
+                    const { initPuzzle } = await import(`/scripts/number-puzzle/${puzzleType}.min.js`);
                     initPuzzle();
                 } else {
                     showHomeScreen();
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await loadTemplate('/templates/word-game/catalog.html', dynamicContent);
                 } else if (validChildren['/word-game'].includes(gameType)) {
                     await loadTemplate(`/templates/word-game/${gameType}.html`, dynamicContent);
-                    const { initWordGame } = await import(`/scripts/word-game/${gameType}.js`);
+                    const { initWordGame } = await import(`/scripts/word-game/${gameType}.min.js`);
                     initWordGame();
                 } else {
                     showHomeScreen();

@@ -1,7 +1,6 @@
 export function initWordGame() {
   // Load saved state BEFORE setting defaults
   const savedState = loadGameState();
-  updateLevelInfo();
   let difficulty = savedState?.difficulty || 'easy';
   let consecutiveWins = savedState?.consecutiveWins || 0;
   let currentLevel = savedState?.currentLevel || 1;
@@ -67,6 +66,8 @@ export function initWordGame() {
     gameMeta.appendChild(gamesRemainingElement);
   }
 
+  updateLevelInfo();
+  
   function saveGameState() {
     const gameState = {
       difficulty,

@@ -40,11 +40,9 @@ export function initWordGame() {
   let feedbackElement = document.getElementById('wordsearch-feedback');
   const newGameBtn = document.getElementById('wordsearch-new');
   const hintBtn = document.getElementById('wordsearch-hint');
-  const levelElement = document.createElement('span');
-  levelElement.id = 'wordsearch-level';
-  const gamesRemainingElement = document.createElement('span');
-  gamesRemainingElement.id = 'wordsearch-games-remaining';
-
+  const levelElement = document.getElementById('wordsearch-level');
+  const gamesRemainingElement = document.getElementById('wordsearch-games-remaining');
+  
   function trackEvent(action, category, label, value) {
     if (typeof gtag !== 'undefined') {
         gtag('event', action, { event_category: category, event_label: label, value: value });
@@ -100,7 +98,7 @@ export function initWordGame() {
   initGame();
 
   async function initGame() {
-    updateLevelInfo();
+    //updateLevelInfo();
     console.log('Initializing game with state:', { difficulty, currentLevel, consecutiveWins });
     // Clear previous game
     showFeedback('', 'info');
@@ -111,6 +109,14 @@ export function initWordGame() {
     isSelecting = false;
     usedWordsInGame.clear();
     directionCounts = { horizontal: 0, vertical: 0, diagonal: 0 };
+    
+    // Ensure levelElement is still in the DOM
+    const gameMeta = document.querySelector('.word-game-meta');
+    if (gameMeta && !document.getElementById('wordsearch-level')) {
+      gameMeta.appendChild(levelElement);
+      gameMeta.appendChild(gamesRemainingElement);
+    }
+    updateLevelInfo();
 
     try {
       // Generate words from Firebase
@@ -151,7 +157,7 @@ export function initWordGame() {
         while (placedWords.length < config.wordCount[difficulty] && totalAttempts < config.maxTotalAttempts) {
           if (availableWords.length === 0) {
             availableWords = [...words].filter(wordObj => !placedWords.some(p => p.word === wordObj.word));
-            console.log('Resetting available words:', availableWords);
+            //console.log('Resetting available words:', availableWords);
           }
 
           const wordObj = availableWords[0];
@@ -162,11 +168,11 @@ export function initWordGame() {
             placedWords.push(wordObj);
             usedWordsInGame.add(wordObj.word);
             availableWords.shift();
-            console.log(`Placed word: ${wordObj.word}, Total placed: ${placedWords.length}`);
+            //console.log(`Placed word: ${wordObj.word}, Total placed: ${placedWords.length}`);
             placed = true;
           } else {
             availableWords.shift();
-            console.log(`Failed to place word: ${wordObj.word}, Moving to next word`);
+            //console.log(`Failed to place word: ${wordObj.word}, Moving to next word`);
             totalAttempts++;
           }
         }
@@ -286,7 +292,7 @@ export function initWordGame() {
 
       const shuffledWordData = shuffleArray(wordData);
       const finalWords = shuffledWordData.slice(0, limitOverride || wordCount[difficulty]);
-      console.log('Generated word list:', finalWords);
+      //console.log('Generated word list:', finalWords);
       return finalWords;
     } catch (error) {
       console.error("Error fetching words:", error);
@@ -341,13 +347,13 @@ export function initWordGame() {
           if (dir.type === 'horizontal') directionCounts.horizontal++;
           else if (dir.type === 'vertical') directionCounts.vertical++;
           else if (dir.type === 'diagonal') directionCounts.diagonal++;
-          console.log(`Placed ${wordObj.word} in ${dir.type} direction at (${row}, ${col})`);
+          //console.log(`Placed ${wordObj.word} in ${dir.type} direction at (${row}, ${col})`);
           return true;
         }
       }
     }
 
-    console.log(`Failed to place ${wordObj.word} after trying all directions`);
+    //console.log(`Failed to place ${wordObj.word} after trying all directions`);
     return false;
   }
 
@@ -404,7 +410,7 @@ export function initWordGame() {
   }
 
   function renderGrid() {
-    console.log(`Rendering grid with ${config.gridCols} cols and ${config.gridRows} rows`);
+    //console.log(`Rendering grid with ${config.gridCols} cols and ${config.gridRows} rows`);
     
     // Set CSS variables for grid dimensions
     gridElement.style.setProperty('--cols', config.gridCols);
@@ -519,14 +525,22 @@ export function initWordGame() {
       showFeedback(`Great job! ${3 - consecutiveWins} more wins to advance.`, 'info');
     }
     
-    updateLevelInfo();
-    saveGameState(); // Save the updated state
-    setTimeout(initGame, 2000);
+    saveGameState(); // Save the updated state first
+    updateLevelInfo(); // Update the display immediately
+    setTimeout(() => {
+      initGame();
+    }, 2000);
   }
 
   function updateLevelInfo() {
     // Only show current level info
-    levelElement.textContent = `Level: ${currentLevel} (${difficulty})`;
+    console.log(`${currentLevel} ${difficulty}`);
+    if (levelElement) {
+      levelElement.textContent = `Level: ${currentLevel} (${difficulty})`;  
+    } else {
+      console.error("level Element not found");
+    }
+    
     
     // Only show wins needed if not at max level
     if (difficulty !== 'hard') {

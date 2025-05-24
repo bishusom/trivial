@@ -403,8 +403,8 @@ document.addEventListener('DOMContentLoaded', () => {
                          'history', 'fashion', 'festivals', 'geography', 'movies', 'tv', 'music', 'celebrities', 'politics', 
                          'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games','board-games','catalog', 
                          'tbank'],
-            '/number-puzzle': ['guess', 'scramble', 'sequence', 'primehunter', 'catalog'],
-            '/word-game': ['classic', 'anagram', 'spelling', 'wordsearch', 'catalog']
+            '/number-puzzle': ['guess', 'scramble', 'sequence', 'primehunter', 'numbertower', 'catalog'],
+            '/word-game': ['classic', 'anagram', 'spelling', 'boggle', 'wordsearch', 'catalog']
         };
 
         try {

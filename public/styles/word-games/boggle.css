@@ -1,0 +1,46 @@
+.boggle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 20px auto;
+  max-width: 400px;
+}
+
+.boggle-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  color: #333;
+}
+
+.boggle-cell.adjacent {
+  background-color: rgba(0,255,0,0.2);
+  transition: background-color 0.2s;
+}
+
+.boggle-cell.selected {
+  background-color: #b3d9ff;
+}
+
+.boggle-cell.found {
+  background-color: #a5d6a7;
+}
+
+.boggle-found-words {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.word-feedback.checking {
+  color: #FFA500; /* Orange */
+  font-style: italic;
+}

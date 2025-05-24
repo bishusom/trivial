@@ -32,6 +32,13 @@ export function initPuzzle() {
         generateGrid();
         startTimer();
         gameActive = true;
+        trackEvent('primehunter_started', 'primehunter',1);
+    }
+
+    function trackEvent(action, category, label, value) {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', action, { event_category: category, event_label: label, value: value });
+        }
     }
     
     function generateGrid() {

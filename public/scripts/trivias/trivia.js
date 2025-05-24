@@ -74,7 +74,7 @@ let state = {
     usedQuestions: new Set(),
     fbUsedQuestions: JSON.parse(localStorage.getItem('fbUsedQuestions') || '[]'),
     fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds') || '[]'),
-    isTimedMode: false,
+    isTimedMode: true,
     timerDuration: 'long'
 };
 
@@ -112,9 +112,15 @@ function stopAllSounds() {
 }
 
 function loadMuteState() {
-    state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState') || 'false');
-    state.isTimedMode = JSON.parse(localStorage.getItem('triviaMasterTimedMode') || 'false');
-    state.timerDuration = localStorage.getItem('triviaMasterTimerDuration') || 'long';
+    state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || 'false';
+    
+    // Only use saved timer settings if they exist, otherwise use defaults
+    const savedTimedMode = localStorage.getItem('triviaMasterTimedMode');
+    state.isTimedMode = savedTimedMode !== null ? JSON.parse(savedTimedMode) : true;
+    
+    const savedTimerDuration = localStorage.getItem('triviaMasterTimerDuration');
+    state.timerDuration = savedTimerDuration !== null ? savedTimerDuration : 'long';
+    
     const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
     if (muteBtnIcon) {
         muteBtnIcon.textContent = state.isMuted ? 'volume_off' : 'volume_up';
@@ -342,6 +348,10 @@ export function initTriviaGame(category) {
             "Basic knowledge builds up over time!",
             "Ready for another quick try?"
         ];
+    } else {
+        // For non-daily games, use the loaded settings (which default to timed mode with 60s timer)
+        state.isTimedMode = JSON.parse(localStorage.getItem('triviaMasterTimedMode')) || true;
+        state.timerDuration = localStorage.getItem('triviaMasterTimerDuration') || 'long';
     }
     
     // Ensure game screen is active

@@ -4,6 +4,7 @@
   gap: 10px;
   margin: 20px auto;
   max-width: 400px;
+  position: relative; 
 }
 
 .boggle-cell {
@@ -22,6 +23,14 @@
   color: #333;
 }
 
+.boggle-cell.highlight {
+  background-color: #4a90e2;
+  color: white;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+
 .boggle-cell.adjacent {
   background-color: rgba(0,255,0,0.2);
   transition: background-color 0.2s;
@@ -32,7 +41,7 @@
 }
 
 .boggle-cell.found {
-  background-color: #a5d6a7;
+  background-color: #2cb67d;;
 }
 
 .boggle-found-words {
@@ -43,4 +52,13 @@
 .word-feedback.checking {
   color: #FFA500; /* Orange */
   font-style: italic;
+}
+
+.selection-line {
+  position: absolute;
+  background-color: #4a90e2;
+  height: 4px;
+  transform-origin: left center;
+  z-index: 10;
+  pointer-events: none;
 }

@@ -1,5 +1,5 @@
 /* Core Styles */
-:root {
+/* :root {
     --primary: #46178f;
     --secondary: #e22b5a;
     --accent: #ffd700;
@@ -10,6 +10,19 @@
     --correct: #80e6a3;
     --wrong: #ff7d7d;
     --present: #ffd700;
+} */
+
+:root {
+    --primary: #ff008c;  /* Medium purple */
+    --secondary: #890044; /* Hot pink */
+    --accent: #00FFFF;   /* Cyan */
+    --card: #FF8C00;     /* Dark orange */
+    --bg: #0f0e17;      /* Almost black */
+    --card-bg: #242629;  /* Dark gray */
+    --text: #fffffe;     /* Off-white */
+    --correct: #2cb67d;  /* Emerald */
+    --wrong: #ef4565;    /* Ruby */
+    --present: #ffd803;  /* Gold */
 }
 
 * {
@@ -579,26 +592,6 @@ button {
     color: var(--card);
 }
 
-.puzzle-card {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.puzzle-header {
-    padding-top: 70px;
-}
-
-.puzzle-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-    gap: 1rem;
-}
-
 /* Contact Form */
 .privacy-card , .contact-card {
     max-width: 600px;
@@ -708,6 +701,26 @@ button {
 }
 
 /* Quiz Container */
+.puzzle-card {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.puzzle-header {
+    padding-top: 70px;
+}
+
+.puzzle-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    gap: 1rem;
+}
+
 .quiz-container {
     max-width: 800px;
     margin: 0 auto;
@@ -1131,8 +1144,6 @@ input:checked + .slider:before {
     color: var(--accent);
     transition: transform 0.2s ease;
 }
-
-
 
 .stats {
     display: flex;
@@ -2338,7 +2349,6 @@ input:checked + .slider:before {
     text-transform: uppercase;
 }
 
-/* Add these to your existing styles.css */
 @keyframes correctGlow {
     0% { box-shadow: 0 0 5px var(--correct); }
     50% { box-shadow: 0 0 20px var(--correct); }

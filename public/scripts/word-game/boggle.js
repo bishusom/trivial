@@ -94,6 +94,9 @@ export function initWordGame() {
 
   async function initGame() {
     console.log('Initializing Boggle game with state:', { difficulty, currentLevel, consecutiveWins });
+    // Clear any existing line
+    const existingLine = document.querySelector('.selection-line');
+    if (existingLine) existingLine.remove();
     clearInterval(timerInterval);
     timer = config.timeLimit;
     score = 0;
@@ -204,6 +207,49 @@ export function initWordGame() {
       gridElement.appendChild(cellElement);
       cell.element = cellElement;
     });
+  }
+
+  function getCellCenter(index) {
+    const cell = grid[index].element;
+    const rect = cell.getBoundingClientRect();
+    const gridRect = gridElement.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width/2 - gridRect.left,
+      y: rect.top + rect.height/2 - gridRect.top
+    };
+  }
+
+  function updateSelectionLine() {
+    // Remove any existing line
+    const existingLine = document.querySelector('.selection-line');
+    if (existingLine) existingLine.remove();
+
+    // Don't draw line for single cell or empty selection
+    if (selectedCells.length < 2) return;
+
+    // Create line element
+    const line = document.createElement('div');
+    line.className = 'selection-line';
+    gridElement.appendChild(line);
+
+    // Draw lines between all selected cells
+    for (let i = 0; i < selectedCells.length - 1; i++) {
+      const start = getCellCenter(selectedCells[i]);
+      const end = getCellCenter(selectedCells[i + 1]);
+
+      // Calculate line length and angle
+      const length = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+      const angle = Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI;
+
+      // Create line segment
+      const segment = document.createElement('div');
+      segment.className = 'selection-line';
+      segment.style.width = `${length}px`;
+      segment.style.left = `${start.x}px`;
+      segment.style.top = `${start.y}px`;
+      segment.style.transform = `rotate(${angle}deg)`;
+      gridElement.appendChild(segment);
+    }
   }
 
   async function checkSelectedWord() {
@@ -380,7 +426,11 @@ export function initWordGame() {
     if (!isSelecting) return;
     isSelecting = false;
     grid.forEach(cell => cell.element.classList.remove('adjacent'));
-    console.log(`Selection ended, word: ${selectedCells.map(i => grid[i].letter).join('')}`);
+    
+    // Remove the line when selection ends
+    const line = document.querySelector('.selection-line');
+    if (line) line.remove();
+    
     if (selectedCells.length < 2) {
       showFeedback('Selection too short, please select at least 2 letters', 'error');
       selectedCells = [];
@@ -438,10 +488,21 @@ export function initWordGame() {
   }
 
   function updateSelection() {
-    grid.forEach(cell => cell.element.classList.remove('selected'));
-    selectedCells.forEach(index => {
-      if (grid[index].element) grid[index].element.classList.add('selected');
+    grid.forEach(cell => {
+      cell.element.classList.remove('selected', 'highlight');
     });
+    
+    selectedCells.forEach(index => {
+      if (grid[index].element) {
+        grid[index].element.classList.add('selected');
+        // Add highlight to last selected cell
+        if (index === selectedCells[selectedCells.length - 1]) {
+          grid[index].element.classList.add('highlight');
+        }
+      }
+    });
+    
+    updateSelectionLine(); // Add this line
   }
 
   function handleTouchStart(e) {

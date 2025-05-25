@@ -69,6 +69,8 @@ body {
     background: linear-gradient(45deg, var(--primary), var(--secondary));
     color: var(--text);
     box-shadow: 0 2px 8px rgba(70, 23, 143, 0.4);
+    width: auto;
+    min-width: 150px;
 }
 
 .btn:hover {
@@ -363,7 +365,7 @@ button {
     position: absolute;
     top: 5px;
     right: 5px;
-    background: var(--secondary);
+    background: var(--primary);
     color: var(--text);
     font-size: 0.65rem;
     padding: 2px 5px;

@@ -209,27 +209,33 @@ function extractKeywordNLP(question) {
 
 async function fetchImage(keyword) {
   if (imageCache[keyword]) return imageCache[keyword];
-  
-  const response = await fetch(`/netlify/functions/get-image?keyword=${keyword}`);
-  const url = await response.json();
-  
-  if (url) {
-    imageCache[keyword] = url;
-    return url;
-  }
-  return null;
-}
-
-
-async function loadQuestionWithAutoImage(question) {
-    const keyword = extractKeywordNLP(question);
-    const imageUrl = await fetchImage(keyword); // Your existing image fetch function
+  console.log('Fetching image for ', keyword);
+  keyword = keyword.replace(' ','%20');
+  try {
+    const response = await fetch(`/.netlify/functions/get-image?keyword=${keyword}`);
     
-    // Display question and image
-    document.getElementById('question').innerHTML = `
-        ${imageUrl ? `<img src="${imageUrl}" alt="${keyword}" class="question-image">` : ''}
-        <p>${question}</p>
-    `;
+    // Check if response is OK
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    console.log(response);
+    
+    // Check content type is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Invalid content type');
+    }
+    
+    const data = await response.json();
+    if (data.url) {
+      imageCache[keyword] = data.url;
+      return data.url;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    return null;
+  }
 }
 
 async function fetchQuestions(category) {

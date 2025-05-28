@@ -210,9 +210,9 @@ function extractKeywordNLP(question) {
 async function fetchImage(keyword) {
   if (imageCache[keyword]) return imageCache[keyword];
   console.log('Fetching image for ', keyword);
-  keyword = keyword.replace(' ','%20');
+  
   try {
-    const response = await fetch(`/.netlify/functions/get-image?keyword=${keyword}`);
+    const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
     
     // Check if response is OK
     if (!response.ok) {

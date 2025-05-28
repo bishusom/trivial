@@ -1,14 +1,9 @@
 [build]
-  functions = "/functions"
+  functions = "netlify/functions"  # Changed from "/functions"
   publish = "public"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
+  conditions = {Path: "!/.netlify/functions/*"}

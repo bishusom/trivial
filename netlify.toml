@@ -1,9 +1,14 @@
 [build]
-  functions = "netlify/functions"  # Removed leading slash
+  functions = "netlify/functions"
   publish = "public"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Path: "!/.netlify/functions/*"}  # Exclude functions from redirect
+
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true

@@ -1,6 +1,6 @@
 [build]
+  functions = "/netlify/functions"
   publish = "public"
-  command = "echo 'No build needed'"
 
 [[redirects]]
   from = "/*"

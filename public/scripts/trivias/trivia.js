@@ -57,6 +57,8 @@ const audio = {
 };
 audio.tick.loop = true;
 
+const imageCache = {};
+
 let state = {
     isMuted: false,
     questions: [],
@@ -77,6 +79,19 @@ let state = {
     isTimedMode: true,
     timerDuration: 'long'
 };
+
+let nlp;
+if (typeof window !== 'undefined' && window.nlp) {
+    nlp = window.nlp;
+    console.log('Found nlp');
+} else {
+    // Fallback if Compromise fails to load
+    nlp = {
+        nouns: () => ({ out: () => [] }),
+        adjectives: () => ({ out: () => [] })
+    };
+    console.log('Creating home-grown nlp');
+}
 
 const QUIZ_TYPES = { DAILY: 'daily', WEEKLY: 'weekly', MONTHLY: 'monthly'};
 const CACHE = { QUESTIONS: 'trivia-questions-v1', EXPIRY: 24 * 60 * 60 * 1000 };
@@ -174,6 +189,47 @@ async function updatePlayerCount(category) {
         // Fallback to random number if update fails
         return Math.floor(Math.random() * 40) + 100;
     }
+}
+
+function extractKeywordNLP(question) {
+    const doc = nlp(question);
+    
+    // Get nouns, prioritizing main subject
+    const nouns = doc.nouns().out('array');
+    if (nouns.length > 0) return nouns[0];
+    
+    // Fallback to adjectives if no nouns found
+    const adjectives = doc.adjectives().out('array');
+    if (adjectives.length > 0) return adjectives[0];
+    
+    // Final fallback
+    const words = question.replace('?', '').split(' ');
+    return words.find(w => w.length > 3) || words[0];
+}
+
+async function fetchImage(keyword) {
+  if (imageCache[keyword]) return imageCache[keyword];
+  
+  const response = await fetch(`/netlify/functions/get-image?keyword=${keyword}`);
+  const url = await response.json();
+  
+  if (url) {
+    imageCache[keyword] = url;
+    return url;
+  }
+  return null;
+}
+
+
+async function loadQuestionWithAutoImage(question) {
+    const keyword = extractKeywordNLP(question);
+    const imageUrl = await fetchImage(keyword); // Your existing image fetch function
+    
+    // Display question and image
+    document.getElementById('question').innerHTML = `
+        ${imageUrl ? `<img src="${imageUrl}" alt="${keyword}" class="question-image">` : ''}
+        <p>${question}</p>
+    `;
 }
 
 async function fetchQuestions(category) {
@@ -383,7 +439,7 @@ export function initTriviaGame(category) {
     setupEvents();
 }
 
-function showQuestion() {
+/*function showQuestion() {
     toggleClass(document.querySelector('.app-footer'), 'add', 'hidden');
     els.question().classList.remove('correct-bg', 'wrong-bg');
     const q = state.questions[state.current];
@@ -396,6 +452,69 @@ function showQuestion() {
             ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
         </div>
     `;
+    els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
+    if (els.questionCounter()) {
+        els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
+    }
+    toggleClass(els.game(), 'add', 'active');
+    toggleClass(els.summary(), 'remove', 'active');
+    els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';
+    els.totalTimer().textContent = state.isTimedMode ? `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}` : 'N/A';
+    setupOptionEvents();
+    startTimer();
+}*/
+async function showQuestion() {
+    toggleClass(document.querySelector('.app-footer'), 'add', 'hidden');
+    els.question().classList.remove('correct-bg', 'wrong-bg');
+    const q = state.questions[state.current];
+    if (!q) return endGame();
+    
+    const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
+    
+    // Clear previous content
+    els.question().innerHTML = '';
+    
+    // Add loading state while fetching image
+    els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
+    
+    try {
+        // Fetch and display image (if available)
+        const imageUrl = await fetchImage(extractKeywordNLP(q.question));
+        
+        // Build question HTML
+        let questionHTML = '';
+        
+        if (imageUrl) {
+            questionHTML += `
+                <div class="question-image-container">
+                    <img src="${imageUrl}" alt="${extractKeywordNLP(q.question)}" class="question-image">
+                </div>
+            `;
+        }
+        
+        questionHTML += `
+            <div class="question-text">${q.question}</div>
+            <div class="question-meta">
+                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
+            </div>
+        `;
+        
+        els.question().innerHTML = questionHTML;
+        
+    } catch (error) {
+        console.error('Error loading question image:', error);
+        // Fallback to text-only question if image loading fails
+        els.question().innerHTML = `
+            <div class="question-text">${q.question}</div>
+            <div class="question-meta">
+                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    // Rest of your existing code
     els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
     if (els.questionCounter()) {
         els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;

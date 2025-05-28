@@ -1,0 +1,42 @@
+<link rel="stylesheet" href="/styles/word-games/word-games-styles.css">
+<div class="card puzzle-card" id="word-ladder-screen">
+    <div id="word-ladder-container" class="card word-game-card">
+        <div class="word-game-header">
+            <h2>Word Ladder</h2>
+            <div class="word-game-meta">
+                <span id="word-ladder-time">Time: 0:00</span>
+                <span id="word-ladder-score">Score: 0</span>
+                <span id="word-ladder-level">Level: 1 (easy)</span>
+            </div>
+        </div>
+        
+        <div class="word-game-body">
+            <div class="word-ladder-progress">
+                <div class="word-ladder-start" id="start-word"></div>
+                <div class="word-ladder-arrow">→</div>
+                <div class="word-ladder-end" id="end-word"></div>
+            </div>
+            
+            <!-- Current word display with selectable letters -->
+            <div class="current-word-display" id="current-word-display"></div>
+            
+            <!-- Letter selection tiles -->
+            <div class="letter-selection" id="letter-selection">
+                <h3>Change a letter:</h3>
+                <div class="letter-tiles" id="letter-tiles"></div>
+            </div>
+            
+            <div class="word-feedback" id="word-ladder-feedback"></div>
+            <div class="word-ladder-found-words" id="word-ladder-found-words">
+                <h3>Your Ladder:</h3>
+                <ul id="word-ladder-list"></ul>
+            </div>
+        </div>
+
+        <div class="word-game-footer">
+            <button class="btn secondary" id="word-ladder-new">New Game</button>
+            <button class="btn secondary" id="word-ladder-submit">Submit</button>
+            <button class="btn secondary" id="word-ladder-hint">Hint</button>
+        </div>
+    </div>
+</div>

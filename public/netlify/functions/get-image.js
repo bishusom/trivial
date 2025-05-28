@@ -17,7 +17,7 @@ exports.handler = async (event) => {
 
     const response = await axios.get('https://pixabay.com/api/', {
       params: {
-        key: process.env.PIXABAY_API_KEY,
+        key: '2247821-f0a12b26e72666b6918b29bb1',
         q: keyword,
         image_type: 'photo'
       }

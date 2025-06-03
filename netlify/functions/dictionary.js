@@ -1,8 +1,6 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
-  // Load environment variables
-  require('dotenv').config();
   const API_KEY = process.env.MERRIAM_WEBSTER_API_KEY;
 
   // Get the word from query parameters

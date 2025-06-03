@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const { initTriviaCatalog } = await import('/scripts/trivias/catalog.min.js');
                         initTriviaCatalog();       
                     } else if (validChildren['/trivias'].includes(triviaType)) {
-                        document.body.classList.add('game-screen-active');
+                        //document.body.classList.add('game-screen-active');
                         await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
                         const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
                         initTriviaGame(triviaType.replace(/-/g, ' '));

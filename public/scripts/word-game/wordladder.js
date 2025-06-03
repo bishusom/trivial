@@ -44,7 +44,7 @@ export function initWordGame() {
       'CONES', 'TONES', 'HONES', 'ZONES', 'LOVES', 'MOVES', 'COVES', 'DOVES', 'ROVES', 'SAVES', 'WAVES', 'CAVES', 'GIVES', 'LIVES'
     ],
     6: [
-       'CANNON', 'CANTON', 'CANTOR', 'CAPTOR', 'BLOOMS', 'GLOOMS', 'BROOMS', 'ROOMS', 'DOOMS', 'FLOODS', 'BLOODS', 'MOODS',
+      'CANNON', 'CANTON', 'CANTOR', 'CAPTOR', 'BLOOMS', 'GLOOMS', 'BROOMS', 'ROOMS', 'DOOMS', 'FLOODS', 'BLOODS', 'MOODS',
       'GOODS', 'HOODS', 'WOODS', 'STANDS', 'BRANDS', 'GRANDS', 'HANDS', 'LANDS', 'SANDS', 'SHINES', 'SPINES', 'VINES', 'WINES', 'LINES', 'MINES', 'PINES',
       'FINES', 'DINES', 'CLONES', 'DRONES', 'PRONES', 'STONES', 'PHONES', 'ZONES', 'ALONES', 'CONING', 'COMING', 'HOMING', 'FARMER', 'HARMER', 'WARMER',
       'MARKET', 'PARKET', 'TICKET', 'PICKET', 'WICKET', 'CRYPTO', 'SCRIPT', 'BRIGHT', 'FLIGHT', 'SLIGHT', 'PLIGHT', 'NIGHTS', 'LIGHTS'
@@ -57,11 +57,22 @@ export function initWordGame() {
   let currentWord = '';
   let ladderWords = [];
   let usedWords = new Set();
-  let usedPairs = new Set(); // Track used startWord-endWord pairs
+  let usedPairs = new Set();
   let wordCache = new Map();
   let hintsUsed = 0;
   let gameActive = false;
   let selectedLetterIndex = -1;
+
+  // Sound effects
+  const audioElements = {
+    select: new Audio('/audio/click.mp3'),
+    found: new Audio('/audio/correct.mp3'),
+    win: new Audio('/audio/win.mp3'),
+    error: new Audio('/audio/wrong.mp3')
+  };
+
+  // Mute state
+  let isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
 
   // DOM elements
   const currentWordElement = document.getElementById('current-word-display');
@@ -69,13 +80,59 @@ export function initWordGame() {
   const wordListElement = document.getElementById('word-ladder-list');
   const feedbackElement = document.getElementById('word-ladder-feedback');
   const newGameBtn = document.getElementById('word-ladder-new');
-  const submitBtn = document.getElementById('word-ladder-submit');
   const hintBtn = document.getElementById('word-ladder-hint');
-  const timeElement = document.getElementById('word-ladder-time');
+  const timeElement = document.getElementById('word-ladder-time') || createTimeElement();
   const scoreElement = document.getElementById('word-ladder-score');
   const levelElement = document.getElementById('word-ladder-level');
   const startWordElement = document.getElementById('start-word');
   const endWordElement = document.getElementById('end-word');
+  const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+  const muteBtn = document.getElementById('mute-btn');
+
+  // Function to play sound
+  function playSound(type) {
+    if (isMuted) {
+      console.log(`Sound ${type} skipped: muted`);
+      return;
+    }
+    console.log(`Playing sound: ${type}`);
+    if (audioElements[type]) {
+      audioElements[type].currentTime = 0;
+      audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+    }
+  }
+
+  // Function to stop sound
+  function stopSound(type) {
+    if (audioElements[type]) {
+      audioElements[type].pause();
+      audioElements[type].currentTime = 0;
+    }
+  }
+
+  // Function to stop all sounds
+  function stopAllSounds() {
+    Object.keys(audioElements).forEach(type => stopSound(type));
+  }
+
+  // Function to load and apply mute state
+  function loadMuteState() {
+    isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
+    if (muteBtnIcon) {
+      muteBtnIcon.textContent = isMuted ? 'volume_off' : 'volume_up';
+    }
+    if (isMuted) {
+      stopAllSounds();
+    }
+  }
+
+  function createTimeElement() {
+    const element = document.createElement('div');
+    element.id = 'word-ladder-time';
+    element.className = 'word-game-timer';
+    document.querySelector('.word-game-meta')?.appendChild(element);
+    return element;
+  }
 
   function trackEvent(action, category, label, value) {
     if (typeof gtag !== 'undefined') {
@@ -111,9 +168,11 @@ export function initWordGame() {
 
   // Initialize the game
   initGame();
+  loadMuteState();
 
   async function initGame() {
     console.log('Initializing Word Ladder game with state:', { difficulty, currentLevel, consecutiveWins });
+    showLoadingAnimation();
     clearInterval(timerInterval);
     timer = config.timeLimit[difficulty];
     score = 0;
@@ -134,202 +193,184 @@ export function initWordGame() {
     updateTimer();
 
     const wordLength = config.wordLength[difficulty];
-    
+
     try {
-        // Try to use Firebase word pairs first
-        await initGameWithFirebaseWords(wordLength);
+      await initGameWithFirebaseWords(wordLength);
     } catch (error) {
-        console.error('Error using Firebase words:', error);
-        // Fallback to local words
-        await initGameWithLocalWords(wordLength);
+      console.error('Error using Firebase words:', error);
+      showErrorAnimation();
+      setTimeout(() => {
+        initGameWithLocalWords(wordLength).catch(() => {
+          showFinalErrorAnimation();
+        });
+      }, 2000);
     }
+  }
+
+  async function initGameWithFirebaseWords(wordLength) {
+    console.log('Fetching fb db for wordLength ', wordLength);
+    const querySnapshot = await db.collection('wordLadders')
+      .where('length', '==', wordLength)
+      .limit(50)
+      .get();
+
+    if (querySnapshot.empty) {
+      throw new Error('No word pairs found in Firebase');
     }
 
-    async function initGameWithFirebaseWords(wordLength) {
-      console.log('Fetching fb db for wordLength ', wordLength);
-    // 1. Fetch word pair from Firebase
-      const querySnapshot = await db.collection('wordLadders')
-          .where('length', '==', wordLength)
-          .limit(50)
-          .get();
-    
-      if (querySnapshot.empty) {
-        throw new Error('No word pairs found in Firebase');
-      }
-    
-      // Convert to array and pick random
-      const pairs = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-          startWord: data.startWord?.toUpperCase(),
-          endWord: data.endWord?.toUpperCase()
-          };
-      }).filter(pair => pair.startWord && pair.endWord);
-      
-      if (pairs.length === 0) {
-          throw new Error('No valid word pairs in Firebase');
-      }
-      
-      const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
-      console.log(randomPair);
-      // 2. Check if valid transformation path exists
-      //const path = await findWordLadderPath(randomPair.startWord, randomPair.endWord, 1);
-      //if (!path) {
-      //    throw new Error('No valid path between words');
-      //}
-      
-      // 3. Initialize game with this pair
-      const pairKey = `${randomPair.startWord}-${randomPair.endWord}`;
-      if (usedPairs.has(pairKey)) {
-          throw new Error('Pair already used');
-      }
-      
-      usedPairs.add(pairKey);
-      startWord = randomPair.startWord;
-      endWord = randomPair.endWord;
-      currentWord = startWord;
-      ladderWords.push(startWord);
-      usedWords.add(startWord);
-      
-      // Display words
-      startWordElement.textContent = startWord;
-      endWordElement.textContent = endWord;
-      renderCurrentWord();
-      renderLetterTiles();
-      renderWordList();
-      
-      // Start timer
-      startTimer();
-      trackEvent('word_ladder_game_started', 'word_ladder', 'start', 1);
+    const pairs = querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        startWord: data.startWord?.toUpperCase(),
+        endWord: data.endWord?.toUpperCase()
+      };
+    }).filter(pair => pair.startWord && pair.endWord);
+
+    if (pairs.length === 0) {
+      throw new Error('No valid word pairs in Firebase');
+    }
+
+    const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
+    const pairKey = `${randomPair.startWord}-${randomPair.endWord}`;
+    if (usedPairs.has(pairKey)) {
+      throw new Error('Pair already used');
+    }
+
+    usedPairs.add(pairKey);
+    startWord = randomPair.startWord;
+    endWord = randomPair.endWord;
+    currentWord = startWord;
+    ladderWords.push(startWord);
+    usedWords.add(startWord);
+
+    // Display words
+    startWordElement.textContent = startWord;
+    endWordElement.textContent = endWord;
+    renderCurrentWord();
+    renderLetterTiles();
+    renderWordList();
+
+    // Start timer
+    startTimer();
+    showFeedback('Game started! Transform the start word to the end word.', 'info');
+    trackEvent('word_ladder_game_started', 'word_ladder', 'start', 1);
+  }
+
+  async function initGameWithLocalWords(wordLength) {
+    const availableWords = wordLists[wordLength];
+
+    let validPair = false;
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    while (!validPair && attempts < maxAttempts) {
+      startWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+      const startTransformations = await getValidTransformations(startWord);
+
+      if (startTransformations.length === 0) {
+        attempts++;
+        continue;
       }
 
-      async function initGameWithLocalWords(wordLength) {
-      const availableWords = wordLists[wordLength];
-      
-      // Find a valid word pair with minimum 2 transformations
-      let validPair = false;
-      let attempts = 0;
-      const maxAttempts = 50;
-      
-      while (!validPair && attempts < maxAttempts) {
-          // Select a random start word that has transformations
-          startWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-          const startTransformations = await getValidTransformations(startWord);
-          
-          if (startTransformations.length === 0) {
-          attempts++;
-          continue;
+      let endWordCandidates = [];
+      for (const word of availableWords) {
+        if (word !== startWord) {
+          const path = await findWordLadderPath(startWord, word, 2);
+          if (path && path.length >= 3) {
+            endWordCandidates.push(word);
           }
+        }
+      }
 
-          // Find an end word that's reachable in minSteps+1 steps
-          let endWordCandidates = [];
-          for (const word of availableWords) {
-          if (word !== startWord) {
-              const path = await findWordLadderPath(startWord, word, 2);
-              if (path && path.length >= 3) {
-              endWordCandidates.push(word);
-              }
-          }
-          }
+      if (endWordCandidates.length > 0) {
+        endWord = endWordCandidates[Math.floor(Math.random() * endWordCandidates.length)];
+        const pairKey = `${startWord}-${endWord}`;
+        if (!usedPairs.has(pairKey)) {
+          validPair = true;
+          usedPairs.add(pairKey);
+        }
+      }
 
-          if (endWordCandidates.length > 0) {
-          endWord = endWordCandidates[Math.floor(Math.random() * endWordCandidates.length)];
-          const pairKey = `${startWord}-${endWord}`;
-          if (!usedPairs.has(pairKey)) {
-              validPair = true;
-              usedPairs.add(pairKey);
-          }
-          }
-          
-          attempts++;
+      attempts++;
+    }
+
+    if (!validPair) {
+      const fallbackSequences = {
+        4: [
+          ['COLD', 'CORD', 'CARD', 'WARD', 'WARM'],
+          ['FIRE', 'FIVE', 'FINE', 'LINE', 'LION']
+        ],
+        5: [
+          ['APPLE', 'AMPLY', 'AMBLE', 'ABLED', 'ABIDE'],
+          ['BRICK', 'TRICK', 'TRACK', 'TRUCK', 'TRUNK']
+        ],
+        6: [
+          ['CANNON', 'CANTON', 'CANTOR', 'CAPTOR'],
+          ['FARMER', 'HARMER', 'HAMMER', 'HUMMER', 'HUMPER']
+        ]
+      };
+
+      const sequences = fallbackSequences[wordLength] || [];
+      for (const sequence of sequences) {
+        const pairKey = `${sequence[0]}-${sequence[sequence.length-1]}`;
+        if (!usedPairs.has(pairKey)) {
+          startWord = sequence[0];
+          endWord = sequence[sequence.length-1];
+          usedPairs.add(pairKey);
+          validPair = true;
+          break;
+        }
       }
 
       if (!validPair) {
-          // Fallback to known valid pairs
-          const fallbackSequences = {
-          4: [
-              ['COLD', 'CORD', 'CARD', 'WARD', 'WARM'],
-              ['FIRE', 'FIVE', 'FINE', 'LINE', 'LION']
-          ],
-          5: [
-              ['APPLE', 'AMPLY', 'AMBLE', 'ABLED', 'ABIDE'],
-              ['BRICK', 'TRICK', 'TRACK', 'TRUCK', 'TRUNK']
-          ],
-          6: [
-              ['CANNON', 'CANTON', 'CANTOR', 'CAPTOR'],
-              ['FARMER', 'HARMER', 'HAMMER', 'HUMMER', 'HUMPER']
-          ]
-          };
-          
-          const sequences = fallbackSequences[wordLength] || [];
-          for (const sequence of sequences) {
-          const pairKey = `${sequence[0]}-${sequence[sequence.length-1]}`;
-          if (!usedPairs.has(pairKey)) {
-              startWord = sequence[0];
-              endWord = sequence[sequence.length-1];
-              usedPairs.add(pairKey);
-              validPair = true;
-              break;
-          }
-          }
-          
-          if (!validPair) {
-          // Ultimate fallback
-          startWord = wordLists[wordLength][0];
-          endWord = wordLists[wordLength][1];
-          }
+        startWord = wordLists[wordLength][0];
+        endWord = wordLists[wordLength][1];
       }
-
-      currentWord = startWord;
-      ladderWords.push(startWord);
-      usedWords.add(startWord);
-      
-      // Display words
-      startWordElement.textContent = startWord;
-      endWordElement.textContent = endWord;
-      renderCurrentWord();
-      renderLetterTiles();
-      renderWordList();
-      
-      // Start timer
-      startTimer();
-      trackEvent('word_ladder_game_started', 'word_ladder', 'start', 1);
     }
 
-  // New function to find a word ladder path with minimum steps
+    currentWord = startWord;
+    ladderWords.push(startWord);
+    usedWords.add(startWord);
+
+    // Display words
+    startWordElement.textContent = startWord;
+    endWordElement.textContent = endWord;
+    renderCurrentWord();
+    renderLetterTiles();
+    renderWordList();
+
+    // Start timer
+    startTimer();
+    showFeedback('Game started! Transform the start word to the end word.', 'info');
+    trackEvent('word_ladder_game_started', 'word_ladder', 'start', 1);
+  }
+
   async function findWordLadderPath(start, end, minSteps) {
-    // First check if direct transformation exists
     if (canTransformTo(start, end)) {
-        return [start, end]; // But we'll filter these out in initGame
+      return [start, end];
     }
 
-    // Then look for longer paths
     const queue = [[start]];
     const visited = new Set([start]);
     let iterations = 0;
-    
-    while (queue.length > 0 && iterations < 1000) {
-        iterations++;
-        const path = queue.shift();
-        const current = path[path.length - 1];
-        console.log(`Current path (${path.length}): ${path.join(' → ')}`);
 
-        if (current === end) {
-          console.log(`Found path with ${path.length - 1} steps`);
-          return path.length - 1 >= minSteps ? path : null;
-        }
-        
-        const transformations = await getValidTransformations(current);
-        console.log(`Transformations from ${current}:`, transformations);
-        for (const word of transformations) {
+    while (queue.length > 0 && iterations < 1000) {
+      iterations++;
+      const path = queue.shift();
+      const current = path[path.length - 1];
+
+      if (current === end) {
+        return path.length - 1 >= minSteps ? path : null;
+      }
+
+      const transformations = await getValidTransformations(current);
+      for (const word of transformations) {
         if (!visited.has(word)) {
           visited.add(word);
           queue.push([...path, word]);
-          console.log(`Added to queue: ${word}`);
         }
       }
     }
-    console.log(`Pathfinding terminated after ${iterations} iterations`);
     return null;
   }
 
@@ -367,6 +408,7 @@ export function initWordGame() {
 
   function selectLetter(index) {
     selectedLetterIndex = index;
+    playSound('select');
     renderCurrentWord();
     renderLetterTiles();
   }
@@ -377,35 +419,33 @@ export function initWordGame() {
     const newWord = currentWord.substring(0, selectedLetterIndex) + 
                    newLetter + 
                    currentWord.substring(selectedLetterIndex + 1);
-    console.log('newWord', newWord);
-    
+
     if (await checkWord(newWord)) {
-      // Valid word
       currentWord = newWord;
       ladderWords.push(newWord);
       usedWords.add(newWord);
-      
+
       const points = config.scorePerStep[difficulty];
       score += points;
       updateScore();
       renderWordList();
-      
+      playSound('found');
+
       if (newWord === endWord) {
-        // Game won!
         const timeBonus = timer * config.bonusPerSecond;
         score += timeBonus;
         updateScore();
-        
+
         clearInterval(timerInterval);
         gameActive = false;
         showFeedback(`You won! +${points} points + ${timeBonus} time bonus`, 'success');
+        playSound('win');
         trackEvent('word_ladder_won', 'word_ladder', 'win', score);
-        
         handleGameWin();
       } else {
         showFeedback(`Valid: ${newWord} (+${points} points)`, 'success');
       }
-      
+
       selectedLetterIndex = -1;
       renderCurrentWord();
       renderLetterTiles();
@@ -437,12 +477,15 @@ export function initWordGame() {
       clearInterval(timerInterval);
       gameActive = false;
       showFeedback('Time\'s up!', 'error');
+      playSound('error');
       setTimeout(initGame, 2000);
     }
   }
 
   function startTimer() {
     clearInterval(timerInterval);
+    timer = config.timeLimit[difficulty];
+    updateTimer();
     timerInterval = setInterval(() => {
       timer--;
       updateTimer();
@@ -452,12 +495,55 @@ export function initWordGame() {
   function showFeedback(message, type) {
     feedbackElement.textContent = message;
     feedbackElement.className = `word-feedback ${type}`;
+    if (type === 'error') {
+      playSound('error');
+    }
+  }
+
+  function showLoadingAnimation() {
+    feedbackElement.innerHTML = `
+      <div class="loading-animation">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Creating your puzzle</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
+    feedbackElement.className = 'word-feedback info';
+  }
+
+  function showErrorAnimation() {
+    feedbackElement.innerHTML = `
+      <div class="error-animation">
+        <div class="error-icon">⚠️</div>
+        <div class="loading-text">Setting up the board</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    `;
+    feedbackElement.className = 'word-feedback error';
+  }
+
+  function showFinalErrorAnimation() {
+    feedbackElement.innerHTML = `
+      <div class="error-animation">
+        <div class="error-icon">❌</div>
+        <div>Having trouble loading</div>
+        <button class="btn primary" onclick="initWordGame()">Try Again</button>
+      </div>
+    `;
+    feedbackElement.className = 'word-feedback error';
   }
 
   async function checkWord(word) {
     if (!gameActive) return false;
-    
-    // Basic validation
+
     if (word.length !== currentWord.length) {
       showFeedback(`Word must be ${currentWord.length} letters long`, 'error');
       return false;
@@ -473,7 +559,6 @@ export function initWordGame() {
       return false;
     }
 
-    // Check if it's a valid transformation (only one letter changed)
     let diffCount = 0;
     for (let i = 0; i < currentWord.length; i++) {
       if (currentWord[i] !== word[i]) diffCount++;
@@ -483,19 +568,15 @@ export function initWordGame() {
       }
     }
 
-    // Check if word exists
     let isValid = false;
     if (wordCache.has(word.toLowerCase())) {
       isValid = wordCache.get(word.toLowerCase());
     } else {
       try {
-        // Check DictionaryAPI
         const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
         isValid = response.ok;
-        console.log(response);
         wordCache.set(word.toLowerCase(), isValid);
       } catch (error) {
-        // Fallback to our word list
         isValid = wordLists[word.length].includes(word.toUpperCase());
         wordCache.set(word.toLowerCase(), isValid);
       }
@@ -513,7 +594,7 @@ export function initWordGame() {
     const transformations = [];
     const wordLength = word.length;
     const availableWords = wordLists[wordLength];
-    
+
     for (const candidate of availableWords) {
       let diffCount = 0;
       for (let i = 0; i < word.length; i++) {
@@ -524,12 +605,11 @@ export function initWordGame() {
         transformations.push(candidate);
       }
     }
-    
+
     return transformations;
   }
 
   function canTransformTo(word1, word2) {
-    // Check if word1 can be transformed to word2 in one step
     let diffCount = 0;
     for (let i = 0; i < word1.length; i++) {
       if (word1[i] !== word2[i]) diffCount++;
@@ -539,18 +619,20 @@ export function initWordGame() {
   }
 
   async function provideHint() {
-    if (!gameActive || hintsUsed >= config.maxHints) return;
-    
+    if (!gameActive || hintsUsed >= config.maxHints) {
+      showFeedback('No more hints available', 'error');
+      return;
+    }
+
     const transformations = await getValidTransformations(currentWord);
     const validNextSteps = transformations.filter(word => 
       !usedWords.has(word) && canLeadToSolution(word)
     );
-    
+
     if (validNextSteps.length > 0) {
       hintsUsed++;
       const hintWord = validNextSteps[Math.floor(Math.random() * validNextSteps.length)];
-      
-      // Highlight the letter that needs to be changed
+
       let changeIndex = -1;
       for (let i = 0; i < currentWord.length; i++) {
         if (currentWord[i] !== hintWord[i]) {
@@ -558,14 +640,14 @@ export function initWordGame() {
           break;
         }
       }
-      
+
       if (changeIndex !== -1) {
         selectLetter(changeIndex);
         showFeedback(`Try changing the ${ordinal(changeIndex + 1)} letter to ${hintWord[changeIndex]}`, 'info');
       } else {
         showFeedback(`Try: ${hintWord}`, 'info');
       }
-      
+
       trackEvent('hint_used', 'word_ladder', 'hint', hintsUsed);
     } else {
       showFeedback('No hints available for this step', 'error');
@@ -579,7 +661,6 @@ export function initWordGame() {
   }
 
   function canLeadToSolution(word) {
-    // Simple check - does this word share more letters with the end word?
     let matchingLetters = 0;
     for (let i = 0; i < word.length; i++) {
       if (word[i] === endWord[i]) matchingLetters++;
@@ -595,44 +676,110 @@ export function initWordGame() {
     return count;
   }
 
+  function showConfetti(options = {}) {
+    const defaults = {
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+    };
+
+    confetti({
+      ...defaults,
+      ...options
+    });
+
+    if (Math.random() > 0.5) {
+      setTimeout(() => {
+        confetti({
+          ...defaults,
+          ...options,
+          angle: Math.random() * 180 - 90,
+          origin: { x: Math.random(), y: 0.6 }
+        });
+      }, 300);
+    }
+  }
+
   function handleGameWin() {
     consecutiveWins++;
+    let victoryMessage = '';
+    let levelUp = false;
+
     if (consecutiveWins >= 3) {
       if (difficulty === 'easy') {
         difficulty = 'medium';
-        showFeedback('Advanced to Medium level!', 'success');
+        levelUp = true;
+        victoryMessage = `🎉 Advanced to Medium level! 🎉`;
       } else if (difficulty === 'medium') {
         difficulty = 'hard';
-        showFeedback('Advanced to Hard level!', 'success');
+        levelUp = true;
+        victoryMessage = `🎉 Advanced to Hard level! 🎉`;
       } else {
-        showFeedback('Mastered all levels!', 'success');
+        victoryMessage = `🎉 Mastered Hard level! Continuing at max difficulty. 🎉`;
       }
-      consecutiveWins = 0;
-      currentLevel++;
+
+      if (levelUp) {
+        consecutiveWins = 0;
+        setTimeout(() => showConfetti({ particleCount: 200, spread: 100 }), 1000);
+      }
     } else {
-      showFeedback(`Great job! ${3 - consecutiveWins} more wins to advance.`, 'info');
+      victoryMessage = `🎉 Level ${currentLevel} Complete! 🎉`;
     }
 
-    saveGameState();
-    updateLevelInfo();
-    setTimeout(initGame, 3000);
+    const victoryScreen = document.createElement('div');
+    victoryScreen.className = 'victory-screen';
+    victoryScreen.innerHTML = `
+      <h2>Victory!</h2>
+      <p>${victoryMessage}</p>
+      <p>Words Used: ${ladderWords.length}</p>
+      <p>Score: ${score}</p>
+      <div class="countdown">Proceeding to the next level in 5...</div>
+    `;
+    document.body.appendChild(victoryScreen);
+
+    showConfetti();
+
+    let countdown = 5;
+    const countdownElement = victoryScreen.querySelector('.countdown');
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      countdownElement.textContent = `Proceeding to the next level in ${countdown}...`;
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        victoryScreen.remove();
+        currentLevel++;
+        saveGameState();
+        updateLevelInfo();
+        initGame();
+      }
+    }, 1000);
+
+    trackEvent('level_complete', 'word_ladder', difficulty, score);
   }
 
   // Event listeners
   newGameBtn.addEventListener('click', () => {
-    usedPairs.clear(); // Clear used pairs for a fresh session
+    usedPairs.clear();
     initGame();
   });
-  submitBtn.addEventListener('click', () => {
-    if (selectedLetterIndex !== -1) {
-      showFeedback('Please select a letter to change', 'error');
-    } else {
-      showFeedback('Select a letter to change', 'info');
-    }
-  });
   hintBtn.addEventListener('click', provideHint);
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-  initWordGame();
-});
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      isMuted = !isMuted;
+      localStorage.setItem('triviaMasterMuteState', isMuted);
+      if (muteBtnIcon) {
+        muteBtnIcon.textContent = isMuted ? 'volume_off' : 'volume_up';
+      }
+      if (isMuted) {
+        stopAllSounds();
+      }
+      playSound('select');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initWordGame();
+  });
+}

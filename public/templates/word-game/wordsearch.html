@@ -1,14 +1,21 @@
 <link rel="stylesheet" href="/styles/word-games/word-games-styles.css">
-<div class="card puzzle-card" id="wordsearch-screen">
-    <div id="word-game-container" class="card word-game-card">
-        <div class="word-game-header">
+<div class="card word-game-card" id="wordsearch-screen">
+    <div class="word-game-header">
+        <div class="header-row">
+            <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                <span class="material-icons">home</span>
+            </a>
             <h2>Word Search</h2>
-            <div class="word-game-meta">
-                <span id="wordsearch-words-left">Words: 0/0</span>
-                <span id="wordsearch-level">Level: 1 (easy)</span>
-                <span id="wordsearch-games-remaining">Wins to next level: 3</span>
-            </div>
+            <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                <span class="material-icons">volume_up</span>
+            </button>
         </div>
+        <div class="word-game-meta">
+            <span id="wordsearch-words-left">Words: 0/0</span>
+            <span id="wordsearch-level">Level: 1 (easy)</span>
+            <span id="wordsearch-games-remaining">Wins to next level: 3</span>
+        </div>
+    </div>
         
         <div class="word-game-body">
             

@@ -2,7 +2,15 @@
 <div class="card puzzle-card" id="word-ladder-screen">
     <div id="word-ladder-container" class="card word-game-card">
         <div class="word-game-header">
-            <h2>Word Ladder</h2>
+            <div class="header-row">
+                <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">home</span>
+                </a>
+                <h2>Word Ladder</h2>
+                <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">volume_up</span>
+                </button>
+            </div>    
             <div class="word-game-meta">
                 <span id="word-ladder-time">Time: 0:00</span>
                 <span id="word-ladder-score">Score: 0</span>
@@ -35,7 +43,6 @@
 
         <div class="word-game-footer">
             <button class="btn secondary" id="word-ladder-new">New Game</button>
-            <button class="btn secondary" id="word-ladder-submit">Submit</button>
             <button class="btn secondary" id="word-ladder-hint">Hint</button>
         </div>
     </div>

@@ -1,7 +1,16 @@
+<link rel="stylesheet" href="/styles/word-games/word-games-styles.css">
 <div class="card puzzle-card">
     <div id="word-game-container" class="card word-game-card">
         <div class="word-game-header">
-            <h2>Spelling Bee</h2>
+            <div class="header-row">
+                <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">home</span>
+                </a>
+                <h2>Spelling Bee</h2>
+                <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">volume_up</span>
+                </button>
+            </div>
             <div class="game-meta">
                 <span id="spelling-center-letter">Center: A</span>
                 <span id="spelling-score">Score: 0</span>

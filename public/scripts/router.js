@@ -419,10 +419,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (path.startsWith('/trivias')) {
                     const triviaType = pathParts[1];
                     if (triviaType === 'catalog') {
+                        document.body.classList.remove('game-screen-active');
                         await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
                         const { initTriviaCatalog } = await import('/scripts/trivias/catalog.min.js');
                         initTriviaCatalog();       
                     } else if (validChildren['/trivias'].includes(triviaType)) {
+                        document.body.classList.add('game-screen-active');
                         await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
                         const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
                         initTriviaGame(triviaType.replace(/-/g, ' '));
@@ -448,8 +450,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (path.startsWith('/number-puzzle')) {
                 const puzzleType = pathParts[1];
                 if (puzzleType === 'catalog') {
+                    document.querySelector('.main-nav').classList.remove('hidden');
                     await loadTemplate('/templates/number-puzzle/catalog.html', dynamicContent);
                 } else if (validChildren['/number-puzzle'].includes(puzzleType)) {
+                    document.querySelector('.main-nav').classList.add('hidden');
                     await loadTemplate(`/templates/number-puzzle/${puzzleType}.html`, dynamicContent);
                     const { initPuzzle } = await import(`/scripts/number-puzzle/${puzzleType}.min.js`);
                     initPuzzle();
@@ -459,8 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (path.startsWith('/word-game')) {
                 const gameType = pathParts[1];
                 if (gameType === 'catalog') {
+                    document.querySelector('.main-nav').classList.remove('hidden');
                     await loadTemplate('/templates/word-game/catalog.html', dynamicContent);
                 } else if (validChildren['/word-game'].includes(gameType)) {
+                    document.querySelector('.main-nav').classList.add('hidden');
                     await loadTemplate(`/templates/word-game/${gameType}.html`, dynamicContent);
                     const { initWordGame } = await import(`/scripts/word-game/${gameType}.min.js`);
                     initWordGame();
@@ -534,6 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (gameScreen) gameScreen.classList.remove('active');
         const summaryScreen = document.querySelector('.summary-screen');
         if (summaryScreen) summaryScreen.classList.remove('active');
+        const mainNav = document.querySelector('.main-nav');
+        if (mainNav) mainNav.classList.remove('hidden');
     }
 
     function toggleLoading(show) {

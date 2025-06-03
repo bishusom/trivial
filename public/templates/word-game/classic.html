@@ -1,10 +1,18 @@
+<link rel="stylesheet" href="/styles/word-games/word-games-styles.min.css">
 <div class="card puzzle-card">
     <div id="word-game-container" class="card word-game-card">
         <div class="word-game-header">
-            <h2>Word Guess Challenge</h2>
+            <div class="header-row">
+                <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">home</span>
+                </a>
+                <h2>Word Guess Challenge</h2>
+                <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">volume_up</span>
+                </button>
+            </div>
             <div class="word-game-meta">
                 <span id="word-attempts">Attempts left: 6</span>
-                <span id="word-timer">1:00</span>
                 <span id="word-score">Score: 0</span>
             </div>
         </div>
@@ -18,15 +26,12 @@
         
         <div class="word-game-body">
             <div id="word-results" class="guess-history"></div>
-            <div class="guess-input">
-                <button id="start-word-game" class="btn primary">New Game</button>
-            </div>
             <div id="word-feedback" class="word-feedback"></div>
         </div>
         
         <div class="word-game-footer">
+            <button id="start-word-game" class="btn secondary">New Game</button>
             <button id="hint-btn" class="btn secondary">Get Hint</button>
-            <button id="new-word" class="btn secondary">Restart</button>
         </div>
     </div>
 </div>

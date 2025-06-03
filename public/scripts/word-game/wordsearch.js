@@ -28,7 +28,6 @@ export function initWordGame() {
   let timerInterval = null;
   const timeElement = document.getElementById('wordsearch-time') || createTimeElement();
 
-
   // DOM elements
   const gridElement = document.getElementById('wordsearch-grid');
   const wordListElement = document.getElementById('wordsearch-wordlist');
@@ -38,14 +37,56 @@ export function initWordGame() {
   const hintBtn = document.getElementById('wordsearch-hint');
   const levelElement = document.getElementById('wordsearch-level');
   const gamesRemainingElement = document.getElementById('wordsearch-games-remaining');
+  const muteBtnIcon = document.querySelector('#mute-btn .material-icons'); // Changed from muteBtn to muteBtnIcon
 
   // Sound effects
-  const sounds = {
+  const audioElements = { // Renamed to avoid conflict and better describe
     select: new Audio('/audio/click.mp3'),
     found: new Audio('/audio/correct.mp3'),
     win: new Audio('/audio/win.mp3'),
     error: new Audio('/audio/wrong.mp3')
   };
+
+  // Mute state
+  let isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false; // Initial mute state from localStorage
+
+  // Function to play sound
+  function playSound(type) {
+    if (isMuted) {
+      console.log(`Sound ${type} skipped: muted`);
+      return;
+    }
+    console.log(`Playing sound: ${type}`);
+    // Ensure the audio element exists and can be played
+    if (audioElements[type]) {
+      audioElements[type].currentTime = 0; // Reset to start
+      audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+    }
+  }
+
+  // Function to stop sound
+  function stopSound(type) {
+    if (audioElements[type]) {
+      audioElements[type].pause();
+      audioElements[type].currentTime = 0;
+    }
+  }
+
+  // Function to stop all sounds
+  function stopAllSounds() {
+    Object.keys(audioElements).forEach(type => stopSound(type));
+  }
+
+  // Function to load and apply mute state from localStorage
+  function loadMuteState() {
+    isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
+    if (muteBtnIcon) {
+      muteBtnIcon.textContent = isMuted ? 'volume_off' : 'volume_up';
+    }
+    if (isMuted) {
+      stopAllSounds();
+    }
+  }
 
   function trackEvent(action, category, label, value) {
     if (typeof gtag !== 'undefined') {
@@ -127,9 +168,11 @@ function updateTimer() {
 
   // Initialize the game
   initGame();
+  loadMuteState(); // Load mute state on game initialization
 
   async function initGame() {
     console.log('Initializing game with state:', { difficulty, currentLevel, consecutiveWins });
+    showLoadingAnimation();
     showFeedback('', 'info');
     gridElement.innerHTML = '';
     wordListElement.innerHTML = '';
@@ -253,10 +296,12 @@ function updateTimer() {
 
     } catch (error) {
       console.error("Game initialization failed:", error);
-      showFeedback("Failed to load puzzle. Retrying...", 'error');
+      //showFeedback("Failed to load puzzle. Retrying...", 'error');
+      showErrorAnimation();
       retryCount++;
       if (retryCount >= config.maxRetries) {
-        showFeedback("Failed to load puzzle after multiple attempts. Please refresh the page.", 'error');
+        //showFeedback("Failed to load puzzle after multiple attempts. Please refresh the page.", 'error');
+        showFinalErrorAnimation();
         return;
       }
       setTimeout(() => {
@@ -449,7 +494,7 @@ function updateTimer() {
       cellElement.addEventListener('mouseenter', (e) => {
         e.preventDefault();
         continueSelection(e);
-        sounds.select.play();
+        playSound('select'); // Use playSound
       });
       cellElement.addEventListener('mouseup', endSelection);
 
@@ -479,7 +524,7 @@ function updateTimer() {
 
   function checkSelectedWord() {
     if (selectedCells.length < config[difficulty].minWordLength) {
-      sounds.error.play();
+      playSound('error'); // Use playSound
       selectedCells = [];
       updateSelection();
       return;
@@ -498,7 +543,7 @@ function updateTimer() {
 
     if (matchedWordObj && !foundWords.includes(matchedWordObj.word)) {
       foundWords.push(matchedWordObj.word);
-      sounds.found.play();
+      playSound('found'); // Use playSound
 
       // Apply different colors to found cells
       const colorIndex = foundWords.length % 4; // Cycle through 4 colors
@@ -525,7 +570,7 @@ function updateTimer() {
         handleGameWin();
       }
     } else {
-      sounds.error.play();
+      playSound('error'); // Use playSound
       showFeedback('Word not found in list', 'error');
     }
 
@@ -534,7 +579,7 @@ function updateTimer() {
   }
 
   function handleGameWin() {
-    sounds.win.play();
+    playSound('win'); // Use playSound
 
     // Create victory screen
     const victoryScreen = document.createElement('div');
@@ -677,7 +722,7 @@ function updateTimer() {
     if (index !== null) {
       selectedCells = [index];
       updateSelection();
-      sounds.select.play();
+      playSound('select'); // Use playSound
     }
   }
 
@@ -713,23 +758,16 @@ function updateTimer() {
     const rowDiff = row2 - row1;
     const colDiff = col2 - col1;
 
-    // Horizontal
-    if (rowDiff === 0 && colDiff !== 0) {
-      return { row: 0, col: Math.sign(colDiff) };
-    }
-    // Vertical
-    else if (colDiff === 0 && rowDiff !== 0) {
-      return { row: Math.sign(rowDiff), col: 0 };
-    }
-    // Diagonal
-    else if (Math.abs(rowDiff) === Math.abs(colDiff)) {
-      return {
-        row: Math.sign(rowDiff),
-        col: Math.sign(colDiff)
-      };
+    // Determine precise initial direction
+    if (rowDiff === 0 && colDiff !== 0) { // Strictly Horizontal
+      return { type: 'horizontal', row: 0, col: Math.sign(colDiff) };
+    } else if (colDiff === 0 && rowDiff !== 0) { // Strictly Vertical
+      return { type: 'vertical', row: Math.sign(rowDiff), col: 0 };
+    } else if (Math.abs(rowDiff) === Math.abs(colDiff) && rowDiff !== 0) { // Strictly Diagonal
+      return { type: 'diagonal', row: Math.sign(rowDiff), col: Math.sign(colDiff) };
     }
 
-    return null;
+    return null; // No clear direction yet or invalid second cell
   }
 
   function isInDirection(index1, index2, direction) {
@@ -744,31 +782,32 @@ function updateTimer() {
     const rowDiff = row2 - row1;
     const colDiff = col2 - col1;
 
-    // If no direction established yet, allow any adjacent cell
-    if (selectedCells.length < 2) {
-      return Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1;
+    // Check if the current move is immediately adjacent (crucial for smooth selection)
+    const isAdjacent = Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1;
+
+    // If no direction established yet (shouldn't happen if selectedCells.length >= 2 before calling this with a direction)
+    // but as a fallback, ensure it's adjacent.
+    if (selectedCells.length < 2) { // This part is essentially for the 2nd cell being picked
+      return isAdjacent; // Ensure the second cell is adjacent
     }
 
-    // For horizontal
-    if (direction.row === 0) {
-      return rowDiff === 0 && Math.abs(colDiff) === 1;
-    }
-    // For vertical
-    else if (direction.col === 0) {
-      return colDiff === 0 && Math.abs(rowDiff) === 1;
-    }
-    // For diagonal
-    else {
-      // More forgiving diagonal check
-      const rowSign = Math.sign(rowDiff);
-      const colSign = Math.sign(colDiff);
-      
-      return (
-        rowSign === direction.row && 
-        colSign === direction.col &&
-        Math.abs(rowDiff) <= 1 && 
-        Math.abs(colDiff) <= 1
-      );
+    // Now, apply direction-specific rules
+    switch (direction.type) {
+      case 'horizontal':
+        return rowDiff === 0 && Math.sign(colDiff) === direction.col;
+      case 'vertical':
+        return colDiff === 0 && Math.sign(rowDiff) === direction.row;
+      case 'diagonal':
+        // For diagonals, ensure it's still moving along the same diagonal path
+        // AND that it's the very next cell in that path
+        return (
+          Math.abs(rowDiff) === Math.abs(colDiff) && // Still diagonal
+          Math.sign(rowDiff) === direction.row &&    // Same vertical direction
+          Math.sign(colDiff) === direction.col &&    // Same horizontal direction
+          isAdjacent // Must be the adjacent cell in the diagonal direction
+        );
+      default:
+        return false; // Unknown direction type
     }
   }
 
@@ -894,8 +933,66 @@ function updateTimer() {
     }
   }
 
+  // Add these new animation functions:
+function showLoadingAnimation() {
+  feedbackElement.innerHTML = `
+    <div class="loading-animation">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Creating your puzzle</div>
+      <div class="loading-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  `;
+  feedbackElement.className = 'word-feedback info';
+}
+
+function showErrorAnimation() {
+  feedbackElement.innerHTML = `
+    <div class="error-animation">
+      <div class="error-icon">⚠️</div>
+      <div class="loading-text">Setting up the board</div>
+      <div class="loading-dots">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  `;
+  feedbackElement.className = 'word-feedback error';
+}
+
+function showFinalErrorAnimation() {
+  feedbackElement.innerHTML = `
+    <div class="error-animation">
+      <div class="error-icon">❌</div>
+      <div>Having trouble loading</div>
+      <button class="btn primary" onclick="initWordGame()">Try Again</button>
+    </div>
+  `;
+  feedbackElement.className = 'word-feedback error';
+}
+
   newGameBtn.addEventListener('click', initGame);
   hintBtn.addEventListener('click', giveHint);
+
+  // Mute button event listener
+  const muteBtn = document.getElementById('mute-btn'); // Get the actual button element
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      isMuted = !isMuted;
+      localStorage.setItem('triviaMasterMuteState', isMuted);
+      if (muteBtnIcon) {
+        muteBtnIcon.textContent = isMuted ? 'volume_off' : 'volume_up';
+      }
+      if (isMuted) {
+        stopAllSounds();
+      }
+    });
+  }
+
 
   window.addEventListener('resize', adjustGameLayout);
   adjustGameLayout();

@@ -57,6 +57,8 @@ const audio = {
 };
 audio.tick.loop = true;
 
+const imageCache = {};
+
 let state = {
     isMuted: false,
     questions: [],
@@ -77,6 +79,19 @@ let state = {
     isTimedMode: true,
     timerDuration: 'long'
 };
+
+let nlp;
+if (typeof window !== 'undefined' && window.nlp) {
+    nlp = window.nlp;
+    console.log('Found nlp');
+} else {
+    // Fallback if Compromise fails to load
+    nlp = {
+        nouns: () => ({ out: () => [] }),
+        adjectives: () => ({ out: () => [] })
+    };
+    console.log('Creating home-grown nlp');
+}
 
 const QUIZ_TYPES = { DAILY: 'daily', WEEKLY: 'weekly', MONTHLY: 'monthly'};
 const CACHE = { QUESTIONS: 'trivia-questions-v1', EXPIRY: 24 * 60 * 60 * 1000 };
@@ -176,6 +191,53 @@ async function updatePlayerCount(category) {
     }
 }
 
+function extractKeywordNLP(question) {
+    const doc = nlp(question);
+    
+    // Get nouns, prioritizing main subject
+    const nouns = doc.nouns().out('array');
+    if (nouns.length > 0) return nouns[0];
+    
+    // Fallback to adjectives if no nouns found
+    const adjectives = doc.adjectives().out('array');
+    if (adjectives.length > 0) return adjectives[0];
+    
+    // Final fallback
+    const words = question.replace('?', '').split(' ');
+    return words.find(w => w.length > 3) || words[0];
+}
+
+async function fetchImage(keyword) {
+  if (imageCache[keyword]) return imageCache[keyword];
+  console.log('Fetching image for ', keyword);
+  
+  try {
+    const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
+    
+    // Check if response is OK
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    console.log(response);
+    
+    // Check content type is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Invalid content type');
+    }
+    
+    const data = await response.json();
+    if (data.url) {
+      imageCache[keyword] = data.url;
+      return data.url;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    return null;
+  }
+}
+
 async function fetchQuestions(category) {
     try {
         console.log('Fetching questions for category:', category);
@@ -220,7 +282,8 @@ async function fetchfbQuiz(type) {
             options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
             category: 'daily',
             difficulty: doc.data().difficulty || 'medium',
-            titbits: doc.data().titbits || ''
+            titbits: doc.data().titbits || '',
+            image_keyword: doc.data().image_keyword || null 
         })).slice(0, 5);
             
         localStorage.setItem('fbdailyQuizCache', JSON.stringify({
@@ -247,7 +310,8 @@ async function fetchfbQuiz(type) {
         category: type,
         subcategory: q.subcategory || '',
         difficulty: q.difficulty || 'medium',
-        titbits: q.titbits || ''
+        titbits: q.titbits || '',
+        image_keyword: q.image_keyword || null  // Add this line
     }));
     localStorage.setItem('fbQuizCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuizCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     state.fbUsedQuizIds.push(cacheKey);
@@ -283,8 +347,10 @@ async function fetchfbQuestions(category, amount = 10) {
         category: doc.data().category,
         subcategory: doc.data().subcategory || '',
         difficulty: doc.data().difficulty || 'medium',
-        titbits: doc.data().titbits || ''
+        titbits: doc.data().titbits || '',
+        image_keyword: doc.data().image_keyword || null  // Add this line
     }));
+    
     console.log('Fetched questions:', questions);
     localStorage.setItem('fbQuestionsCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     return processfbQuestions(questions, amount);
@@ -295,7 +361,11 @@ function processfbQuestions(questions, amount) {
     const selected = shuffle(available).slice(0, Math.min(amount, available.length));
     state.fbUsedQuestions.push(...selected.map(q => q.id));
     localStorage.setItem('fbUsedQuestions', JSON.stringify(state.fbUsedQuestions.slice(-500)));
-    return selected.map(q => ({ ...q, options: shuffle([...q.options]) }));
+    return selected.map(q => ({ 
+        ...q, 
+        options: shuffle([...q.options]),
+        image_keyword: q.image_keyword || null  // Ensure image_keyword is included
+    }));
 }
 
 function decodeHTML(text) {
@@ -383,19 +453,60 @@ export function initTriviaGame(category) {
     setupEvents();
 }
 
-function showQuestion() {
+
+async function showQuestion() {
     toggleClass(document.querySelector('.app-footer'), 'add', 'hidden');
     els.question().classList.remove('correct-bg', 'wrong-bg');
     const q = state.questions[state.current];
     if (!q) return endGame();
+    
     const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
-    els.question().innerHTML = `
-        <div class="question-text">${q.question}</div>
-        <div class="question-meta">
-            <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
-            ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
-        </div>
-    `;
+    
+    // Clear previous content
+    els.question().innerHTML = '';
+    
+    // Add loading state while fetching image
+    els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
+    
+    try {
+        // Use image_keyword from database if available, otherwise use NLP extraction
+        const keyword = q.image_keyword || extractKeywordNLP(q.question);
+        const imageUrl = await fetchImage(keyword);
+        
+        // Build question HTML
+        let questionHTML = '';
+        
+        if (imageUrl) {
+            questionHTML += `
+                <div class="question-image-container">
+                    <img src="${imageUrl}" alt="${keyword}" class="question-image">
+                </div>
+            `;
+        }
+        
+        questionHTML += `
+            <div class="question-text">${q.question}</div>
+            <div class="question-meta">
+                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
+            </div>
+        `;
+        
+        els.question().innerHTML = questionHTML;
+        
+    } catch (error) {
+        console.error('Error loading question image:', error);
+        // Fallback to text-only question if image loading fails
+        els.question().innerHTML = `
+            <div class="question-text">${q.question}</div>
+            <div class="question-meta">
+                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    // Rest of your existing code
     els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
     if (els.questionCounter()) {
         els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
@@ -407,6 +518,71 @@ function showQuestion() {
     setupOptionEvents();
     startTimer();
 }
+
+/*
+async function showQuestion() {
+    toggleClass(document.querySelector('.app-footer'), 'add', 'hidden');
+    els.question().classList.remove('correct-bg', 'wrong-bg');
+    const q = state.questions[state.current];
+    if (!q) return endGame();
+    
+    const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
+    
+    // Clear previous content
+    els.question().innerHTML = '';
+    
+    // Add loading state while fetching image
+    els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
+    
+    try {
+        // Fetch and display image (if available)
+        const imageUrl = await fetchImage(extractKeywordNLP(q.question));
+        
+        // Build question HTML
+        let questionHTML = '';
+        
+        if (imageUrl) {
+            questionHTML += `
+                <div class="question-image-container">
+                    <img src="${imageUrl}" alt="${extractKeywordNLP(q.question)}" class="question-image">
+                </div>
+            `;
+        }
+        
+        questionHTML += `
+            <div class="question-text">${q.question}</div>
+            <div class="question-meta">
+                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
+            </div>
+        `;
+        
+        els.question().innerHTML = questionHTML;
+        
+    } catch (error) {
+        console.error('Error loading question image:', error);
+        // Fallback to text-only question if image loading fails
+        els.question().innerHTML = `
+            <div class="question-text">${q.question}</div>
+            <div class="question-meta">
+                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    // Rest of your existing code
+    els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
+    if (els.questionCounter()) {
+        els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
+    }
+    toggleClass(els.game(), 'add', 'active');
+    toggleClass(els.summary(), 'remove', 'active');
+    els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';
+    els.totalTimer().textContent = state.isTimedMode ? `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}` : 'N/A';
+    setupOptionEvents();
+    startTimer();
+} */
 
 function setupOptionEvents() {
     const optionsContainer = els.options();

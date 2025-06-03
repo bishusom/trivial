@@ -2,6 +2,7 @@
 const WINS_REQUIRED_FOR_NEXT_LEVEL = 5;
 const GAME_STATE_KEY = 'word-game-state';
 const SESSION_USED_WORDS_KEY = 'word-game-session-used-words';
+const TIME_LIMIT = 180; // 3 minutes in seconds
 
 // Game messages
 const wordGameMessages = {
@@ -24,9 +25,9 @@ const wordGameMessages = {
 
 // Difficulty settings
 const difficultySettings = {
-    easy: { maxAttempts: 8, maxHints: 3, revealLetters: 2, scoreMultiplier: 1 },
-    medium: { maxAttempts: 6, maxHints: 2, revealLetters: 1, scoreMultiplier: 1.5 },
-    hard: { maxAttempts: 4, maxHints: 1, revealLetters: 0, scoreMultiplier: 2 }
+    easy: { maxAttempts: 8, maxHints: 3, revealLetters: 2, scoreMultiplier: 1, timeLimit: 240 },
+    medium: { maxAttempts: 6, maxHints: 2, revealLetters: 1, scoreMultiplier: 1.5, timeLimit: 180 },
+    hard: { maxAttempts: 4, maxHints: 1, revealLetters: 0, scoreMultiplier: 2, timeLimit: 120 }
 };
 
 // Game state
@@ -49,7 +50,9 @@ const wordState = JSON.parse(localStorage.getItem(GAME_STATE_KEY)) || {
     usedWords: JSON.parse(localStorage.getItem('word-game-used-words')) || [],
     sessionUsedWords: JSON.parse(sessionStorage.getItem(SESSION_USED_WORDS_KEY)) || [],
     winsAtCurrentDifficulty: 0,
-    lastPlayed: null
+    lastPlayed: null,
+    timer: TIME_LIMIT,
+    isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false
 };
 
 // DOM elements
@@ -62,13 +65,23 @@ const wordGameEls = {
     hintBtn: document.getElementById('hint-btn'),
     feedback: document.getElementById('word-feedback'),
     attemptsDisplay: document.getElementById('word-attempts'),
-    newWordBtn: document.getElementById('new-word')
+    timeElement: document.getElementById('word-time') || createTimeElement(),
+    muteBtn: document.getElementById('mute-btn'),
+    muteBtnIcon: document.querySelector('#mute-btn .material-icons')
 };
 
 // Cache constants
 const WORD_CACHE = { 
     WORDS: 'word-game-words-v1', 
     EXPIRY: 24 * 60 * 60 * 1000 // 24 hours
+};
+
+// Sound effects
+const audioElements = {
+    select: new Audio('/audio/click.mp3'),
+    found: new Audio('/audio/correct.mp3'),
+    win: new Audio('/audio/win.mp3'),
+    error: new Audio('/audio/wrong.mp3')
 };
 
 // Fallback word list
@@ -96,6 +109,94 @@ function trackEvent(action, category, label, value) {
     }
 }
 
+function createTimeElement() {
+    const element = document.createElement('div');
+    element.id = 'word-time';
+    element.className = 'word-game-timer';
+    document.querySelector('.word-game-meta').appendChild(element);
+    return element;
+}
+
+function playSound(type) {
+    if (wordState.isMuted) {
+        console.log(`Sound ${type} skipped: muted`);
+        return;
+    }
+    console.log(`Playing sound: ${type}`);
+    if (audioElements[type]) {
+        audioElements[type].currentTime = 0;
+        audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+    }
+}
+
+function stopSound(type) {
+    if (audioElements[type]) {
+        audioElements[type].pause();
+        audioElements[type].currentTime = 0;
+    }
+}
+
+function stopAllSounds() {
+    Object.keys(audioElements).forEach(type => stopSound(type));
+}
+
+function loadMuteState() {
+    wordState.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
+    if (wordGameEls.muteBtnIcon) {
+        wordGameEls.muteBtnIcon.textContent = wordState.isMuted ? 'volume_off' : 'volume_up';
+    }
+    if (wordState.isMuted) {
+        stopAllSounds();
+    }
+}
+
+function startTimer() {
+    clearInterval(wordState.timerInterval);
+    wordState.timer = difficultySettings[wordState.difficulty].timeLimit;
+    updateTimer();
+    wordState.timerInterval = setInterval(() => {
+        wordState.timer--;
+        updateTimer();
+        if (wordState.timer <= 0) {
+            clearInterval(wordState.timerInterval);
+            wordGameEls.feedback.textContent = 'Time\'s up!';
+            wordGameEls.feedback.className = 'word-feedback error';
+            setTimeout(() => endWordGame(false), 2000);
+        }
+    }, 1000);
+}
+
+function updateTimer() {
+    const minutes = Math.floor(wordState.timer / 60);
+    const seconds = wordState.timer % 60;
+    wordGameEls.timeElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function showConfetti(options = {}) {
+    const defaults = {
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+    };
+    
+    confetti({
+        ...defaults,
+        ...options
+    });
+    
+    if (Math.random() > 0.5) {
+        setTimeout(() => {
+            confetti({
+                ...defaults,
+                ...options,
+                angle: Math.random() * 180 - 90,
+                origin: { x: Math.random(), y: 0.6 }
+            });
+        }, 300);
+    }
+}
+
 function updateDifficultyDisplay() {
     const difficultyDisplay = document.getElementById('current-difficulty');
     const progressDisplay = document.getElementById('progress-display');
@@ -116,6 +217,7 @@ function saveGameState() {
     };
     localStorage.setItem(GAME_STATE_KEY, JSON.stringify(stateToSave));
     sessionStorage.setItem(SESSION_USED_WORDS_KEY, JSON.stringify(wordState.sessionUsedWords));
+    localStorage.setItem('triviaMasterMuteState', JSON.stringify(wordState.isMuted));
 }
 
 async function fetchWords() {
@@ -232,14 +334,16 @@ function initializeGame() {
     wordState.letterChoices = [];
     wordState.currentLetterIndex = 0;
     wordState.guessedLetters = [];
+    wordState.timer = settings.timeLimit;
     
     const winsData = JSON.parse(localStorage.getItem('word-game-wins')) || {};
     wordState.winsAtCurrentDifficulty = winsData[wordState.difficulty] || 0;
     
     updateDifficultyDisplay();
     updateGameUI();
+    updateTimer();
     saveGameState();
-    trackEvent('guess_word_started','guess_word',1);
+    trackEvent('guess_word_started', 'guess_word', 1);
 }
 
 async function startWordGame() {
@@ -270,15 +374,17 @@ async function startWordGame() {
     
     wordState.attemptsLeft = settings.maxAttempts;
     wordState.guesses = [];
+    wordState.timer = settings.timeLimit;
     
     updateGameUI();
+    startTimer();
     saveGameState();
 }
 
 function updateGameUI() {
     wordGameEls.attemptsDisplay.textContent = `Attempts left: ${wordState.attemptsLeft}`;
-    
     wordGameEls.scoreDisplay.textContent = `Score: ${wordState.score}`;
+    wordGameEls.timeElement.textContent = `Time: ${Math.floor(wordState.timer / 60)}:${(wordState.timer % 60).toString().padStart(2, '0')}`;
     
     let wordDisplayHTML = `
         <div class="word-display-info">${wordState.category} (${wordState.targetWord.length} letters)</div>
@@ -337,6 +443,8 @@ function createGuessRow(guess) {
 async function makeGuess(letter) {
     if (!wordState.isPlaying) return;
 
+    playSound('select');
+    
     const letterInWord = wordState.targetWord.includes(letter);
     
     if (letterInWord) {
@@ -350,6 +458,7 @@ async function makeGuess(letter) {
                 
                 const letterBox = document.querySelectorAll('.letter-container')[i];
                 letterBox.classList.add('correct-feedback');
+                playSound('found');
                 setTimeout(() => {
                     letterBox.classList.remove('correct-feedback');
                 }, 2000);
@@ -370,6 +479,7 @@ async function makeGuess(letter) {
                 
                 if (guess === wordState.targetWord) {
                     wordState.score += difficultySettings[wordState.difficulty].scoreMultiplier * 10;
+                    playSound('win');
                     endWordGame(true);
                     return;
                 }
@@ -383,6 +493,7 @@ async function makeGuess(letter) {
                 );
                 
                 if (wordState.attemptsLeft <= 0) {
+                    playSound('error');
                     endWordGame(false);
                 } else {
                     updateGameUI();
@@ -413,6 +524,7 @@ async function makeGuess(letter) {
         }, 2000);
     } else {
         letterBox.classList.add('wrong-feedback');
+        playSound('error');
         setTimeout(() => {
             letterBox.classList.remove('wrong-feedback');
             wordState.guessedLetters[emptyIndex] = '';
@@ -433,6 +545,7 @@ async function makeGuess(letter) {
         
         if (guess === wordState.targetWord) {
             wordState.score += difficultySettings[wordState.difficulty].scoreMultiplier * 10;
+            playSound('win');
             endWordGame(true);
             return;
         }
@@ -446,6 +559,7 @@ async function makeGuess(letter) {
         );
         
         if (wordState.attemptsLeft <= 0) {
+            playSound('error');
             endWordGame(false);
         } else {
             updateGameUI();
@@ -474,6 +588,7 @@ function getHint() {
 
 async function endWordGame(won) {
     wordState.isPlaying = false;
+    clearInterval(wordState.timerInterval);
 
     let message;
     if (won) {
@@ -483,37 +598,64 @@ async function endWordGame(won) {
         winsData[wordState.difficulty] = wordState.winsAtCurrentDifficulty;
         localStorage.setItem('word-game-wins', JSON.stringify(winsData));
 
-        if (wordState.winsAtCurrentDifficulty >= WINS_REQUIRED_FOR_NEXT_LEVEL) {
-            if (wordState.difficulty === 'easy') {
-                wordState.difficulty = 'medium';
-                message += `<br><br>Great job! You've won ${WINS_REQUIRED_FOR_NEXT_LEVEL} games on Easy. Advancing to Medium difficulty!`;
-            } else if (wordState.difficulty === 'medium') {
-                wordState.difficulty = 'hard';
-                message += `<br><br>Excellent! You've won ${WINS_REQUIRED_FOR_NEXT_LEVEL} games on Medium. Now try Hard difficulty!`;
-            } else {
-                message += `<br><br>Mastered Hard mode! You're a word game champion!`;
-            }
-            wordState.winsAtCurrentDifficulty = 0;
-            winsData[wordState.difficulty] = 0;
-            localStorage.setItem('word-game-wins', JSON.stringify(winsData));
-        } else {
-            const winsLeft = WINS_REQUIRED_FOR_NEXT_LEVEL - wordState.winsAtCurrentDifficulty;
-            message += `<br><br>${winsLeft} more win${winsLeft === 1 ? '' : 's'} to advance to the next level!`;
-        }
-
         setTimeout(() => {
-            initializeGame();
-            startWordGame();
-        }, 2000);
+            const victoryScreen = document.createElement('div');
+            victoryScreen.className = 'victory-screen';
+            
+            showConfetti();
+
+            if (wordState.winsAtCurrentDifficulty >= WINS_REQUIRED_FOR_NEXT_LEVEL) {
+                if (wordState.difficulty === 'easy') {
+                    wordState.difficulty = 'medium';
+                    message += `<br><br>Great job! You've won ${WINS_REQUIRED_FOR_NEXT_LEVEL} games on Easy. Advancing to Medium difficulty!`;
+                    setTimeout(() => showConfetti({ particleCount: 200, spread: 100 }), 600);
+                } else if (wordState.difficulty === 'medium') {
+                    wordState.difficulty = 'hard';
+                    message += `<br><br>Excellent! You've won ${WINS_REQUIRED_FOR_NEXT_LEVEL} games on Medium. Now try Hard difficulty!`;
+                    setTimeout(() => showConfetti({ particleCount: 200, spread: 100 }), 600);
+                } else {
+                    message += `<br><br>Mastered Hard mode! You're a word game champion!`;
+                    setTimeout(() => showConfetti({ particleCount: 200, spread: 100 }), 600);
+                }
+                wordState.winsAtCurrentDifficulty = 0;
+                winsData[wordState.difficulty] = [];
+                localStorage.setItem('word-game-wins', JSON.stringify(winsData));
+            } else {
+                const winsLeft = WINS_REQUIRED_FOR_NEXT_LEVEL - wordState.winsAtCurrentDifficulty;
+                message += `<br><br>${winsLeft} more win${winsLeft === 1 ? '' : 's'} to advance to the next level!`;
+            }
+
+            victoryScreen.innerHTML = `
+                <h2>Victory!</h2>
+                <p>${message}</p>
+                <p>Score: ${wordState.score}</p>
+                <div class="countdown">Next game starting in 5...</div>
+            `;
+            
+            document.body.appendChild(victoryScreen);
+            
+            let countdown = 5;
+            const countdownElement = victoryScreen.querySelector('.countdown');
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = `Next game starting in ${countdown}...`;
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    victoryScreen.remove();
+                    initializeGame();
+                    startWordGame();
+                }
+            }, 1000);
+        }, 2000); // 2-second delay before showing victory screen and confetti
     } else {
         message = wordState.score > 0 
             ? wordGameMessages.nearWin[Math.floor(Math.random() * wordGameMessages.nearWin.length)]
             : wordGameMessages.default[Math.floor(Math.random() * wordGameMessages.default.length)];
         message += `<br><br>The word was: <strong>${wordState.targetWord}</strong>`;
+        wordGameEls.feedback.innerHTML = message;
+        wordGameEls.feedback.className = `word-feedback feedback-wrong`;
     }
 
-    wordGameEls.feedback.innerHTML = message;
-    wordGameEls.feedback.className = `word-feedback ${won ? 'feedback-correct' : 'feedback-wrong'}`;
     wordGameEls.wordDisplay.innerHTML = `
         <div class="word-display-info">${wordState.category} (${wordState.targetWord.length} letters)</div>
         <div class="word-display-letters">${wordState.targetWord.split('').join(' ')}</div>
@@ -528,13 +670,27 @@ async function endWordGame(won) {
     wordState.revealedLetters = [];
     saveGameState();
 
-    updateGameUI();
+    if (!won) {
+        updateGameUI();
+    }
 }
 
 function setupWordGameEvents() {
     wordGameEls.startBtn.addEventListener('click', startWordGame);
-    wordGameEls.newWordBtn.addEventListener('click', startWordGame);
     wordGameEls.hintBtn.addEventListener('click', getHint);
+    
+    if (wordGameEls.muteBtn) {
+        wordGameEls.muteBtn.addEventListener('click', () => {
+            wordState.isMuted = !wordState.isMuted;
+            localStorage.setItem('triviaMasterMuteState', JSON.stringify(wordState.isMuted));
+            if (wordGameEls.muteBtnIcon) {
+                wordGameEls.muteBtnIcon.textContent = wordState.isMuted ? 'volume_off' : 'volume_up';
+            }
+            if (wordState.isMuted) {
+                stopAllSounds();
+            }
+        });
+    }
     
     document.addEventListener('click', (e) => {
         const letterBtn = e.target.closest('.letter-choice');
@@ -557,11 +713,9 @@ function setupWordGameEvents() {
 }
 
 async function initWordGame() {
-    // Reset game state while preserving word tracking
     wordState.sessionUsedWords = JSON.parse(sessionStorage.getItem(SESSION_USED_WORDS_KEY)) || [];
     wordState.usedWords = JSON.parse(localStorage.getItem('word-game-used-words')) || [];
     
-    // Initialize fresh game state
     Object.assign(wordState, {
         targetWord: '',
         category: '',
@@ -579,15 +733,16 @@ async function initWordGame() {
         currentLetterIndex: 0,
         guessedLetters: [],
         winsAtCurrentDifficulty: JSON.parse(localStorage.getItem('word-game-wins'))?.[wordState.difficulty] || 0,
-        lastPlayed: new Date().toISOString().split('T')[0]
+        lastPlayed: new Date().toISOString().split('T')[0],
+        timer: difficultySettings.easy.timeLimit,
+        isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false
     });
 
-    // Initialize fresh game
     initializeGame();
     setupWordGameEvents();
+    loadMuteState();
     await startWordGame();
     
-    // Save the fresh state
     saveGameState();
 }
 export { initWordGame };

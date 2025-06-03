@@ -1,7 +1,16 @@
+<link rel="stylesheet" href="/styles/word-games/word-games-styles.css">
 <div class="card puzzle-card" id="anagram-screen">
-     <div id="word-game-container" class="card word-game-card"></div>
+     <div id="word-game-container" class="card word-game-card">
         <div class="word-game-header">
-            <h2>Anagram Puzzle</h2>
+           <div class="header-row">
+                <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">home</span>
+                </a>
+                <h2>Anagram Puzzle</h2>
+                <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">volume_up</span>
+                </button>
+            </div>
             <div class="game-meta">
                 <span id="anagram-target">Word Length: 0</span>
                 <span id="anagram-score">Score: 0</span>
@@ -11,7 +20,9 @@
         </div>
         
         <div class="game-body">
-            <div class="anagram-feedback" id="anagram-feedback"></div>
+            <div class="anagram-feedback" id="anagram-feedback">
+                Unscramble the letters to form the correct word.
+            </div>
                 
             <div class="anagram-display">
                 <div class="scrambled-letters" id="scrambled-letters"></div>
@@ -25,7 +36,7 @@
             </div>
             
             <div class="anagram-solutions">
-                <h3>Found Words</h3>
+                <h3>Found Word</h3>
                 <div class="solutions-list" id="solutions-list"></div>
             </div>
         </div>
@@ -35,5 +46,5 @@
             <button class="btn secondary" id="anagram-hint">Hint</button>
             <button class="btn secondary" id="anagram-reveal">Reveal Word</button>
         </div>
-    </div>
+     </div>
 </div>    

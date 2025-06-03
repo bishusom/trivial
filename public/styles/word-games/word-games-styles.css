@@ -1,0 +1,1011 @@
+.word-game-card {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+    box-sizing: border-box;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
+    background-image: url('/imgs/word-game-bg.webp');
+}
+
+.anagram-screen, .word-game-screen , .wordsearch-screen {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding-top: 10px;
+} 
+
+.anagram-controls, .spelling-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.anagram-feedback, .spelling-feedback, .sequence-feedback, .word-feedback, .game-feedback {
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    min-height: 20px;
+}
+
+.anagram-feedback.success, .word-feedback.feedback-correct {
+    background: rgba(46, 125, 50, 0.3);
+    color: var(--correct);
+}
+
+.anagram-feedback.error, .word-feedback.feedback-wrong {
+    background: rgba(198, 40, 40, 0.3);
+    color: var(--wrong);
+}
+
+.word-game-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    gap: 1rem; /* Added gap between buttons */
+}
+
+/* Anagram Specific Styles */
+.anagram-display {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.scrambled-letters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.letter-tile {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255);
+    color: var(--bg);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.letter-tile.used {
+    opacity: 0.5;
+    transform: scale(0.9);
+    cursor: not-allowed;
+}
+
+.letter-tile:hover:not(.used) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.current-attempt {
+    min-height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 1.8rem;
+    letter-spacing: 0.2rem;
+}
+
+.anagram-solutions {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.solutions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+}
+
+.solution-word {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+/* ==================== */
+/* Word Game Styles */
+/* ==================== */
+.difficulty-selector {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.difficulty-display {
+    display: flex;
+    justify-content: space-between;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.difficulty-display span {
+    font-weight: bold;
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.header-row h2 {
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.word-game-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.word-game-header h2 {
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.word-display-info {
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    color: #666;
+}
+
+#home-btn .material-icons {
+    color: var(--card-bg); 
+}
+
+.word-display-letters {
+    font-size: 1.8em;
+    letter-spacing: 0.5em;
+    margin-left: 0.25em; /* To center the letters */
+    font-weight: bold;
+}
+
+.word-game-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    /*color: rgba(255, 255, 255, 0.7); */
+    color: var(--accent);
+    gap: 1rem; /* Add gap between items */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    padding: 0.5rem 0; /* Add some vertical padding */
+}
+
+.word-game-meta span {
+    white-space: nowrap; /* Prevent text from breaking */
+    margin: 0 0.5rem; /* Add horizontal spacing */
+}
+
+.guess-grid {
+    margin-bottom: 1rem;
+    display: grid;
+    gap: 0.3rem;
+}
+
+.guess-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+.letter-choices {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+}
+
+.letter-choice {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2em;
+    border-radius: 8px;
+    background: rgba(255, 255, 255);
+    border: 2px solid var(--primary);
+    color: var(--bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.letter-choice:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.letter-choice:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.letter-container {
+    position: relative;
+    display: inline-block;
+    margin: 0 5px;
+    min-width: 30px;
+    text-align: center;
+}
+
+.remove-letter {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+}
+
+.letter-container:hover .remove-letter {
+    display: block;
+}
+
+.letter, .empty-letter {
+    font-size: 24px;
+    font-weight: bold;
+    display: inline-block;
+    min-width: 20px;
+}
+
+.letter-box {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+}
+
+.letter-box.correct {
+    background: var(--correct);
+    color: var(--bg);
+    border-color: var(--correct);
+}
+
+.letter-box.present {
+    background: var(--present);
+    color: var(--bg);
+    border-color: var(--present);
+}
+
+.letter-box.absent {
+    background: var(--wrong);
+    color: var(--bg);
+    border-color: var(--wrong);
+}
+
+.guess-input {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.guess-input input {
+    flex: 1;
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+@keyframes correctGlow {
+    0% { box-shadow: 0 0 5px var(--correct); }
+    50% { box-shadow: 0 0 20px var(--correct); }
+    100% { box-shadow: 0 0 5px var(--correct); }
+}
+
+@keyframes wrongGlow {
+    0% { box-shadow: 0 0 5px var(--wrong); }
+    50% { box-shadow: 0 0 20px var(--wrong); }
+    100% { box-shadow: 0 0 5px var(--wrong); }
+}
+
+@keyframes presentGlow {
+    0% { box-shadow: 0 0 5px var(--present); }
+    50% { box-shadow: 0 0 20px var(--present); }
+    100% { box-shadow: 0 0 5px var(--present); }
+}
+
+/* Spelling Bee Specific Styles */
+.card.spelling-screen {
+    width: 100%;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+.honeycomb {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    margin: 2rem auto;
+}
+
+.hexagon {
+    position: absolute;
+    width: 60px;
+    height: 69px;
+    background-color: var(--accent);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.hexagon:hover {
+    background-color: var(--secondary);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.center-letter {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgb(255, 170, 0);
+    z-index: 2;
+}
+
+.outer-letter {
+    z-index: 1;
+}
+
+.outer-letter:nth-child(2) {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.outer-letter:nth-child(3) {
+    top: 25%;
+    right: 5%;
+    transform: translateY(-25%);
+}
+
+.outer-letter:nth-child(4) {
+    bottom: 25%;
+    right: 5%;
+    transform: translateY(25%);
+}
+
+.outer-letter:nth-child(5) {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.outer-letter:nth-child(6) {
+    bottom: 25%;
+    left: 5%;
+    transform: translateY(25%);
+}
+
+.outer-letter:nth-child(7) {
+    top: 25%;
+    left: 5%;
+    transform: translateY(-25%);
+}
+
+.current-word {
+    min-height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 1.8rem;
+    letter-spacing: 0.2rem;
+    margin: 1rem 0;
+}
+
+.spelling-feedback.success {
+    background: rgba(46, 125, 50, 0.3);
+    color: var(--correct);
+}
+
+.spelling-feedback.error {
+    background: rgba(198, 40, 40, 0.3);
+    color: var(--wrong);
+}
+
+.spelling-feedback.hint {
+    background: rgba(255, 215, 0, 0.3);
+    color: var(--accent);
+}
+
+.spelling-feedback.info {
+    background: rgba(79, 195, 247, 0.3);
+    color: #4fc3f7;
+}
+
+.spelling-words {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.words-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+}
+
+.word-item {
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+
+.boggle-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 20px auto;
+  max-width: 400px;
+  position: relative; 
+}
+
+.boggle-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  border: 2px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  color: #333;
+}
+
+.boggle-cell.highlight {
+  background-color: #4a90e2;
+  color: white;
+  transform: scale(1.1);
+  transition: all 0.2s ease;
+}
+
+
+.boggle-cell.adjacent {
+  background-color: rgba(0,255,0,0.2);
+  transition: background-color 0.2s;
+}
+
+.boggle-cell.selected {
+  background-color: #b3d9ff;
+}
+
+.boggle-cell.found {
+  background-color: #2cb67d;;
+}
+
+.boggle-found-words {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.word-feedback.checking {
+  color: #FFA500; /* Orange */
+  font-style: italic;
+}
+
+.selection-line {
+  position: absolute;
+  background-color: #4a90e2;
+  height: 4px;
+  transform-origin: left center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.word-ladder-arrow {
+    font-size: 30px;
+    color: #666;
+}
+
+.word-ladder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.word-ladder-found-words {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+.word-ladder-found-words ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.word-ladder-found-words li {
+    padding: 5px 0;
+    font-size: 18px;
+}
+
+/* Word Ladder Specific Styles */
+.current-word-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 1.8rem;
+    letter-spacing: 0.2rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    min-height: 80px;
+}
+
+.letter-selection {
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.letter-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.letter-tile {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255);
+    color: var(--bg);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.letter-tile:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+}
+
+.letter-tile.selected {
+    background: var(--accent);
+    color: white;
+}
+
+.word-ladder-progress {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.word-ladder-start, .word-ladder-end {
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.word-ladder-found-words {
+    margin-top: 1.5rem;
+}
+
+.word-ladder-found-words ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.word-ladder-found-words li {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .current-word-display {
+        font-size: 1.5rem;
+        min-height: 60px;
+    }
+    
+    .letter-tile {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    .word-ladder-progress {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .current-word-display {
+        font-size: 1.3rem;
+        gap: 0.3rem;
+    }
+    
+    .letter-tile {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    
+    .word-game-footer {
+        flex-direction: column;
+    }
+    
+    .word-game-footer .btn {
+        width: 100%;
+    }
+}
+
+.victory-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 2rem;
+  z-index: 1000;
+  text-align: center;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.victory-screen h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: gold;
+  text-shadow: 0 0 10px rgba(255,215,0,0.7);
+}
+
+.victory-screen p {
+  margin: 0.5rem 0;
+}
+
+.countdown {
+  margin-top: 2rem;
+  font-size: 1.5rem;
+  color: #aaa;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Word Search */
+.wordsearch-grid {
+  max-width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr)); /* Use CSS variables */
+  grid-template-rows: repeat(var(--rows, 8), minmax(0, 1fr));
+  gap: 2px;
+  padding: 5px;
+  overflow: hidden; /* Prevent overflow */
+  width: 100%; /* Ensure full width */
+  position: relative; 
+}
+
+.wordsearch-cell {
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255);
+  color: var(--bg);
+  border-radius: 0;
+  font-size: clamp(0.7rem, 3vw, 1rem); /* Responsive font size */
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+  min-width: 0; /* Allow shrinking */
+  min-height: 0; /* Allow shrinking */
+  touch-action: none; /* Prevent default touch behaviors like scrolling */
+  user-select: none; /* Prevent text selection */
+  position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.wordsearch-cell:hover {
+    background: #f9f9f9;
+}
+
+.wordsearch-cell.selected {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.wordsearch-cell.found {
+  background: var(--correct);
+  color: var(--bg);
+}
+
+.wordsearch-wordlist {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.wordsearch-word {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  /*border-radius: 6px;*/
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.wordsearch-word.found {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.wordsearch-controls {
+    display: flex;
+    gap: 0.5rem; /* Reduced gap between buttons */
+    justify-content: center;
+    margin-top: 0.5rem; /* Brought higher by reducing margin */
+}
+
+.word-hint {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.correct-feedback {
+    animation: correctGlow 2s ease-in-out;
+}
+
+.wrong-feedback {
+    animation: wrongGlow 2s ease-in-out;
+}
+
+.disabled-letter {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.present-feedback {
+    animation: presentGlow 2s ease-in-out;
+}
+
+.word-feedback {
+    padding: 1rem;
+    margin: 0;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    min-height: 20px;
+}
+
+.word-feedback.info {
+    background: #e6f0fa;
+    color: #4fc3f7;
+}
+
+.word-feedback.success {
+    background: #e6ffe6;
+    color: #2e7d32;
+}
+
+.word-feedback.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* Add these new animation styles */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--accent);
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  animation: pulse 1.5s infinite;
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+.loading-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.loading-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  animation: pulse 1.5s infinite;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.error-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--wrong);
+}
+
+.error-icon {
+  font-size: 3rem;
+  animation: pulse 1s infinite;
+}
+
+@media (min-width: 769px) {
+  .word-game-card { max-width: 600px; margin: 0 auto; }    
+}
+
+@media (max-width: 768px) {
+    .word-game-screen { padding: 0.8rem; }
+    .card.spelling-screen, .word-game-card { max-width: 100%; padding: 1.5rem; }
+    .letter-tile { width: 40px; height: 40px; font-size: 1.2rem; }
+    .current-word { font-size: 1.5rem; }
+    .letter-box { width: 40px; height: 40px; font-size: 1rem; }
+    .scramble-tile { width: 50px; height: 50px; font-size: 1rem; }
+    .scramble-operators { gap: 0.8rem; }   
+    .scramble-operators .btn { width: 50px; height: 50px; font-size: 1.3rem; }
+    .current-attempt { font-size: 1.5rem; }
+    .honeycomb { width: 200px; height: 200px; }
+    .hexagon { width: 50px; height: 57px; font-size: 1.2rem; }  
+    .word-game-card { padding: 1rem; }
+    .wordsearch-screen { padding: 0 10px; } 
+    .wordsearch-grid { gap: 1px; padding: 2px; }   
+    .wordsearch-cell { font-size: clamp(0.6rem, 3.5vw, 0.8rem); min-width: 20px; min-height: 20px; }   
+    .wordsearch-wordlist { grid-template-columns: 1fr; }   
+    .wordsearch-controls { flex-direction: column; }   
+    .wordsearch-controls .btn { width: 100%; }
+}  
+
+@media (max-width: 768px) {
+    .word-game-screen { padding: 0.6rem; }
+    .word-game-card { padding: 1rem; padding-top: 10px;}
+    .letter-box { width: 35px; height: 35px; font-size: 0.9rem; }
+    .guess-input { flex-direction: column; }
+    .guess-input input, .guess-input button { width: 100%; }
+    .word-hint { font-size: 0.8rem; }
+    .sequence-number { font-size: 1.2rem; }
+    .sequence-options { display: grid; justify-content: center; grid-template-columns: repeat(2, 1fr); 
+                        margin: 2rem 0; gap: 0.5rem; }  
+    .sequence-options button { width: 60px; font-size: 1rem; }
+    .scramble-tile { width: 40px; height: 40px; font-size: 0.9rem; }
+    .scramble-buttons { gap: 0.5rem; }
+    .scramble-operators { gap: 0.6rem; }  
+    .scramble-operators .btn { width: 44px; height: 44px; font-size: 1.1rem; border-radius: 10px; }
+    .honeycomb { width: 180px; height: 180px; }   
+    .hexagon { width: 45px; height: 52px; font-size: 1rem; }   
+    .current-word { font-size: 1.3rem; }
+    .game-header { flex-direction: column; align-items: center;}
+    .game-meta { width: 100%; justify-content: space-between; }
+    .word-game-meta { flex-direction: row; gap: 0.3rem; }
+    .word-game-body { width: 100%; }
+    .privacy-card, .contact-card { padding-top: 70px;}  
+    .wordsearch-grid { gap: 3px; padding: 4px; --cols: 10;--rows: 12; height: 250px; }   
+    .wordsearch-cell { width: 25px; height: 25px; font-size: 1rem; min-width: 0; min-height: 0; color:#1a1a1a}
+    .wordsearch-wordlist { grid-template-columns: repeat(2, 1fr);  gap: 0.8rem; } 
+    .wordsearch-word { font-size: 0.75rem; }
+
+}    

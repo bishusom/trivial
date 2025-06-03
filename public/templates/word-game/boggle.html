@@ -1,8 +1,16 @@
-<link rel="stylesheet" href="/styles/word-games/boggle.css">
+<link rel="stylesheet" href="/styles/word-games/word-games-styles.css">
 <div class="card puzzle-card" id="boggle-screen">
     <div id="boggle-container" class="card word-game-card">
         <div class="word-game-header">
+            <div class="header-row">
+            <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                <span class="material-icons">home</span>
+            </a>
             <h2>Boggle</h2>
+            <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                <span class="material-icons">volume_up</span>
+            </button>
+            </div>
             <div class="word-game-meta">
                 <span id="boggle-time">Time: 3:00</span>
                 <span id="boggle-score">Score: 0</span>
@@ -21,7 +29,7 @@
 
         <div class="word-game-footer">
             <button class="btn secondary" id="boggle-new">New Game</button>
-            <button class="btn secondary" id="boggle-submit">Submit Word</button>
+            <button class="btn secondary" id="boggle-hint">Get Hint</button>
         </div>
     </div>
 </div>

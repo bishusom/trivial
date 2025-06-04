@@ -1,38 +1,88 @@
+/* global gtag, confetti */
+
 export function initPuzzle() {
-    const hunterGrid = document.getElementById('hunter-grid');
-    const hunterFeedback = document.getElementById('hunter-feedback');
-    const hunterHint = document.getElementById('hunter-hint');
-    const hunterNew = document.getElementById('hunter-new');
-    const hunterLevel = document.getElementById('hunter-level');
-    const hunterScore = document.getElementById('hunter-score');
-    const hunterTime = document.getElementById('hunter-time');
-    const primesFound = document.getElementById('primes-found');
-    const primesTotal = document.getElementById('primes-total');
-    const progressFill = document.getElementById('progress-fill');
+    const gameState = {
+        level: 1,
+        score: 0,
+        timeLeft: 60,
+        primesInGrid: 0,
+        primesCollected: 0,
+        currentNumbers: [],
+        gameActive: false,
+        isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false,
+        timerInterval: null
+    };
 
-    let level = 1;
-    let score = 0;
-    let timeLeft = 60;
-    let timer;
-    let primesInGrid = 0;
-    let primesCollected = 0;
-    let currentNumbers = [];
-    let gameActive = false;
+    const audioElements = {
+        select: new Audio('/audio/click.mp3'),
+        correct: new Audio('/audio/correct.mp3'),
+        win: new Audio('/audio/win.mp3'),
+        error: new Audio('/audio/wrong.mp3')
+    };
 
-    // Initialize the game
-    initGame();
-    
-    function initGame() {
-        clearInterval(timer);
-        level = 1;
-        score = 0;
-        timeLeft = 60;
-        primesCollected = 0;
-        updateStats();
-        generateGrid();
-        startTimer();
-        gameActive = true;
-        trackEvent('primehunter_started', 'primehunter',1);
+    const elements = {
+        hunterGrid: document.getElementById('hunter-grid'),
+        hunterFeedback: document.getElementById('hunter-feedback'),
+        hunterHint: document.getElementById('hunter-hint'),
+        hunterNew: document.getElementById('hunter-new'),
+        hunterLevel: document.getElementById('hunter-level'),
+        hunterScore: document.getElementById('hunter-score'),
+        hunterTime: document.getElementById('hunter-time'),
+        primesFound: document.getElementById('primes-found'),
+        primesTotal: document.getElementById('primes-total'),
+        progressFill: document.getElementById('progress-fill')
+    };
+
+    function playSound(type) {
+        if (gameState.isMuted) {
+            console.log(`Sound ${type} skipped: muted`);
+            return;
+        }
+        if (audioElements[type]) {
+            audioElements[type].currentTime = 0;
+            audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+        }
+    }
+
+    function stopSound(type) {
+        if (audioElements[type]) {
+            audioElements[type].pause();
+            audioElements[type].currentTime = 0;
+        }
+    }
+
+    function stopAllSounds() {
+        Object.keys(audioElements).forEach(type => stopSound(type));
+    }
+
+    function showConfetti(options = {}) {
+        console.log('Triggering confetti');
+        if (typeof confetti === 'undefined') {
+            console.error('Confetti library not loaded');
+            return;
+        }
+        const defaults = {
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+        };
+        
+        confetti({
+            ...defaults,
+            ...options
+        });
+        
+        if (Math.random() > 0.5) {
+            setTimeout(() => {
+                confetti({
+                    ...defaults,
+                    ...options,
+                    angle: Math.random() * 180 - 90,
+                    origin: { x: Math.random(), y: 0.6 }
+                });
+            }, 300);
+        }
     }
 
     function trackEvent(action, category, label, value) {
@@ -40,19 +90,40 @@ export function initPuzzle() {
             gtag('event', action, { event_category: category, event_label: label, value: value });
         }
     }
-    
+
+    function initGame() {
+        clearInterval(gameState.timerInterval);
+        gameState.level = 1;
+        gameState.score = 0;
+        gameState.timeLeft = 60;
+        gameState.primesCollected = 0;
+        gameState.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
+        updateStats();
+        generateGrid();
+        startTimer();
+        gameState.gameActive = true;
+        trackEvent('primehunter_started', 'primehunter', 1);
+        if (gameState.isMuted) {
+            stopAllSounds();
+        }
+        const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+        if (muteBtnIcon) {
+            muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
+        }
+        playSound('select');
+    }
+
     function generateGrid() {
-        hunterGrid.innerHTML = '';
-        currentNumbers = [];
-        primesInGrid = 0;
+        elements.hunterGrid.innerHTML = '';
+        gameState.currentNumbers = [];
+        gameState.primesInGrid = 0;
         
         const gridSize = getGridSize();
         const numberRange = getNumberRange();
         
-        // Generate numbers for the grid
         for (let i = 0; i < gridSize * gridSize; i++) {
             const num = Math.floor(Math.random() * numberRange) + 1;
-            currentNumbers.push(num);
+            gameState.currentNumbers.push(num);
             
             const cell = document.createElement('div');
             cell.className = 'hunter-cell';
@@ -61,36 +132,33 @@ export function initPuzzle() {
             cell.dataset.isPrime = isPrime(num);
             
             if (cell.dataset.isPrime === 'true') {
-                primesInGrid++;
+                gameState.primesInGrid++;
             }
             
             cell.addEventListener('click', () => handleCellClick(cell));
-            hunterGrid.appendChild(cell);
+            elements.hunterGrid.appendChild(cell);
         }
         
-        primesTotal.textContent = primesInGrid;
-        primesFound.textContent = primesCollected;
+        elements.primesTotal.textContent = gameState.primesInGrid;
+        elements.primesFound.textContent = gameState.primesCollected;
         updateProgress();
         
-        // Set grid columns
-        hunterGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+        elements.hunterGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
     }
-    
+
     function getGridSize() {
-        // Increase grid size with level
-        if (level <= 3) return 4;
-        if (level <= 6) return 5;
+        if (gameState.level <= 3) return 4;
+        if (gameState.level <= 6) return 5;
         return 6;
     }
-    
+
     function getNumberRange() {
-        // Increase number range with level
-        if (level <= 2) return 30;
-        if (level <= 4) return 50;
-        if (level <= 6) return 75;
+        if (gameState.level <= 2) return 30;
+        if (gameState.level <= 4) return 50;
+        if (gameState.level <= 6) return 75;
         return 100;
     }
-    
+
     function isPrime(num) {
         if (num <= 1) return false;
         if (num <= 3) return true;
@@ -103,119 +171,146 @@ export function initPuzzle() {
         
         return true;
     }
-    
+
     function handleCellClick(cell) {
-        if (!gameActive) return;
+        if (!gameState.gameActive) return;
         
         const number = parseInt(cell.dataset.number);
         const isPrime = cell.dataset.isPrime === 'true';
+        playSound('select');
         
         if (cell.classList.contains('selected')) {
-            return; // Already selected
+            return;
         }
         
         cell.classList.add('selected');
         
         if (isPrime) {
             cell.classList.add('correct');
-            primesCollected++;
-            score += level * 5;
+            gameState.primesCollected++;
+            gameState.score += gameState.level * 5;
             updateStats();
             updateProgress();
+            playSound('correct');
             
-            if (primesCollected === primesInGrid) {
+            if (gameState.primesCollected === gameState.primesInGrid) {
                 levelUp();
             }
         } else {
             cell.classList.add('wrong');
-            timeLeft = Math.max(5, timeLeft - 5); // Penalty for wrong selection
+            gameState.timeLeft = Math.max(5, gameState.timeLeft - 5);
             updateStats();
+            playSound('error');
         }
     }
-    
+
     function levelUp() {
-        gameActive = false;
-        clearInterval(timer);
+        gameState.gameActive = false;
+        clearInterval(gameState.timerInterval);
         
-        hunterFeedback.textContent = `Level Complete! +${level * 20} bonus points!`;
-        hunterFeedback.className = 'hunter-feedback correct';
+        elements.hunterFeedback.textContent = `Level Complete! +${gameState.level * 20} bonus points!`;
+        elements.hunterFeedback.className = 'hunter-feedback correct';
         
-        score += level * 20;
-        level++;
+        gameState.score += gameState.level * 20;
+        gameState.level++;
         updateStats();
+        playSound('win');
+        showConfetti({ particleCount: 250, spread: 80 });
         
         setTimeout(() => {
-            timeLeft = 60;
-            primesCollected = 0;
-            gameActive = true;
+            gameState.timeLeft = 60;
+            gameState.primesCollected = 0;
+            gameState.gameActive = true;
             generateGrid();
             startTimer();
         }, 2000);
     }
-    
+
     function startTimer() {
-        clearInterval(timer);
-        timer = setInterval(() => {
-            timeLeft--;
-            hunterTime.textContent = `Time: ${timeLeft}s`;
+        console.log('Starting timer');
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = setInterval(() => {
+            console.log(`Timer tick: ${gameState.timeLeft}`);
+            gameState.timeLeft--;
+            updateStats();
             
-            if (timeLeft <= 10) {
-                hunterTime.classList.add('time-critical');
+            if (gameState.timeLeft <= 10) {
+                elements.hunterTime.classList.add('time-critical');
             }
             
-            if (timeLeft <= 0) {
-                clearInterval(timer);
+            if (gameState.timeLeft <= 0) {
+                console.log('Timer expired');
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
                 gameOver();
             }
         }, 1000);
     }
-    
+
     function gameOver() {
-        gameActive = false;
-        hunterFeedback.textContent = `Game Over! Final Score: ${score}`;
-        hunterFeedback.className = 'hunter-feedback wrong';
+        gameState.gameActive = false;
+        elements.hunterFeedback.textContent = `Game Over! Final Score: ${gameState.score}`;
+        elements.hunterFeedback.className = 'hunter-feedback wrong';
+        playSound('error');
         
-        // Mark all primes that weren't found
         document.querySelectorAll('.hunter-cell').forEach(cell => {
             if (cell.dataset.isPrime === 'true' && !cell.classList.contains('correct')) {
                 cell.classList.add('missed');
             }
         });
     }
-    
+
     function showHint() {
-        if (!gameActive) return;
+        if (!gameState.gameActive) return;
+        playSound('select');
         
-        // Find first uncollected prime
         const primes = Array.from(document.querySelectorAll('.hunter-cell'))
             .filter(cell => cell.dataset.isPrime === 'true' && !cell.classList.contains('correct'));
         
         if (primes.length > 0) {
             const randomPrime = primes[Math.floor(Math.random() * primes.length)];
             randomPrime.classList.add('hint');
-            
             setTimeout(() => {
                 randomPrime.classList.remove('hint');
             }, 1000);
         } else {
-            hunterFeedback.textContent = "No primes left to find!";
-            hunterFeedback.className = 'hunter-feedback info';
+            elements.hunterFeedback.textContent = "No primes left to find!";
+            elements.hunterFeedback.className = 'hunter-feedback info';
         }
     }
-    
+
     function updateStats() {
-        hunterLevel.textContent = `Level: ${level}`;
-        hunterScore.textContent = `Score: ${score}`;
-        hunterTime.textContent = `Time: ${timeLeft}s`;
-        primesFound.textContent = primesCollected;
+        elements.hunterLevel.textContent = `Level: ${gameState.level}`;
+        elements.hunterScore.textContent = `Score: ${gameState.score}`;
+        elements.hunterTime.textContent = `Time: ${gameState.timeLeft}s`;
+        elements.primesFound.textContent = gameState.primesCollected;
     }
-    
+
     function updateProgress() {
-        const percentage = primesInGrid > 0 ? (primesCollected / primesInGrid) * 100 : 0;
-        progressFill.style.width = `${percentage}%`;
+        const percentage = gameState.primesInGrid > 0 ? (gameState.primesCollected / gameState.primesInGrid) * 100 : 0;
+        elements.progressFill.style.width = `${percentage}%`;
     }
-    
-    // Event listeners
-    hunterHint.addEventListener('click', showHint);
-    hunterNew.addEventListener('click', initGame);
+
+    function setupEventListeners() {
+        elements.hunterHint.addEventListener('click', showHint);
+        elements.hunterNew.addEventListener('click', initGame);
+        const muteBtn = document.getElementById('mute-btn');
+        const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', () => {
+                gameState.isMuted = !gameState.isMuted;
+                localStorage.setItem('triviaMasterMuteState', gameState.isMuted);
+                if (muteBtnIcon) {
+                    muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
+                }
+                if (gameState.isMuted) {
+                    stopAllSounds();
+                }
+                playSound('select');
+            });
+        }
+    }
+
+    initGame();
+    setupEventListeners();
 }

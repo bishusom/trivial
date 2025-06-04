@@ -1,14 +1,15 @@
-// Game configuration
+/* global gtag, confetti */
+
 const GAME_CONFIG = {
-    winsNeededForLevelUp: 3, // Number of wins needed to advance to next level
-    baseRange: 20,           // Starting range (1-20)
-    rangeIncrement: 10,      // How much to increase range each level
-    baseAttempts: 6,         // Starting number of attempts
-    baseHints: 2,            // Starting number of hints
-    pointsPerLevel: 50       // Base points multiplied by level
+    winsNeededForLevelUp: 3,
+    baseRange: 20,
+    rangeIncrement: 10,
+    baseAttempts: 6,
+    baseHints: 2,
+    pointsPerLevel: 50,
+    timeLimit: 60
 };
 
-// Puzzle state
 const puzzleState = {
     targetNumber: 0,
     attemptsLeft: GAME_CONFIG.baseAttempts,
@@ -20,13 +21,14 @@ const puzzleState = {
     maxHints: GAME_CONFIG.baseHints,
     level: 1,
     winsThisLevel: 0,
-    streak: 0,
-    maxStreak: 0,
     points: 0,
     timerStart: null,
     timerEnd: null,
+    timerInterval: null,
+    timeLeft: GAME_CONFIG.timeLimit,
     currentChallenge: null,
     gameStarted: false,
+    isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || 'false',
     unlockedFeatures: {
         doublePoints: false,
         extraHints: false,
@@ -34,7 +36,6 @@ const puzzleState = {
     }
 };
 
-// Challenge modes
 const CHALLENGES = [
     { 
         name: "Blind Mode", 
@@ -53,28 +54,118 @@ const CHALLENGES = [
     }
 ];
 
-// Track events
+const audioElements = {
+    select: new Audio('/audio/click.mp3'),
+    found: new Audio('/audio/correct.mp3'),
+    win: new Audio('/audio/win.mp3'),
+    error: new Audio('/audio/wrong.mp3')
+};
+
+function playSound(type) {
+    if (puzzleState.isMuted) {
+        console.log(`Sound ${type} skipped: muted`);
+        return;
+    }
+    if (audioElements[type]) {
+        audioElements[type].currentTime = 0;
+        audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+    }
+}
+
+function stopSound(type) {
+    if (audioElements[type]) {
+        audioElements[type].pause();
+        audioElements[type].currentTime = 0;
+    }
+}
+
+function stopAllSounds() {
+    Object.keys(audioElements).forEach(type => stopSound(type));
+}
+
 function trackEvent(action, category, label, value) {
     if (typeof gtag !== 'undefined') {
         gtag('event', action, { event_category: category, event_label: label, value: value });
     }
 }
 
-// Start a new puzzle
+function startTimer() {
+    console.log('Starting timer');
+    if (puzzleState.timerInterval) {
+        clearInterval(puzzleState.timerInterval);
+    }
+    puzzleState.timeLeft = GAME_CONFIG.timeLimit;
+    updateTimer();
+    puzzleState.timerInterval = setInterval(() => {
+        console.log(`Timer tick: ${puzzleState.timeLeft}`);
+        puzzleState.timeLeft = Math.max(0, puzzleState.timeLeft - 1);
+        updateTimer();
+        if (puzzleState.timeLeft <= 0) {
+            console.log('Timer expired');
+            clearInterval(puzzleState.timerInterval);
+            puzzleState.timerInterval = null;
+            const feedback = document.getElementById('puzzle-feedback');
+            if (feedback) {
+                feedback.textContent = "Time's up!";
+                feedback.className = 'puzzle-feedback feedback-wrong';
+            }
+            puzzleState.winsThisLevel = 0;
+            playSound('error');
+            setTimeout(startNewPuzzle, 2000);
+        }
+    }, 1000);
+}
+
+function updateTimer() {
+    const timeElement = document.getElementById('puzzle-time');
+    if (timeElement) {
+        const minutes = Math.floor(puzzleState.timeLeft / 60);
+        const seconds = puzzleState.timeLeft % 60;
+        timeElement.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        timeElement.className = `timer-value ${puzzleState.timeLeft <= 10 ? 'time-critical' : ''}`;
+    } else {
+        console.warn('Timer element not found');
+    }
+}
+
+function showConfetti(options = {}) {
+    console.log('Triggering confetti');
+    if (typeof confetti === 'undefined') {
+        console.error('Confetti library not loaded');
+        return;
+    }
+    const defaults = {
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+    };
+    
+    confetti({
+        ...defaults,
+        ...options
+    });
+    
+    if (Math.random() > 0.5) {
+        setTimeout(() => {
+            confetti({
+                ...defaults,
+                ...options,
+                angle: Math.random() * 180 - 90,
+                origin: { x: Math.random(), y: 0.6 }
+            });
+        }, 300);
+    }
+}
+
 function startNewPuzzle() {
-    // Calculate range based on level
     const levelRange = GAME_CONFIG.baseRange + ((puzzleState.level - 1) * GAME_CONFIG.rangeIncrement);
     
-    // Set up puzzle with level-appropriate range
     puzzleState.minRange = 1;
     puzzleState.maxRange = levelRange;
     puzzleState.targetNumber = Math.floor(Math.random() * levelRange) + 1;
-    
-    // Scale attempts slightly with level
     puzzleState.attemptsLeft = GAME_CONFIG.baseAttempts + Math.floor(puzzleState.level / 3);
     puzzleState.maxAttempts = puzzleState.attemptsLeft;
-    
-    // Reset game state
     puzzleState.guesses = [];
     puzzleState.hintsUsed = 0;
     puzzleState.maxHints = puzzleState.unlockedFeatures.extraHints ? 3 : GAME_CONFIG.baseHints;
@@ -84,7 +175,6 @@ function startNewPuzzle() {
     puzzleState.blindMode = false;
     puzzleState.speedRun = false;
     
-    // Apply challenge every 3 levels
     if (puzzleState.level % 3 === 0) {
         puzzleState.currentChallenge = CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
         puzzleState.currentChallenge.modifier(puzzleState);
@@ -108,10 +198,10 @@ function startNewPuzzle() {
         feedback.className = 'puzzle-feedback';
     }
     
-    setTimeout(() => { guessInput.focus(); }, 100);
+    startTimer();
+    setTimeout(() => { guessInput && guessInput.focus(); }, 100);
 }
 
-// Show challenge banner
 function showChallengeBanner() {
     const banner = document.getElementById('challenge-banner');
     const desc = document.getElementById('challenge-description');
@@ -121,13 +211,11 @@ function showChallengeBanner() {
     }
 }
 
-// Hide challenge banner
 function hideChallengeBanner() {
     const banner = document.getElementById('challenge-banner');
     if (banner) banner.classList.add('hidden');
 }
 
-// Calculate score
 function calculateScore() {
     if (!puzzleState.timerStart) return 0;
     
@@ -135,44 +223,43 @@ function calculateScore() {
     const timeThreshold = puzzleState.speedRun ? 30 : 60;
     
     let basePoints = GAME_CONFIG.pointsPerLevel * puzzleState.level;
-    let streakBonus = puzzleState.streak * 20;
     let timeBonus = Math.max(0, timeThreshold - timeTaken) * 5;
     let hintPenalty = puzzleState.hintsUsed * 30;
     let challengeBonus = puzzleState.currentChallenge ? 200 : 0;
     let rangeBonus = Math.floor(puzzleState.maxRange / 10);
     
-    // Apply unlocked features
     if (puzzleState.unlockedFeatures.doublePoints) basePoints *= 2;
     if (puzzleState.unlockedFeatures.timeBonus) timeBonus *= 1.5;
     
-    return Math.floor(basePoints + streakBonus + timeBonus + challengeBonus + rangeBonus - hintPenalty);
+    return Math.floor(basePoints + timeBonus + challengeBonus + rangeBonus - hintPenalty);
 }
 
-// Handle guess submission
 function handleGuessSubmit() {
     const guessInput = document.getElementById('number-guess');
     const feedback = document.getElementById('puzzle-feedback');
     const guess = parseInt(guessInput.value);
 
-    // Start timer on first valid guess
     if (!puzzleState.gameStarted && !isNaN(guess) && 
         guess >= puzzleState.minRange && guess <= puzzleState.maxRange) {
         puzzleState.timerStart = Date.now();
         puzzleState.gameStarted = true;
+        playSound('select');
     }
 
     if (isNaN(guess)) {
         if (feedback) {
             feedback.textContent = 'Please enter a valid number';
             feedback.className = 'puzzle-feedback feedback-wrong';
+            playSound('error');
         }
         return;
     }
 
     if (guess < puzzleState.minRange || guess > puzzleState.maxRange) {
         if (feedback) {
-            feedback.textContent = `Please enter between ${puzzleState.minRange}-${puzzleState.maxRange}`;
+            feedback.textContent = `Please enter between ${puzzleState.minRange} and ${puzzleState.maxRange}`;
             feedback.className = 'puzzle-feedback feedback-wrong';
+            playSound('error');
         }
         return;
     }
@@ -181,10 +268,9 @@ function handleGuessSubmit() {
     puzzleState.attemptsLeft--;
 
     if (guess === puzzleState.targetNumber) {
-        // Correct guess
         puzzleState.timerEnd = Date.now();
-        puzzleState.streak++;
-        puzzleState.maxStreak = Math.max(puzzleState.streak, puzzleState.maxStreak);
+        clearInterval(puzzleState.timerInterval);
+        puzzleState.timerInterval = null;
         puzzleState.winsThisLevel++;
         
         const pointsEarned = calculateScore();
@@ -197,7 +283,7 @@ function handleGuessSubmit() {
             feedback.innerHTML = `
                 <div class="feedback-message">
                     <strong>🎉 Correct! (Level ${puzzleState.level})</strong><br>
-                    Time: ${timeTaken.toFixed(1)}s | Streak: ${puzzleState.streak}<br>
+                    Time: ${timeTaken.toFixed(1)}s<br>
                     Wins at this level: ${puzzleState.winsThisLevel}/${GAME_CONFIG.winsNeededForLevelUp}<br>
                     Points: +${pointsEarned}
                 </div>
@@ -205,29 +291,31 @@ function handleGuessSubmit() {
             feedback.className = 'puzzle-feedback feedback-correct';
         }
         
+        playSound('win');
+        showConfetti();
+        
         const submitButton = document.getElementById('submit-guess');
         if (submitButton) submitButton.disabled = true;
         
         trackEvent('puzzle_solved', 'number_puzzle', puzzleState.maxAttempts - puzzleState.attemptsLeft);
         
-        // Check for unlocks
         checkForUnlocks();
         
-        // Check if player should level up
         if (puzzleState.winsThisLevel >= GAME_CONFIG.winsNeededForLevelUp) {
             puzzleState.level++;
             puzzleState.winsThisLevel = 0;
             setTimeout(() => {
                 feedback.innerHTML += `<br><br>Advancing to Level ${puzzleState.level} (1-${GAME_CONFIG.baseRange + ((puzzleState.level - 1) * GAME_CONFIG.rangeIncrement)})!`;
+                showConfetti({ particleCount: 200, spread: 100 });
                 setTimeout(startNewPuzzle, 3000);
             }, 1500);
         } else {
             setTimeout(startNewPuzzle, 3000);
         }
     } else if (puzzleState.attemptsLeft <= 0) {
-        // Out of attempts
         puzzleState.timerEnd = Date.now();
-        puzzleState.streak = 0;
+        clearInterval(puzzleState.timerInterval);
+        puzzleState.timerInterval = null;
         puzzleState.winsThisLevel = 0;
         
         if (feedback) {
@@ -239,6 +327,7 @@ function handleGuessSubmit() {
                 </div>
             `;
             feedback.className = 'puzzle-feedback feedback-wrong';
+            playSound('error');
         }
         
         const submitButton = document.getElementById('submit-guess');
@@ -247,25 +336,26 @@ function handleGuessSubmit() {
         
         setTimeout(startNewPuzzle, 3000);
     } else if (!puzzleState.blindMode) {
-        // Give feedback (unless in blind mode)
         if (guess < puzzleState.targetNumber) {
             puzzleState.minRange = guess + 1;
             if (feedback) {
                 feedback.textContent = 'Too low! Try a higher number.';
                 feedback.className = 'puzzle-feedback feedback-low';
+                playSound('error');
             }
         } else {
             puzzleState.maxRange = guess - 1;
             if (feedback) {
                 feedback.textContent = 'Too high! Try a lower number.';
                 feedback.className = 'puzzle-feedback feedback-high';
+                playSound('error');
             }
         }
     } else {
-        // Blind mode - no feedback
         if (feedback) {
             feedback.textContent = 'Guess submitted (Blind Mode)';
             feedback.className = 'puzzle-feedback';
+            playSound('select');
         }
     }
 
@@ -273,7 +363,6 @@ function handleGuessSubmit() {
     if (guessInput) guessInput.value = '';
 }
 
-// Check for unlocked features
 function checkForUnlocks() {
     if (puzzleState.level >= 3 && !puzzleState.unlockedFeatures.extraHints) {
         puzzleState.unlockedFeatures.extraHints = true;
@@ -291,7 +380,7 @@ function checkForUnlocks() {
         }
         trackEvent('feature_unlock', 'game', 'double_points');
     }
-    if (puzzleState.streak >= 3 && !puzzleState.unlockedFeatures.timeBonus) {
+    if (puzzleState.level >= 7 && !puzzleState.unlockedFeatures.timeBonus) {
         puzzleState.unlockedFeatures.timeBonus = true;
         const feedback = document.getElementById('puzzle-feedback');
         if (feedback) {
@@ -301,13 +390,13 @@ function checkForUnlocks() {
     }
 }
 
-// Provide a hint
 function giveHint() {
     if (puzzleState.hintsUsed >= puzzleState.maxHints) {
         const feedback = document.getElementById('puzzle-feedback');
         if (feedback) {
             feedback.textContent = 'You have used all your hints!';
             feedback.className = 'puzzle-feedback feedback-wrong';
+            playSound('error');
         }
         return;
     }
@@ -321,22 +410,20 @@ function giveHint() {
     if (feedback) {
         feedback.textContent = hint;
         feedback.className = 'puzzle-feedback';
+        playSound('select');
     }
     updatePuzzleUI();
     trackEvent('puzzle_hint', 'number_puzzle', puzzleState.hintsUsed);
 }
 
-// Update the puzzle UI
 function updatePuzzleUI() {
     const attempts = document.getElementById('puzzle-attempts');
     const hint = document.getElementById('puzzle-hint');
     const historyElement = document.getElementById('guess-history');
     const hintButton = document.getElementById('puzzle-hint-btn');
     const levelDisplay = document.getElementById('current-level');
-    const streakDisplay = document.getElementById('current-streak');
     const pointsDisplay = document.getElementById('current-points');
-    const timeDisplay = document.getElementById('current-time');
-    const progressFill = document.getElementById('progress-fill');
+    const guessInput = document.getElementById('number-guess');
 
     if (attempts) {
         attempts.textContent = `Attempts left: ${puzzleState.attemptsLeft}/${puzzleState.maxAttempts}`;
@@ -345,10 +432,7 @@ function updatePuzzleUI() {
         hint.textContent = `Level ${puzzleState.level}: Between ${puzzleState.minRange}-${puzzleState.maxRange}`;
     }
     if (historyElement) {
-        // Clear previous content
         historyElement.innerHTML = '';
-        
-        // Add current guesses in horizontal layout
         puzzleState.guesses.forEach(guess => {
             const direction = 
                 guess < puzzleState.targetNumber ? '↑' :
@@ -372,36 +456,25 @@ function updatePuzzleUI() {
         hintButton.disabled = puzzleState.hintsUsed >= puzzleState.maxHints;
     }
     if (levelDisplay) {
-        levelDisplay.textContent = puzzleState.level;
-    }
-    if (streakDisplay) {
-        streakDisplay.textContent = puzzleState.streak;
+        levelDisplay.textContent = `Level: ${puzzleState.level}`;
     }
     if (pointsDisplay) {
-        pointsDisplay.textContent = puzzleState.points;
+        pointsDisplay.textContent = `Points: ${puzzleState.points}`;
     }
-    if (timeDisplay) {
-        if (puzzleState.timerStart) {
-            const timeElapsed = puzzleState.timerEnd ? 
-                (puzzleState.timerEnd - puzzleState.timerStart) / 1000 : 
-                (Date.now() - puzzleState.timerStart) / 1000;
-            timeDisplay.textContent = timeElapsed.toFixed(1);
-        } else {
-            timeDisplay.textContent = '0.0';
-        }
-    }
-    if (progressFill) {
-        const progress = ((puzzleState.maxAttempts - puzzleState.attemptsLeft) / puzzleState.maxAttempts) * 100;
-        progressFill.style.width = `${progress}%`;
+    if (guessInput) {
+        guessInput.min = puzzleState.minRange;
+        guessInput.max = puzzleState.maxRange;
+        guessInput.placeholder = `Guess (${puzzleState.minRange}-${puzzleState.maxRange})`;
     }
 }
 
-// Setup event listeners
 function setupPuzzleEvents() {
     const submitButton = document.getElementById('submit-guess');
     const newPuzzleButton = document.getElementById('new-puzzle');
     const hintButton = document.getElementById('puzzle-hint-btn');
     const guessInput = document.getElementById('number-guess');
+    const muteBtn = document.getElementById('mute-btn');
+    const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
 
     if (submitButton) {
         submitButton.addEventListener('click', handleGuessSubmit);
@@ -417,21 +490,31 @@ function setupPuzzleEvents() {
             if (e.key === 'Enter') handleGuessSubmit();
         });
     }
+    if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+            puzzleState.isMuted = !puzzleState.isMuted;
+            localStorage.setItem('triviaMasterMuteState', puzzleState.isMuted);
+            if (muteBtnIcon) {
+                muteBtnIcon.textContent = puzzleState.isMuted ? 'volume_off' : 'volume_up';
+            }
+            if (puzzleState.isMuted) {
+                stopAllSounds();
+            }
+        });
+    }
 }
 
-// Initialize the puzzle
 function initPuzzle() {
     setupPuzzleEvents();
     startNewPuzzle();
     
-    // Update time display every second
-    setInterval(() => {
-        const timeDisplay = document.getElementById('current-time');
-        if (timeDisplay && puzzleState.timerStart && !puzzleState.timerEnd) {
-            const timeElapsed = (Date.now() - puzzleState.timerStart) / 1000;
-            timeDisplay.textContent = timeElapsed.toFixed(1);
-        }
-    }, 100);
+    const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+    if (muteBtnIcon) {
+        muteBtnIcon.textContent = puzzleState.isMuted ? 'volume_off' : 'volume_up';
+    }
+    if (puzzleState.isMuted) {
+        stopAllSounds();
+    }
 }
 
 export { initPuzzle };

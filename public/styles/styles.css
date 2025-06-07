@@ -1037,12 +1037,16 @@ input:checked + .slider:before {
     color: #ff7d7d;
 }
 
-.correct-bg {
-    background-color: #28a745; /* Green for correct */
+#question {
+    transition: background-color 0.3s ease;
 }
 
-.wrong-bg {
-    background-color: #dc3545; /* Red for wrong */
+#question.correct-bg {
+    background-color: var(--correct) !important;
+}
+
+#question.wrong-bg {
+    background-color: var(--wrong) !important;
 }
 
 /* Style for the titbits container */

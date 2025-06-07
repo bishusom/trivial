@@ -277,36 +277,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function handleGameInProgressNavigation(path) {
-        const modal = document.getElementById('nav-warning-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            window.pendingNavigation = path;
+        // Don't show modal if we're already on the summary screen
+        const summaryScreen = document.querySelector('.summary-screen');
+        if (summaryScreen && summaryScreen.classList.contains('active')) {
+            window.history.pushState({ path }, '', path);
+            handleRouting(path);
+            return;
+        }
 
-            const continueBtn = document.getElementById('continue-game');
-            const endBtn = document.getElementById('end-game');
+        // Only show modal if game screen is active
+        const gameScreen = document.querySelector('.game-screen');
+        if (gameScreen && gameScreen.classList.contains('active')) {
+            const modal = document.getElementById('nav-warning-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                window.pendingNavigation = path;
 
-            const newContinueBtn = continueBtn.cloneNode(true);
-            const newEndBtn = endBtn.cloneNode(true);
-            continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
-            endBtn.parentNode.replaceChild(newEndBtn, endBtn);
+                const continueBtn = document.getElementById('continue-game');
+                const endBtn = document.getElementById('end-game');
 
-            newContinueBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-                window.pendingNavigation = null;
-            });
+                // Clone buttons to avoid duplicate event listeners
+                const newContinueBtn = continueBtn.cloneNode(true);
+                const newEndBtn = endBtn.cloneNode(true);
+                continueBtn.parentNode.replaceChild(newContinueBtn, continueBtn);
+                endBtn.parentNode.replaceChild(newEndBtn, endBtn);
 
-            newEndBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-                if (typeof window.endGame === 'function') {
-                    window.endGame();
-                    localStorage.removeItem('triviaMasterGameState');
-                }
-                if (window.pendingNavigation) {
-                    window.history.pushState({ path: window.pendingNavigation }, '', window.pendingNavigation);
-                    handleRouting(window.pendingNavigation);
+                newContinueBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
                     window.pendingNavigation = null;
-                }
-            });
+                });
+
+                newEndBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    if (typeof window.endGame === 'function') {
+                        window.endGame();
+                        localStorage.removeItem('triviaMasterGameState');
+                    }
+                    if (window.pendingNavigation) {
+                        window.history.pushState({ path: window.pendingNavigation }, '', window.pendingNavigation);
+                        handleRouting(window.pendingNavigation);
+                        window.pendingNavigation = null;
+                    }
+                });
+            }
+        } else {
+            // No game in progress, proceed with navigation
+            window.history.pushState({ path }, '', path);
+            handleRouting(path);
         }
     }
 

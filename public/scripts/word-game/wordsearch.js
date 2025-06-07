@@ -734,14 +734,47 @@ function updateTimer() {
     if (index === null || selectedCells.includes(index)) return;
 
     const lastIndex = selectedCells[selectedCells.length - 1];
-    const direction = getSelectionDirection();
+    const size = config[difficulty].gridCols;
+    const row1 = Math.floor(lastIndex / size);
+    const col1 = lastIndex % size;
+    const row2 = Math.floor(index / size);
+    const col2 = index % size;
+    
+    const rowDiff = row2 - row1;
+    const colDiff = col2 - col1;
 
-    if (selectedCells.length > 1 && !isInDirection(lastIndex, index, direction)) {
-      return;
+    // For the first 2 cells, be more permissive to establish direction
+    if (selectedCells.length < 2) {
+        // Allow selection if it's adjacent (including diagonally)
+        const isAdjacent = Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1 && (rowDiff !== 0 || colDiff !== 0);
+        
+        if (isAdjacent) {
+            selectedCells.push(index);
+            updateSelection();
+        }
+        return;
     }
 
-    selectedCells.push(index);
-    updateSelection();
+    // For all subsequent cells, check direction consistency
+    const direction = getSelectionDirection();
+    if (direction) {
+        // Calculate expected next position based on direction
+        const lastCell = selectedCells[selectedCells.length - 1];
+        const lastRow = Math.floor(lastCell / size);
+        const lastCol = lastCell % size;
+        
+        const expectedRow = lastRow + direction.row;
+        const expectedCol = lastCol + direction.col;
+        
+        const currentRow = Math.floor(index / size);
+        const currentCol = index % size;
+        
+        // Check if the new cell is in the expected direction
+        if (currentRow === expectedRow && currentCol === expectedCol) {
+            selectedCells.push(index);
+            updateSelection();
+        }
+    }
   }
 
   function getSelectionDirection() {
@@ -758,57 +791,19 @@ function updateTimer() {
     const rowDiff = row2 - row1;
     const colDiff = col2 - col1;
 
-    // Determine precise initial direction
-    if (rowDiff === 0 && colDiff !== 0) { // Strictly Horizontal
-      return { type: 'horizontal', row: 0, col: Math.sign(colDiff) };
-    } else if (colDiff === 0 && rowDiff !== 0) { // Strictly Vertical
-      return { type: 'vertical', row: Math.sign(rowDiff), col: 0 };
-    } else if (Math.abs(rowDiff) === Math.abs(colDiff) && rowDiff !== 0) { // Strictly Diagonal
-      return { type: 'diagonal', row: Math.sign(rowDiff), col: Math.sign(colDiff) };
+    // Determine direction with better tolerance
+    if (rowDiff === 0 && colDiff !== 0) { 
+        // Horizontal
+        return { type: 'horizontal', row: 0, col: Math.sign(colDiff) };
+    } else if (colDiff === 0 && rowDiff !== 0) { 
+        // Vertical
+        return { type: 'vertical', row: Math.sign(rowDiff), col: 0 };
+    } else if (Math.abs(rowDiff) === Math.abs(colDiff) && rowDiff !== 0) { 
+        // Diagonal - both row and col differences must be equal and non-zero
+        return { type: 'diagonal', row: Math.sign(rowDiff), col: Math.sign(colDiff) };
     }
 
-    return null; // No clear direction yet or invalid second cell
-  }
-
-  function isInDirection(index1, index2, direction) {
-    if (!direction) return true; // Allow first selection to go any direction
-
-    const size = config[difficulty].gridCols;
-    const row1 = Math.floor(index1 / size);
-    const col1 = index1 % size;
-    const row2 = Math.floor(index2 / size);
-    const col2 = index2 % size;
-
-    const rowDiff = row2 - row1;
-    const colDiff = col2 - col1;
-
-    // Check if the current move is immediately adjacent (crucial for smooth selection)
-    const isAdjacent = Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1;
-
-    // If no direction established yet (shouldn't happen if selectedCells.length >= 2 before calling this with a direction)
-    // but as a fallback, ensure it's adjacent.
-    if (selectedCells.length < 2) { // This part is essentially for the 2nd cell being picked
-      return isAdjacent; // Ensure the second cell is adjacent
-    }
-
-    // Now, apply direction-specific rules
-    switch (direction.type) {
-      case 'horizontal':
-        return rowDiff === 0 && Math.sign(colDiff) === direction.col;
-      case 'vertical':
-        return colDiff === 0 && Math.sign(rowDiff) === direction.row;
-      case 'diagonal':
-        // For diagonals, ensure it's still moving along the same diagonal path
-        // AND that it's the very next cell in that path
-        return (
-          Math.abs(rowDiff) === Math.abs(colDiff) && // Still diagonal
-          Math.sign(rowDiff) === direction.row &&    // Same vertical direction
-          Math.sign(colDiff) === direction.col &&    // Same horizontal direction
-          isAdjacent // Must be the adjacent cell in the diagonal direction
-        );
-      default:
-        return false; // Unknown direction type
-    }
+    return null;
   }
 
   function endSelection() {

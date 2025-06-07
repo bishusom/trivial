@@ -798,6 +798,11 @@
   color: var(--bg);
 }
 
+.wordsearch-cell.direction-locked {
+    background-color: #4da6ff; /* Darker blue when direction is locked */
+    transition: background-color 0.2s ease;
+}
+
 .wordsearch-cell.found {
   background: var(--correct);
   color: var(--bg);
@@ -829,6 +834,7 @@
     justify-content: center;
     margin-top: 0.5rem; /* Brought higher by reducing margin */
 }
+
 
 .word-hint {
     font-size: 0.9rem;

@@ -735,75 +735,70 @@ function updateTimer() {
 
     const lastIndex = selectedCells[selectedCells.length - 1];
     const size = config[difficulty].gridCols;
-    const row1 = Math.floor(lastIndex / size);
-    const col1 = lastIndex % size;
-    const row2 = Math.floor(index / size);
-    const col2 = index % size;
     
-    const rowDiff = row2 - row1;
-    const colDiff = col2 - col1;
-
-    // For the first 2 cells, be more permissive to establish direction
+    // For first 2 cells, be very permissive
     if (selectedCells.length < 2) {
-        // Allow selection if it's adjacent (including diagonally)
-        const isAdjacent = Math.abs(rowDiff) <= 1 && Math.abs(colDiff) <= 1 && (rowDiff !== 0 || colDiff !== 0);
+        const row1 = Math.floor(lastIndex / size);
+        const col1 = lastIndex % size;
+        const row2 = Math.floor(index / size);
+        const col2 = index % size;
         
-        if (isAdjacent) {
+        // Allow any adjacent cell (including diagonals)
+        if (Math.abs(row2 - row1) <= 1 && Math.abs(col2 - col1) <= 1) {
             selectedCells.push(index);
             updateSelection();
         }
         return;
     }
 
-    // For all subsequent cells, check direction consistency
+    // For subsequent cells, enforce direction strictly
     const direction = getSelectionDirection();
-    if (direction) {
-        // Calculate expected next position based on direction
-        const lastCell = selectedCells[selectedCells.length - 1];
-        const lastRow = Math.floor(lastCell / size);
-        const lastCol = lastCell % size;
-        
-        const expectedRow = lastRow + direction.row;
-        const expectedCol = lastCol + direction.col;
-        
-        const currentRow = Math.floor(index / size);
-        const currentCol = index % size;
-        
-        // Check if the new cell is in the expected direction
-        if (currentRow === expectedRow && currentCol === expectedCol) {
-            selectedCells.push(index);
-            updateSelection();
-        }
+    if (!direction) return;
+
+    // Calculate expected next position
+    const lastRow = Math.floor(lastIndex / size);
+    const lastCol = lastIndex % size;
+    const currentRow = Math.floor(index / size);
+    const currentCol = index % size;
+
+    // Check if moving in same direction
+    if ((currentRow - lastRow === direction.row) && 
+        (currentCol - lastCol === direction.col)) {
+        selectedCells.push(index);
+        updateSelection();
     }
   }
 
   function getSelectionDirection() {
     if (selectedCells.length < 2) return null;
 
-    const first = selectedCells[0];
-    const second = selectedCells[1];
     const size = config[difficulty].gridCols;
-    const row1 = Math.floor(first / size);
-    const col1 = first % size;
-    const row2 = Math.floor(second / size);
-    const col2 = second % size;
+    const first = selectedCells[0];
+    const last = selectedCells[selectedCells.length - 1];
+    
+    const firstRow = Math.floor(first / size);
+    const firstCol = first % size;
+    const lastRow = Math.floor(last / size);
+    const lastCol = last % size;
 
-    const rowDiff = row2 - row1;
-    const colDiff = col2 - col1;
+    const rowDiff = lastRow - firstRow;
+    const colDiff = lastCol - firstCol;
 
-    // Determine direction with better tolerance
-    if (rowDiff === 0 && colDiff !== 0) { 
-        // Horizontal
-        return { type: 'horizontal', row: 0, col: Math.sign(colDiff) };
-    } else if (colDiff === 0 && rowDiff !== 0) { 
-        // Vertical
-        return { type: 'vertical', row: Math.sign(rowDiff), col: 0 };
-    } else if (Math.abs(rowDiff) === Math.abs(colDiff) && rowDiff !== 0) { 
-        // Diagonal - both row and col differences must be equal and non-zero
-        return { type: 'diagonal', row: Math.sign(rowDiff), col: Math.sign(colDiff) };
-    }
+    // Calculate simplest direction (reduced ratio)
+    const gcd = (a, b) => b ? gcd(b, a % b) : a;
+    const divisor = gcd(Math.abs(rowDiff), Math.abs(colDiff));
+    const rowStep = rowDiff / divisor;
+    const colStep = colDiff / divisor;
 
-    return null;
+    // Limit to basic directions (horizontal, vertical, diagonal)
+    if (Math.abs(rowStep) > 1 || Math.abs(colStep) > 1) return null;
+
+    return {
+        row: rowStep,
+        col: colStep,
+        type: rowStep === 0 ? 'horizontal' : 
+              colStep === 0 ? 'vertical' : 'diagonal'
+    };
   }
 
   function endSelection() {
@@ -820,13 +815,23 @@ function updateTimer() {
   }
 
   function updateSelection() {
+    // Clear previous selection
     grid.forEach(cell => {
-      cell.element.classList.remove('selected');
+        cell.element.classList.remove('selected');
+        cell.element.classList.remove('direction-locked');
     });
 
+    // Apply new selection
     selectedCells.forEach(index => {
-      grid[index].element.classList.add('selected');
+        grid[index].element.classList.add('selected');
     });
+
+    // Add special class when direction is locked (after 2 cells)
+    if (selectedCells.length >= 2) {
+        selectedCells.forEach(index => {
+            grid[index].element.classList.add('direction-locked');
+        });
+    }
   }
 
   function handleTouchStart(e) {

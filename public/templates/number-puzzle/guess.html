@@ -1,8 +1,18 @@
+<link rel="stylesheet" href="/styles/number-puzzle/number-puzzle-styles.min.css">
 <div class="card puzzle-card">    
     <div class="puzzle-header">
-        <h2>Classic Number Puzzle</h2>
+         <div class="header-row">
+                <a href="/" id="home-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">home</span>
+                </a>
+                <h2>Guess the Number</h2>
+                <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                    <span class="material-icons">volume_up</span>
+                </button>
+         </div>
         <div class="puzzle-meta">
             <span id="puzzle-attempts">Attempts left: 5</span>
+            <span id="puzzle-time">Time: 1:00</span>
             <span id="puzzle-hint">Hint: It's between 1 and 100</span>
         </div>
     </div>
@@ -15,25 +25,13 @@
         </div>
         <div class="puzzle-feedback" id="puzzle-feedback"></div>
     </div>
-    
-    <div class="progress-container">
-        <div class="stats-row">
-            <span class="stat-box">Level: <span id="current-level">1</span></span>
-            <span class="stat-box">Streak: <span id="current-streak">0</span></span>
-            <span class="stat-box">Points: <span id="current-points">0</span></span>
-            <span class="stat-box">Time: <span id="current-time">0</span>s</span>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-        </div>
-    </div>
-    
+
     <div class="challenge-banner hidden" id="challenge-banner">
         <h3>CHALLENGE MODE</h3>
         <p id="challenge-description"></p>
     </div>
 
-    <div class="word-game-footer">
+    <div class="puzzle-footer">
         <button id="new-puzzle" class="btn secondary">New Puzzle</button>
         <button id="puzzle-hint-btn" class="btn secondary">Get Hint</button>
     </div>

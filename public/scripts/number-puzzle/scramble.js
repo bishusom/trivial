@@ -1,33 +1,40 @@
+/* global gtag, confetti */
+
 export function initPuzzle() {
-    console.log('Initializing Enhanced Number Scramble game');
-    
-    // Enhanced Game State
+    console.log('Starting Number Scramble');
+
     const gameState = {
         numbers: [],
-        target: 0,
+        target: null,
         score: 0,
         currentExpression: '',
         usedNumbers: [],
         usedIndices: [],
-        streak: 0,
-        bestStreak: 0,
         level: 1,
         xp: 0,
         coins: 0,
         difficulty: 'easy',
         gamesPlayed: { easy: 0, medium: 0, hard: 0 },
         consecutiveHardWins: 0,
-        unlockedFeatures: ['basic'],
+        unlockedFeatures: [],
         challengeMode: null,
         stats: {
             puzzlesSolved: 0,
             totalPoints: 0,
             hintsUsed: 0,
-            perfectSolutions: 0
-        }
+        },
+        isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false,
+        timeLeft: 60,
+        timerInterval: null,
     };
-    
-    // DOM elements
+
+    const audioElements = {
+        select: new Audio('/audio/click.mp3'),
+        found: new Audio('/audio/correct.mp3'),
+        win: new Audio('/audio/win.mp3'),
+        error: new Audio('/audio/wrong.mp3')
+    };
+
     const elements = {
         tilesContainer: document.getElementById('scramble-tiles'),
         operatorsContainer: document.getElementById('scramble-operators'),
@@ -35,15 +42,117 @@ export function initPuzzle() {
         clearBtn: document.getElementById('scramble-clear'),
         newBtn: document.getElementById('scramble-new'),
         hintBtn: document.getElementById('scramble-hint'),
-        feedbackEl: document.getElementById('scramble-feedback'),
         targetEl: document.getElementById('scramble-target'),
         scoreEl: document.getElementById('scramble-score'),
         levelEl: document.getElementById('scramble-level'),
-        streakEl: document.getElementById('scramble-streak'),
-        progressEl: document.getElementById('scramble-progress'),
-        xpBar: document.getElementById('scramble-xp-bar'),
+        timeEl: document.getElementById('scramble-time') || createTimeElement(),
+        expressionEl: document.getElementById('scramble-expression') || createExpressionElement(),
         coinsEl: document.getElementById('scramble-coins')
     };
+
+    function playSound(type) {
+        if (gameState.isMuted) {
+            console.log(`Sound ${type} skipped: muted`);
+            return;
+        }
+        if (audioElements[type]) {
+            audioElements[type].currentTime = 0;
+            audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+        }
+    }
+
+    function stopSound(type) {
+        if (audioElements[type]) {
+            audioElements[type].pause();
+            audioElements[type].currentTime = 0;
+        }
+    }
+
+    function stopAllSounds() {
+        Object.keys(audioElements).forEach(type => stopSound(type));
+    }
+
+    function createTimeElement() {
+        const element = document.createElement('span');
+        element.id = 'scramble-time';
+        element.className = 'timer-value';
+        const meta = document.querySelector('.puzzle-meta');
+        if (meta) meta.appendChild(element);
+        return element;
+    }
+
+    function createExpressionElement() {
+        const element = document.createElement('div');
+        element.id = 'scramble-expression';
+        element.className = 'scramble-expression';
+        const targetEl = document.getElementById('scramble-target');
+        if (targetEl) targetEl.parentNode.insertBefore(element, targetEl.nextSibling);
+        return element;
+    }
+
+    function startTimer() {
+        console.log('Starting timer');
+        if (gameState.timerInterval) {
+            clearInterval(gameState.timerInterval);
+        }
+        gameState.timeLeft = 60;
+        updateTimer();
+        gameState.timerInterval = setInterval(() => {
+            console.log(`Timer tick: ${gameState.timeLeft}`);
+            gameState.timeLeft = Math.max(0, gameState.timeLeft - 1);
+            updateTimer();
+            if (gameState.timeLeft <= 0) {
+                console.log('Timer expired');
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+                updateFeedback('error', "Time's up!");
+                gameState.consecutiveHardWins = 0;
+                playSound('error');
+                setTimeout(generateNewPuzzle, 2000);
+            }
+        }, 1000);
+    }
+
+    function updateTimer() {
+        if (elements.timeEl) {
+            const minutes = Math.floor(gameState.timeLeft / 60);
+            const seconds = gameState.timeLeft % 60;
+            elements.timeEl.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            elements.timeEl.className = `timer-value ${gameState.timeLeft <= 10 ? 'time-critical' : ''}`;
+        } else {
+            console.warn('Timer element not found');
+        }
+    }
+
+    function showConfetti(options = {}) {
+        console.log('Triggering confetti');
+        if (typeof confetti === 'undefined') {
+            console.error('Confetti library not loaded');
+            return;
+        }
+        const defaults = {
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+        };
+        
+        confetti({
+            ...defaults,
+            ...options
+        });
+        
+        if (Math.random() > 0.5) {
+            setTimeout(() => {
+                confetti({
+                    ...defaults,
+                    ...options,
+                    angle: Math.random() * 180 - 90,
+                    origin: { x: Math.random(), y: 0.6 }
+                });
+            }, 300);
+        }
+    }
 
     function trackEvent(action, category, label, value) {
         if (typeof gtag !== 'undefined') {
@@ -51,76 +160,69 @@ export function initPuzzle() {
         }
     }
 
-    // Clear current input
     function clearInput() {
         gameState.currentExpression = '';
         gameState.usedNumbers = [];
+        gameState.usedIndices = [];
         renderTiles();
+        renderExpression();
         updateFeedback('info', 'Cleared');
+        playSound('select');
     }
 
-    // Initialize the game
     function initGame() {
         setupEventListeners();
         generateNewPuzzle();
         updateUI();
+        if (gameState.isMuted) {
+            stopAllSounds();
+        }
+        const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+        if (muteBtnIcon) {
+            muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
+        }
     }
-    
-    // Generate new puzzle with progressive difficulty
+
     function generateNewPuzzle() {
-        trackEvent('scramble_started', 'number_scramble',1);
-        // Clear previous state
+        trackEvent('scramble_started', 'number_scramble', 1);
         gameState.currentExpression = '';
         gameState.usedNumbers = [];
-        
-        // Generate new puzzle
+        gameState.usedIndices = [];
         gameState.numbers = generateNumbers();
         gameState.target = generateTarget();
-        
-        // Update UI
         renderTiles();
         renderOperators();
+        renderExpression();
         updateUI();
-        
-        // Flash the new target
+        startTimer();
         flashTarget();
     }
 
     function flashTarget() {
-        const targetEl = elements.targetEl;
-        targetEl.style.transition = 'all 0.3s';
-        
-        // Flash animation
-        targetEl.style.transform = 'scale(1.2)';
-        targetEl.style.color = '#ffd700';
-        
+        elements.targetEl.style.transition = 'all 0.3s';
+        elements.targetEl.style.transform = 'scale(1.2)';
+        elements.targetEl.style.color = '#ffd700';
         setTimeout(() => {
-            targetEl.style.transform = 'scale(1)';
-            targetEl.style.color = '';
+            elements.targetEl.style.transform = 'scale(1)';
+            elements.targetEl.style.color = '';
         }, 500);
     }
-    
-    // Generate numbers based on difficulty
+
     function generateNumbers() {
         const count = 6 + Math.floor(gameState.level / 5);
         const numbers = [];
-        
         for (let i = 0; i < count; i++) {
             let max = 9;
             if (gameState.difficulty === 'medium') max = 15;
             if (gameState.difficulty === 'hard') max = 25;
             if (gameState.difficulty === 'expert') max = 50;
-            
             numbers.push(Math.floor(Math.random() * max) + 1);
         }
-        
         return numbers;
     }
-    
-    // Generate target based on difficulty
+
     function generateTarget() {
         let min = 10, max = 100;
-        
         if (gameState.difficulty === 'medium') {
             min = 50;
             max = 200;
@@ -131,11 +233,9 @@ export function initPuzzle() {
             min = 200;
             max = 1000;
         }
-        
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
-    
-    // Update difficulty based on games played
+
     function updateDifficulty() {
         if (gameState.gamesPlayed.easy < 5) {
             gameState.difficulty = 'easy';
@@ -145,25 +245,22 @@ export function initPuzzle() {
             gameState.difficulty = 'hard';
         }
     }
-    
-    // Render number tiles
+
     function renderTiles() {
         elements.tilesContainer.innerHTML = '';
         gameState.numbers.forEach((num, index) => {
             const tile = document.createElement('div');
-            tile.className = `scramble-tile ${gameState.usedNumbers.includes(index) ? 'used' : ''}`;
+            tile.className = `scramble-tile ${gameState.usedIndices.includes(index) ? 'used' : ''}`;
             tile.textContent = num;
             tile.dataset.index = index;
             tile.addEventListener('click', () => selectNumber(index));
             elements.tilesContainer.appendChild(tile);
         });
     }
-    
-    // Render operator buttons
+
     function renderOperators() {
         elements.operatorsContainer.innerHTML = '';
         const operators = ['+', '-', '*', '/'];
-        
         operators.forEach(op => {
             const btn = document.createElement('button');
             btn.className = 'btn small';
@@ -172,34 +269,46 @@ export function initPuzzle() {
             elements.operatorsContainer.appendChild(btn);
         });
     }
-    
-    // Select number
-    function selectNumber(index) {
-        gameState.currentExpression += gameState.numbers[index];
-        renderTiles();
-        updateFeedback('info', `Current: ${gameState.currentExpression}`);
+
+    function renderExpression() {
+        elements.expressionEl.innerHTML = gameState.currentExpression ?
+            `Current: <span class="expression-value">${gameState.currentExpression}</span>` :
+            'Current: <span class="expression-value">Empty</span>';
+        elements.expressionEl.className = 'scramble-expression';
     }
-    
-    // Add operator
+
+    function selectNumber(index) {
+        if (!gameState.usedIndices.includes(index)) {
+            gameState.currentExpression += gameState.numbers[index];
+            gameState.usedIndices.push(index);
+            gameState.usedNumbers.push(gameState.numbers[index]);
+            renderTiles();
+            renderExpression();
+            updateFeedback('info', `Current: ${gameState.currentExpression}`);
+            playSound('select');
+        }
+    }
+
     function addOperator(op) {
         gameState.currentExpression += op;
-        gameState.usedNumbers = [];
-        renderTiles();
+        renderExpression();
         updateFeedback('info', `Current: ${gameState.currentExpression}`);
+        playSound('select');
     }
-    
-    // Submit solution
+
     function submitSolution() {
         if (!gameState.currentExpression || gameState.currentExpression === gameState.target.toString()) {
             updateFeedback('error', 'Create an expression using the numbers!');
+            playSound('error');
             return;
         }
-    
+
         if (!/[\+\-\*\/]/.test(gameState.currentExpression)) {
             updateFeedback('error', 'Use at least one operator (+, -, *, /)');
+            playSound('error');
             return;
         }
-    
+
         try {
             const result = eval(gameState.currentExpression);
             if (Math.abs(result - gameState.target) < 0.0001) {
@@ -208,33 +317,25 @@ export function initPuzzle() {
                 handleIncorrectSolution(result);
             }
         } catch (error) {
+            console.error('Invalid expression:', error);
             updateFeedback('error', 'Invalid mathematical expression');
+            playSound('error');
         }
     }
-    
-    // Handle correct solution
+
     function handleCorrectSolution() {
         let points = 10;
-        
-        gameState.streak++;
-        if (gameState.streak > gameState.bestStreak) {
-            gameState.bestStreak = gameState.streak;
-        }
-        
+
         if (gameState.difficulty === 'medium') points *= 1.5;
         if (gameState.difficulty === 'hard') points *= 2;
         if (gameState.difficulty === 'expert') points *= 3;
-        
-        if (gameState.streak >= 5) points *= 1.5;
-        if (gameState.streak >= 10) points *= 2;
-        
+
         points = Math.round(points) || 0;
-        
+
         gameState.score += points;
         gameState.stats.puzzlesSolved++;
         gameState.stats.totalPoints += points;
         gameState.gamesPlayed[gameState.difficulty]++;
-        
         if (gameState.difficulty === 'hard') {
             gameState.consecutiveHardWins++;
             if (gameState.consecutiveHardWins >= 5) {
@@ -245,38 +346,34 @@ export function initPuzzle() {
         } else {
             gameState.consecutiveHardWins = 0;
         }
-        
+
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
         addXP(points);
         addCoins(Math.floor(points / 2));
-        
         updateDifficulty();
         updateFeedback('success', `Correct! ${gameState.currentExpression} = ${gameState.target} (+${points} points)`);
+        playSound('win');
+        showConfetti();
         updateUI();
-        
+
         setTimeout(() => {
-            elements.feedbackEl.textContent = '';
-            elements.feedbackEl.className = 'scramble-feedback';
+            renderExpression();
             generateNewPuzzle();
         }, 1500);
     }
-    
-    // Handle incorrect solution
+
     function handleIncorrectSolution(result) {
         updateFeedback('error', `Incorrect! ${gameState.currentExpression} = ${result} (Target: ${gameState.target})`);
-        resetStreak();
         if (gameState.difficulty === 'hard') {
             gameState.consecutiveHardWins = 0;
         }
+        playSound('error');
     }
-    
-    // Reset streak
-    function resetStreak() {
-        gameState.streak = 0;
-        updateUI();
-    }
-    
-    // End game after 5 consecutive hard wins
+
     function endGame() {
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = null;
         updateFeedback('success', 'Congratulations! You won the game with 5 consecutive hard-level victories!');
         elements.submitBtn.disabled = true;
         elements.clearBtn.disabled = true;
@@ -284,26 +381,47 @@ export function initPuzzle() {
         elements.hintBtn.disabled = true;
         elements.tilesContainer.innerHTML = '';
         elements.operatorsContainer.innerHTML = '';
-        if (elements.progressEl) {
-            elements.progressEl.textContent = '';
-        }
+        elements.expressionEl.innerHTML = '';
+        const victoryScreen = document.createElement('div');
+        victoryScreen.className = 'victory-screen';
+        victoryScreen.innerHTML = `
+            <h2>Victory!</h2>
+            <p>Congratulations! You won with 5 consecutive hard-level victories!</p>
+            <p>Score: ${gameState.score} | Level: ${gameState.level}</p>
+            <div class="countdown">Starting new game in 5...</div>
+        `;
+        document.body.appendChild(victoryScreen);
+        showConfetti({ particleCount: 200, spread: 100 });
+        let countdown = 5;
+        const countdownElement = victoryScreen.querySelector('.countdown');
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = `Starting new game in ${countdown}...`;
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                victoryScreen.remove();
+                gameState.consecutiveHardWins = 0;
+                gameState.score = 0;
+                gameState.level = 1;
+                gameState.xp = 0;
+                gameState.gamesPlayed = { easy: 0, medium: 0, hard: 0 };
+                initGame();
+            }
+        }, 1000);
     }
-    
-    // Add XP and check for level up
+
     function addXP(amount) {
         gameState.xp += amount;
         const xpNeeded = gameState.level * 100;
-        
         if (gameState.xp >= xpNeeded) {
             gameState.level++;
             gameState.xp = gameState.xp - xpNeeded;
             showRewardNotification(`Level Up! Now level ${gameState.level}`, 100);
+            showConfetti({ particleCount: 150, spread: 80 });
         }
-        
         updateUI();
     }
-    
-    // Add coins
+
     function addCoins(amount) {
         gameState.coins += amount;
         if (amount > 0) {
@@ -311,8 +429,7 @@ export function initPuzzle() {
         }
         updateUI();
     }
-    
-    // Show reward notification
+
     function showRewardNotification(message, amount) {
         const notification = document.createElement('div');
         notification.className = 'reward-notification';
@@ -321,11 +438,9 @@ export function initPuzzle() {
             ${amount ? `<div class="reward-amount">+${amount}</div>` : ''}
         `;
         document.body.appendChild(notification);
-        
         setTimeout(() => {
             notification.classList.add('show');
         }, 10);
-        
         setTimeout(() => {
             notification.classList.remove('show');
             setTimeout(() => {
@@ -333,72 +448,63 @@ export function initPuzzle() {
             }, 300);
         }, 3000);
     }
-    
-    // Update feedback display
+
     function updateFeedback(type, message) {
-        elements.feedbackEl.textContent = message;
-        elements.feedbackEl.className = `scramble-feedback ${type}`;
+        elements.expressionEl.textContent = message;
+        elements.expressionEl.className = `scramble-expression feedback-${type}`;
+        if (type === 'success' || type === 'error') {
+            setTimeout(() => {
+                renderExpression();
+            }, 1500);
+        }
     }
-    
-    // Update all UI elements
+
     function updateUI() {
         elements.targetEl.innerHTML = `
             Target: <span class="difficulty-${gameState.difficulty}"><b>${gameState.target}</b></span>
             <span class="difficulty-${gameState.difficulty}">(${gameState.difficulty})</span>
         `;
         elements.scoreEl.textContent = `Score: ${gameState.score}`;
-        
-        if (elements.streakEl) {
-            elements.streakEl.innerHTML = gameState.streak > 0 ? 
-                `Streak: ${gameState.streak} <span class="streak-fire">🔥</span>` : 
-                '';
-        }
-        
         if (elements.levelEl) {
             elements.levelEl.textContent = `Level: ${gameState.level}`;
         }
-        
-        if (elements.xpBar) {
-            const xpNeeded = gameState.level * 100;
-            const percentage = (gameState.xp / xpNeeded) * 100;
-            elements.xpBar.style.width = `${percentage}%`;
-        }
-        
         if (elements.coinsEl) {
             elements.coinsEl.textContent = `Coins: ${gameState.coins}`;
         }
-        
-        if (elements.progressEl) {
-            if (gameState.difficulty === 'easy') {
-                const remaining = 5 - gameState.gamesPlayed.easy;
-                elements.progressEl.textContent = `${remaining} more game${remaining === 1 ? '' : 's'} to Medium`;
-            } else if (gameState.difficulty === 'medium') {
-                const remaining = 5 - gameState.gamesPlayed.medium;
-                elements.progressEl.textContent = `${remaining} more game${remaining === 1 ? '' : 's'} to Hard`;
-            } else if (gameState.difficulty === 'hard') {
-                const remaining = 5 - gameState.consecutiveHardWins;
-                elements.progressEl.textContent = `${remaining} more consecutive win${remaining === 1 ? '' : 's'} to win the game`;
-            }
-        }
     }
-    
-    // Setup event listeners
+
     function setupEventListeners() {
         elements.submitBtn.addEventListener('click', submitSolution);
         elements.clearBtn.addEventListener('click', clearInput);
         elements.newBtn.addEventListener('click', generateNewPuzzle);
         elements.hintBtn.addEventListener('click', showHint);
-    }
-
-    // Show hint
-    function showHint() {
-        gameState.stats.hintsUsed++;
-        
-        if (gameState.numbers.length > 0) {
-            updateFeedback('hint', `Try starting with ${gameState.numbers[0]}`);
+        const muteBtn = document.getElementById('mute-btn');
+        const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', () => {
+                gameState.isMuted = !gameState.isMuted;
+                localStorage.setItem('triviaMastermuteState', gameState.isMuted);
+                if (muteBtnIcon) {
+                    muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
+                }
+                if (gameState.isMuted) {
+                    stopAllSounds();
+                }
+            });
         }
     }
-    
-    // Start the game
+
+    function showHint() {
+        gameState.stats.hintsUsed++;
+        if (gameState.numbers.length > 0) {
+            updateFeedback('hint', `Try starting with ${gameState.numbers[0]}`);
+            playSound('select');
+        }
+    }
+
     initGame();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    initPuzzle();
+});

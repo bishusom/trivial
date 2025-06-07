@@ -527,7 +527,12 @@ export function initWordGame() {
       consecutiveWins = 0;
       currentLevel++;
     } else {
-      victoryMessage = `🎊 Great job! ${3 - consecutiveWins} more wins to advance. 🎊`;
+      if ( difficulty == 'hard') {
+        victoryMessage =  `🎊 Great job in tackling this hard level!🎊`;
+      }
+      else {
+        victoryMessage = `🎊 Great job! ${3 - consecutiveWins} more wins to advance. 🎊`;
+      }
     }
 
     victoryScreen.innerHTML = `

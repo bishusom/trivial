@@ -519,71 +519,6 @@ async function showQuestion() {
     startTimer();
 }
 
-/*
-async function showQuestion() {
-    toggleClass(document.querySelector('.app-footer'), 'add', 'hidden');
-    els.question().classList.remove('correct-bg', 'wrong-bg');
-    const q = state.questions[state.current];
-    if (!q) return endGame();
-    
-    const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
-    
-    // Clear previous content
-    els.question().innerHTML = '';
-    
-    // Add loading state while fetching image
-    els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
-    
-    try {
-        // Fetch and display image (if available)
-        const imageUrl = await fetchImage(extractKeywordNLP(q.question));
-        
-        // Build question HTML
-        let questionHTML = '';
-        
-        if (imageUrl) {
-            questionHTML += `
-                <div class="question-image-container">
-                    <img src="${imageUrl}" alt="${extractKeywordNLP(q.question)}" class="question-image">
-                </div>
-            `;
-        }
-        
-        questionHTML += `
-            <div class="question-text">${q.question}</div>
-            <div class="question-meta">
-                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
-                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
-            </div>
-        `;
-        
-        els.question().innerHTML = questionHTML;
-        
-    } catch (error) {
-        console.error('Error loading question image:', error);
-        // Fallback to text-only question if image loading fails
-        els.question().innerHTML = `
-            <div class="question-text">${q.question}</div>
-            <div class="question-meta">
-                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
-                ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
-            </div>
-        `;
-    }
-    
-    // Rest of your existing code
-    els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
-    if (els.questionCounter()) {
-        els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
-    }
-    toggleClass(els.game(), 'add', 'active');
-    toggleClass(els.summary(), 'remove', 'active');
-    els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';
-    els.totalTimer().textContent = state.isTimedMode ? `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}` : 'N/A';
-    setupOptionEvents();
-    startTimer();
-} */
-
 function setupOptionEvents() {
     const optionsContainer = els.options();
     if (!optionsContainer) {
@@ -642,7 +577,11 @@ function checkAnswer(correct) {
     state.answers.push({ correct });
     clearInterval(state.timerId);
     clearInterval(state.totalTimerId);
-    els.question().classList.add(correct ? 'correct-bg' : 'wrong-bg');
+    //els.question().classList.add(correct ? 'correct-bg' : 'wrong-bg');
+    const questionEl = els.question();
+    questionEl.classList.remove('correct-bg', 'wrong-bg');
+    questionEl.classList.add(correct ? 'correct-bg' : 'wrong-bg');
+
     els.options().querySelectorAll('button').forEach(btn => {
         btn.disabled = true;
         btn.classList.add(btn.dataset.correct === 'true' ? 'correct' : 'wrong');
@@ -650,14 +589,14 @@ function checkAnswer(correct) {
     if (correct && state.isTimedMode) state.score += state.timeLeft * 10;
     els.score().textContent = state.score;
     const q = state.questions[state.current];
-    const existingTitbits = els.question().querySelector('.question-titbits');
+    const existingTitbits = questionEl.querySelector('.question-titbits');
     if (existingTitbits) existingTitbits.remove();
+    
     if (q.titbits) {
-        els.question().innerHTML += `
-            <div class="question-titbits">
-                <span class="titbits-icon">💡</span> Fun Fact: ${q.titbits}
-            </div>
-        `;
+        const titbitsEl = document.createElement('div');
+        titbitsEl.className = 'question-titbits';
+        titbitsEl.innerHTML = `<span class="titbits-icon">💡</span> Fun Fact: ${q.titbits}`;
+        questionEl.appendChild(titbitsEl);
     }
     if (state.current < state.selectedQuestions - 1) {
         els.nextBtn().classList.add('visible');

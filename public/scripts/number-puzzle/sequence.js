@@ -1,21 +1,132 @@
+/* global gtag, confetti */
+
 export function initPuzzle() {
-    const sequenceDisplay = document.getElementById('sequence-display');
-    const sequenceOptions = document.getElementById('sequence-options');
-    const sequenceFeedback = document.getElementById('sequence-feedback');
-    const hintText = document.getElementById('hint-text');
-    const sequenceHint = document.getElementById('sequence-hint');
-    const sequenceNext = document.getElementById('sequence-next');
-    const sequenceNew = document.getElementById('sequence-new');
-    const sequenceLevel = document.getElementById('sequence-level');
-    const sequenceScore = document.getElementById('sequence-score');
-    
-    let currentSequence = [];
-    let correctAnswer = 0;
-    let level = 1;
-    let score = 0;
-    let sequencesSolved = 0;
-    let timeoutId = null;
-    
+    const gameState = {
+        currentSequence: [],
+        correctAnswer: 0,
+        level: 1,
+        score: 0,
+        sequencesSolved: 0,
+        timeoutId: null,
+        isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false,
+        timeLeft: 120,
+        timerInterval: null
+    };
+
+    const audioElements = {
+        select: new Audio('/audio/click.mp3'),
+        found: new Audio('/audio/correct.mp3'),
+        win: new Audio('/audio/win.mp3'),
+        error: new Audio('/audio/wrong.mp3')
+    };
+
+    const elements = {
+        sequenceDisplay: document.getElementById('sequence-display'),
+        sequenceOptions: document.getElementById('sequence-options'),
+        sequenceFeedback: document.getElementById('sequence-feedback'),
+        hintText: document.getElementById('hint-text'),
+        sequenceHint: document.getElementById('sequence-hint'),
+        sequenceNext: document.getElementById('sequence-next'),
+        sequenceNew: document.getElementById('sequence-new'),
+        sequenceLevel: document.getElementById('sequence-level'),
+        sequenceScore: document.getElementById('sequence-score'),
+        timeEl: document.getElementById('sequence-time') || createTimeElement()
+    };
+
+    function playSound(type) {
+        if (gameState.isMuted) {
+            console.log(`Sound ${type} skipped: muted`);
+            return;
+        }
+        if (audioElements[type]) {
+            audioElements[type].currentTime = 0;
+            audioElements[type].play().catch(err => console.error(`Error playing ${type} sound:`, err));
+        }
+    }
+
+    function stopSound(type) {
+        if (audioElements[type]) {
+            audioElements[type].pause();
+            audioElements[type].currentTime = 0;
+        }
+    }
+
+    function stopAllSounds() {
+        Object.keys(audioElements).forEach(type => stopSound(type));
+    }
+
+    function createTimeElement() {
+        const element = document.createElement('span');
+        element.id = 'sequence-time';
+        element.className = 'timer-value';
+        const meta = document.querySelector('.puzzle-meta');
+        if (meta) meta.appendChild(element);
+        return element;
+    }
+
+    function startTimer() {
+        console.log('Starting timer');
+        if (gameState.timerInterval) {
+            clearInterval(gameState.timerInterval);
+        }
+        gameState.timeLeft = 120;
+        updateTimer();
+        gameState.timerInterval = setInterval(() => {
+            console.log(`Timer tick: ${gameState.timeLeft}`);
+            gameState.timeLeft = Math.max(0, gameState.timeLeft - 1);
+            updateTimer();
+            if (gameState.timeLeft <= 0) {
+                console.log('Timer expired');
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+                elements.sequenceFeedback.textContent = "Time's up!";
+                elements.sequenceFeedback.className = 'sequence-feedback wrong';
+                playSound('error');
+                setTimeout(generateSequence, 2000);
+            }
+        }, 1000);
+    }
+
+    function updateTimer() {
+        if (elements.timeEl) {
+            const minutes = Math.floor(gameState.timeLeft / 60);
+            const seconds = gameState.timeLeft % 60;
+            elements.timeEl.textContent = `Time: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            elements.timeEl.className = `timer-value ${gameState.timeLeft <= 10 ? 'time-critical' : ''}`;
+        } else {
+            console.warn('Timer element not found');
+        }
+    }
+
+    function showConfetti(options = {}) {
+        console.log('Triggering confetti');
+        if (typeof confetti === 'undefined') {
+            console.error('Confetti library not loaded');
+            return;
+        }
+        const defaults = {
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+        };
+        
+        confetti({
+            ...defaults,
+            ...options
+        });
+        
+        if (Math.random() > 0.5) {
+            setTimeout(() => {
+                confetti({
+                    ...defaults,
+                    ...options,
+                    angle: Math.random() * 180 - 90,
+                    origin: { x: Math.random(), y: 0.6 }
+                });
+            }, 300);
+        }
+    }
 
     function trackEvent(action, category, label, value) {
         if (typeof gtag !== 'undefined') {
@@ -23,203 +134,178 @@ export function initPuzzle() {
         }
     }
 
-    // Initialize the game
-    initGame();
-    
     function initGame() {
-        // Clear any pending timeout when starting a new game manually
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
+        if (gameState.timeoutId) {
+            clearTimeout(gameState.timeoutId);
+            gameState.timeoutId = null;
         }
-        level = 1;
-        score = 0;
-        sequencesSolved = 0;
+        gameState.level = 1;
+        gameState.score = 0;
+        gameState.sequencesSolved = 0;
+        gameState.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
         updateStats();
         generateSequence();
-        trackEvent('sequence_started','number_sequence',1)
+        startTimer();
+        trackEvent('sequence_started', 'number_sequence', 1);
+        if (gameState.isMuted) {
+            stopAllSounds();
+        }
+        const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+        if (muteBtnIcon) {
+            muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
+        }
     }
-    
-    // Sequence generation functions
+
     function generateArithmeticSequence() {
         const start = Math.floor(Math.random() * 10) + 1;
         const difference = Math.floor(Math.random() * 6) + 2;
-        const length = Math.floor(Math.random() * 3) + 4; // 4-6 numbers
-        console.log('length',length);
+        const length = Math.floor(Math.random() * 3) + 4;
         const sequence = [];
         for (let i = 0; i < length; i++) {
             sequence.push(start + i * difference);
         }
-        console.log('sequence',sequence);
         return {
-            sequence: sequence.slice(0, -1), // Show all but last
+            sequence: sequence.slice(0, -1),
             answer: sequence[sequence.length - 1],
             description: `Arithmetic sequence: add ${difference} each time`
         };
     }
-    
+
     function generateGeometricSequence() {
         const start = Math.floor(Math.random() * 5) + 1;
         const ratio = Math.floor(Math.random() * 3) + 2;
         const length = Math.floor(Math.random() * 3) + 4;
-        
         const sequence = [];
         for (let i = 0; i < length; i++) {
             sequence.push(start * Math.pow(ratio, i));
         }
-        
         return {
             sequence: sequence.slice(0, -1),
             answer: sequence[sequence.length - 1],
             description: `Geometric sequence: multiply by ${ratio} each time`
         };
     }
-    
+
     function generateSquareSequence() {
         const start = Math.floor(Math.random() * 5) + 1;
         const length = Math.floor(Math.random() * 3) + 4;
-        
         const sequence = [];
         for (let i = 0; i < length; i++) {
             sequence.push(Math.pow(start + i, 2));
         }
-        
         return {
             sequence: sequence.slice(0, -1),
             answer: sequence[sequence.length - 1],
             description: `Square numbers: n² where n starts at ${start}`
         };
     }
-    
+
     function generatePrimeSequence() {
         const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
         const start = Math.floor(Math.random() * 4);
         const length = Math.floor(Math.random() * 3) + 4;
-        
         const sequence = primes.slice(start, start + length);
-        
         return {
             sequence: sequence.slice(0, -1),
             answer: sequence[sequence.length - 1],
             description: `Prime number sequence`
         };
     }
-    
+
     function generateFibonacciLikeSequence() {
         const a = Math.floor(Math.random() * 5) + 1;
         const b = Math.floor(Math.random() * 5) + 1;
         const length = Math.floor(Math.random() * 3) + 5;
-        
         const sequence = [a, b];
         for (let i = 2; i < length; i++) {
             sequence.push(sequence[i-1] + sequence[i-2]);
         }
-        
         return {
             sequence: sequence.slice(0, -1),
             answer: sequence[sequence.length - 1],
             description: `Fibonacci-like sequence: each number is the sum of the two preceding ones`
         };
     }
-    
+
     function generateMixedSequence() {
-        // Only select from moderate or complex sequences for higher difficulty
-        const types = [
-            generateSquareSequence,        // Tier 2
-            generatePrimeSequence,         // Tier 2
-            generateFibonacciLikeSequence  // Tier 3
-        ];
-        
+        const types = [generateSquareSequence, generatePrimeSequence, generateFibonacciLikeSequence];
         return types[Math.floor(Math.random() * types.length)]();
     }
-    
+
     function generateSequence() {
-        // Clear previous
-        sequenceDisplay.innerHTML = '';
-        sequenceOptions.innerHTML = '';
-        sequenceFeedback.textContent = '';
-        hintText.textContent = '';
-    
-        // Sequence types by difficulty tiers
+        elements.sequenceDisplay.innerHTML = '';
+        elements.sequenceOptions.innerHTML = '';
+        elements.sequenceFeedback.textContent = '';
+        elements.hintText.textContent = '';
+
         const sequenceTypes = [
-            generateArithmeticSequence, // Tier 1
-            generateGeometricSequence,  // Tier 1
-            generateSquareSequence,     // Tier 2
-            generatePrimeSequence,      // Tier 2
-            generateFibonacciLikeSequence, // Tier 3
-            generateMixedSequence       // Tier 3
+            generateArithmeticSequence,
+            generateGeometricSequence,
+            generateSquareSequence,
+            generatePrimeSequence,
+            generateFibonacciLikeSequence,
+            generateMixedSequence
         ];
-    
-        // Determine sequence type based on level
+
         let typeIndex;
-        if (level <= 2) {
-            // Levels 1-2: Only Tier 1 (arithmetic, geometric)
-            typeIndex = Math.floor(Math.random() * 2); // 0 or 1
-        } else if (level <= 4) {
-            // Levels 3-4: 70% Tier 1, 30% Tier 2
-            typeIndex = Math.random() < 0.7 ? Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 2); // 0, 1, 2, or 3
-        } else if (level <= 6) {
-            // Levels 5-6: 50% Tier 2, 30% Tier 1, 20% Tier 3
+        if (gameState.level <= 2) {
+            typeIndex = Math.floor(Math.random() * 2);
+        } else if (gameState.level <= 4) {
+            typeIndex = Math.random() < 0.7 ? Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 2);
+        } else if (gameState.level <= 6) {
             const rand = Math.random();
             if (rand < 0.5) {
-                typeIndex = 2 + Math.floor(Math.random() * 2); // 2 or 3
+                typeIndex = 2 + Math.floor(Math.random() * 2);
             } else if (rand < 0.8) {
-                typeIndex = Math.floor(Math.random() * 2); // 0 or 1
+                typeIndex = Math.floor(Math.random() * 2);
             } else {
-                typeIndex = 4 + Math.floor(Math.random() * 2); // 4 or 5
+                typeIndex = 4 + Math.floor(Math.random() * 2);
             }
         } else {
-            // Levels 7+: 60% Tier 3, 30% Tier 2, 10% Tier 1
             const rand = Math.random();
             if (rand < 0.6) {
-                typeIndex = 4 + Math.floor(Math.random() * 2); // 4 or 5
+                typeIndex = 4 + Math.floor(Math.random() * 2);
             } else if (rand < 0.9) {
-                typeIndex = 2 + Math.floor(Math.random() * 2); // 2 or 3
+                typeIndex = 2 + Math.floor(Math.random() * 2);
             } else {
-                typeIndex = Math.floor(Math.random() * 2); // 0 or 1
+                typeIndex = Math.floor(Math.random() * 2);
             }
         }
-    
+
         const { sequence, answer, description } = sequenceTypes[typeIndex]();
         
-        currentSequence = sequence;
-        correctAnswer = answer;
-        
-        // Display the sequence
+        gameState.currentSequence = sequence;
+        gameState.correctAnswer = answer;
+
         sequence.forEach((num, index) => {
             const numElement = document.createElement('span');
             numElement.className = 'sequence-number';
             numElement.textContent = num;
-            sequenceDisplay.appendChild(numElement);
+            elements.sequenceDisplay.appendChild(numElement);
         });
         const lastElement = document.createElement('span');
         lastElement.className = 'sequence-number missing';
         lastElement.textContent = '?';
-        sequenceDisplay.appendChild(lastElement);
-    
-        // Generate options (3 wrong, 1 correct)
+        elements.sequenceDisplay.appendChild(lastElement);
+
         const options = generateOptions(answer);
         options.forEach((option, index) => {
             const optionBtn = document.createElement('button');
             optionBtn.className = 'btn';
             optionBtn.textContent = option;
             optionBtn.addEventListener('click', () => checkAnswer(option));
-            sequenceOptions.appendChild(optionBtn);
+            elements.sequenceOptions.appendChild(optionBtn);
         });
-        
-        // Store description for hints
-        hintText.dataset.description = description;
+
+        elements.hintText.dataset.description = description;
+        startTimer();
     }
-    
+
     function generateOptions(correctAnswer) {
-        console.log('correctAnswer',correctAnswer);
         const options = [correctAnswer];
-        
-        // Generate 3 wrong answers
         while (options.length < 4) {
             let wrongAnswer;
             const variation = Math.floor(Math.random() * 3) + 1;
-            
             switch (variation) {
                 case 1:
                     wrongAnswer = correctAnswer + (Math.floor(Math.random() * 5)) + 1;
@@ -231,75 +317,102 @@ export function initPuzzle() {
                     wrongAnswer = correctAnswer * (Math.floor(Math.random() * 2)) + 1;
                     break;
             }
-            
-            // Ensure wrong answer is positive and unique
             if (wrongAnswer > 0 && !options.includes(wrongAnswer)) {
                 options.push(wrongAnswer);
             }
         }
-        
-        // Shuffle options
         return options.sort(() => Math.random() - 0.5);
     }
-    
+
     function checkAnswer(selected) {
-        if (parseInt(selected) === correctAnswer) {
-            sequenceFeedback.textContent = 'Correct! Well done!';
-            sequenceFeedback.className = 'sequence-feedback correct';
+        playSound('select');
+        if (parseInt(selected) === gameState.correctAnswer) {
+            elements.sequenceFeedback.textContent = 'Correct! Well done!';
+            elements.sequenceFeedback.className = 'sequence-feedback correct';
             
-            score += level * 10;
-            sequencesSolved++;
+            gameState.score += gameState.level * 10;
+            gameState.sequencesSolved++;
             
-            if (sequencesSolved >= 3) {
-                level++;
-                sequencesSolved = 0;
+            if (gameState.sequencesSolved >= 3) {
+                gameState.level++;
+                gameState.sequencesSolved = 0;
+                showConfetti({ particleCount: 150, spread: 80 });
+            } else {
+                showConfetti();
             }
             
             updateStats();
             
             document.querySelectorAll('#sequence-options button').forEach(btn => {
                 btn.disabled = true;
-                if (parseInt(btn.textContent) === correctAnswer) {
+                if (parseInt(btn.textContent) === gameState.correctAnswer) {
                     btn.classList.add('correct');
                 }
             });
             
-            // Start a new game after 2.5 seconds
-            timeoutId = setTimeout(() => {
-                generateSequence();
-                timeoutId = null;
-            }, 2500);
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = null;
+            playSound('win');
+            trackEvent('sequence_solved', 'number_sequence', gameState.level);
             
+            gameState.timeoutId = setTimeout(() => {
+                generateSequence();
+                gameState.timeoutId = null;
+            }, 2500);
         } else {
-            sequenceFeedback.textContent = `Incorrect. Try again!`;
-            sequenceFeedback.className = 'sequence-feedback wrong';
+            elements.sequenceFeedback.textContent = `Incorrect. Try again!`;
+            elements.sequenceFeedback.className = 'sequence-feedback wrong';
             
             document.querySelectorAll('#sequence-options button').forEach(btn => {
                 if (btn.textContent === selected) {
                     btn.classList.add('wrong');
                 }
             });
+            playSound('error');
         }
     }
-    
+
     function showHint() {
-        hintText.textContent = hintText.dataset.description;
+        elements.hintText.textContent = elements.hintText.dataset.description;
+        playSound('select');
     }
-    
+
     function updateStats() {
-        sequenceLevel.textContent = `Level: ${level}`;
-        sequenceScore.textContent = `Score: ${score}`;
+        elements.sequenceLevel.textContent = `Level: ${gameState.level}`;
+        elements.sequenceScore.textContent = `Score: ${gameState.score}`;
     }
-    
-    // Event listeners
-    sequenceHint.addEventListener('click', showHint);
-    sequenceNext.addEventListener('click', generateSequence);
-    sequenceNext.addEventListener('click', () => {
-        if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
+
+    function setupEventListeners() {
+        elements.sequenceHint.addEventListener('click', showHint);
+        elements.sequenceNext.addEventListener('click', () => {
+            playSound('select');
+            if (gameState.timeoutId) {
+                clearTimeout(gameState.timeoutId);
+                gameState.timeoutId = null;
+            }
+            generateSequence();
+        });
+        elements.sequenceNew.addEventListener('click', () => {
+            playSound('select');
+            initGame();
+        });
+        const muteBtn = document.getElementById('mute-btn');
+        const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', () => {
+                gameState.isMuted = !gameState.isMuted;
+                localStorage.setItem('triviaMasterMuteState', gameState.isMuted);
+                if (muteBtnIcon) {
+                    muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
+                }
+                if (gameState.isMuted) {
+                    stopAllSounds();
+                }
+                playSound('select');
+            });
         }
-        generateSequence();
-    });
-    sequenceNew.addEventListener('click', initGame);
+    }
+
+    initGame();
+    setupEventListeners();
 }

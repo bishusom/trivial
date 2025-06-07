@@ -208,52 +208,35 @@ export function initWordGame() {
   }
 
   async function initGameWithFirebaseWords(wordLength) {
-    console.log('Fetching fb db for wordLength ', wordLength);
-    const querySnapshot = await db.collection('wordLadders')
+    console.log('Fetching word ladder from Firebase...');
+    
+    // Get a random ladder of appropriate difficulty
+    const snapshot = await db.collection('wordLadders')
       .where('length', '==', wordLength)
-      .limit(50)
+      .where('difficulty', '==', difficulty)
+      .limit(100)
       .get();
 
-    if (querySnapshot.empty) {
-      throw new Error('No word pairs found in Firebase');
-    }
-
-    const pairs = querySnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        startWord: data.startWord?.toUpperCase(),
-        endWord: data.endWord?.toUpperCase()
-      };
-    }).filter(pair => pair.startWord && pair.endWord);
-
-    if (pairs.length === 0) {
-      throw new Error('No valid word pairs in Firebase');
-    }
-
-    const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
-    const pairKey = `${randomPair.startWord}-${randomPair.endWord}`;
-    if (usedPairs.has(pairKey)) {
-      throw new Error('Pair already used');
-    }
-
-    usedPairs.add(pairKey);
-    startWord = randomPair.startWord;
-    endWord = randomPair.endWord;
+    if (snapshot.empty) throw new Error('No ladders found');
+    
+    const ladders = snapshot.docs.map(doc => doc.data());
+    const randomLadder = ladders[Math.floor(Math.random() * ladders.length)];
+    
+    // Set game state
+    startWord = randomLadder.startWord.toUpperCase();
+    endWord = randomLadder.endWord.toUpperCase();
     currentWord = startWord;
-    ladderWords.push(startWord);
-    usedWords.add(startWord);
+    ladderWords = [startWord];
+    usedWords = new Set([startWord]);
 
-    // Display words
+    // Display
     startWordElement.textContent = startWord;
     endWordElement.textContent = endWord;
     renderCurrentWord();
-    renderLetterTiles();
     renderWordList();
-
-    // Start timer
-    startTimer();
-    showFeedback('Game started! Transform the start word to the end word.', 'info');
-    trackEvent('word_ladder_game_started', 'word_ladder', 'start', 1);
+    
+    // Store full solution path (for hints)
+    window.currentSolutionPath = randomLadder.path.map(w => w.toUpperCase());
   }
 
   async function initGameWithLocalWords(wordLength) {
@@ -624,33 +607,34 @@ export function initWordGame() {
       return;
     }
 
-    const transformations = await getValidTransformations(currentWord);
-    const validNextSteps = transformations.filter(word => 
-      !usedWords.has(word) && canLeadToSolution(word)
-    );
-
-    if (validNextSteps.length > 0) {
-      hintsUsed++;
-      const hintWord = validNextSteps[Math.floor(Math.random() * validNextSteps.length)];
-
-      let changeIndex = -1;
-      for (let i = 0; i < currentWord.length; i++) {
-        if (currentWord[i] !== hintWord[i]) {
-          changeIndex = i;
-          break;
-        }
-      }
-
-      if (changeIndex !== -1) {
-        selectLetter(changeIndex);
-        showFeedback(`Try changing the ${ordinal(changeIndex + 1)} letter to ${hintWord[changeIndex]}`, 'info');
-      } else {
-        showFeedback(`Try: ${hintWord}`, 'info');
-      }
-
-      trackEvent('hint_used', 'word_ladder', 'hint', hintsUsed);
-    } else {
+    // Find where player is in the solution path
+    const currentIndex = window.currentSolutionPath.indexOf(currentWord);
+    if (currentIndex === -1 || currentIndex >= window.currentSolutionPath.length - 1) {
       showFeedback('No hints available for this step', 'error');
+      return;
+    }
+
+    const nextWord = window.currentSolutionPath[currentIndex + 1];
+    let changeIndex = -1;
+    
+    // Find which letter changes
+    for (let i = 0; i < currentWord.length; i++) {
+      if (currentWord[i] !== nextWord[i]) {
+        changeIndex = i;
+        break;
+      }
+    }
+
+    hintsUsed++;
+    
+    if (changeIndex !== -1) {
+      selectLetter(changeIndex);
+      showFeedback(
+        `Change ${ordinal(changeIndex + 1)} letter to ${nextWord[changeIndex]} (→ ${nextWord})`, 
+        'info'
+      );
+    } else {
+      showFeedback(`Next step: ${nextWord}`, 'info');
     }
   }
 

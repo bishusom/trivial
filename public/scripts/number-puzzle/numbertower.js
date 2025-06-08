@@ -12,7 +12,8 @@ export function initPuzzle() {
         currentHeight: 0,
         lastNumber: null,
         isMuted: JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false,
-        timerInterval: null
+        timerInterval: null,
+        difficulty: 'medium' // Added difficulty state
     };
 
     const audioElements = {
@@ -35,7 +36,8 @@ export function initPuzzle() {
         towerHeight: document.getElementById('tower-height'),
         towerTarget: document.getElementById('tower-target'),
         towerObjective: document.getElementById('tower-objective'),
-        progressFill: document.getElementById('progress-fill')
+        progressFill: document.getElementById('progress-fill'),
+        towerDifficulty: document.getElementById('tower-difficulty') // Added difficulty element
     };
 
     function playSound(type) {
@@ -103,6 +105,8 @@ export function initPuzzle() {
         gameState.timeLeft = 180;
         gameState.currentHeight = 0;
         gameState.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
+        gameState.difficulty = localStorage.getItem('towerDifficulty') || 'medium'; // Load difficulty
+        setDifficulty(gameState.difficulty);
         updateStats();
         generateRule();
         generateGrid();
@@ -117,6 +121,24 @@ export function initPuzzle() {
             muteBtnIcon.textContent = gameState.isMuted ? 'volume_off' : 'volume_up';
         }
         playSound('select');
+    }
+
+    function setDifficulty(difficulty) {
+        gameState.difficulty = difficulty;
+        localStorage.setItem('towerDifficulty', difficulty);
+        switch(difficulty) {
+            case 'easy':
+                gameState.targetHeight = 3;
+                break;
+            case 'medium':
+                gameState.targetHeight = 5;
+                break;
+            case 'hard':
+                gameState.targetHeight = 8;
+                break;
+        }
+        elements.towerTarget.textContent = gameState.targetHeight;
+        updateStats();
     }
 
     function generateRule() {
@@ -203,10 +225,10 @@ export function initPuzzle() {
             rule = rules[Math.floor(Math.random() * rules.length)];
             const x = rule.xGenerator(gameState.level, range);
             generated = rule.numberGenerator(x, range);
-            if (generated.numbers.length >= 4) break;
+            if (generated.numbers.length >= gameState.targetHeight) break;
         }
         
-        if (generated.numbers.length < 4) {
+        if (generated.numbers.length < gameState.targetHeight) {
             rule = rules.find(r => r.name === "multiples");
             const x = rule.xGenerator(gameState.level);
             generated = rule.numberGenerator(x, range);
@@ -219,7 +241,6 @@ export function initPuzzle() {
             numbers: generated.numbers
         };
         
-        gameState.targetHeight = Math.min(4 + gameState.level, 10);
         elements.towerTarget.textContent = gameState.targetHeight;
         elements.towerHeight.textContent = gameState.currentHeight;
         elements.towerObjective.textContent = gameState.currentRule.text;
@@ -233,24 +254,110 @@ export function initPuzzle() {
         
         const gridSize = getGridSize();
         const totalCells = gridSize * gridSize;
-        
+        const range = getNumberRange();
         let numberPool = [];
-        const validNeeded = Math.max(4, Math.ceil(totalCells * 0.4));
-        const validToAdd = Math.min(validNeeded, gameState.currentRule.numbers.length);
         
-        while (numberPool.length < validToAdd) {
-            numberPool = numberPool.concat(
-                shuffleArray([...gameState.currentRule.numbers]).slice(0, validToAdd - numberPool.length)
+        // Generate a guaranteed valid sequence based on the current rule
+        let validSequence = [];
+        const rule = gameState.currentRule;
+        const x = rule.xValue;
+
+        if (rule.text.includes("multiples of")) {
+            let current = x;
+            while (current <= range && validSequence.length < gameState.targetHeight) {
+                validSequence.push(current);
+                current += x;
+            }
+            if (validSequence.length < gameState.targetHeight) {
+                validSequence = [];
+                current = x;
+                while (current <= range && validSequence.length < gameState.targetHeight) {
+                    validSequence.push(current);
+                    current += x;
+                }
+            }
+        } else if (rule.text.includes("factors of")) {
+            for (let i = 1; i <= x; i++) {
+                if (x % i === 0 && validSequence.length < gameState.targetHeight) {
+                    validSequence.push(i);
+                }
+            }
+            while (validSequence.length < gameState.targetHeight && validSequence.length > 0) {
+                validSequence.push(validSequence[validSequence.length - 1] * 2);
+            }
+        } else if (rule.text.includes("greater than")) {
+            let current = x + 1;
+            while (current <= range && validSequence.length < gameState.targetHeight) {
+                validSequence.push(current);
+                current++;
+            }
+        } else if (rule.text.includes("less than")) {
+            let current = 1;
+            while (current < x && validSequence.length < gameState.targetHeight) {
+                validSequence.push(current);
+                current++;
+            }
+        } else if (rule.text.includes("more than the last")) {
+            let current = 1;
+            while (current <= range && validSequence.length < gameState.targetHeight) {
+                validSequence.push(current);
+                current += x;
+            }
+            if (validSequence.length < gameState.targetHeight) {
+                validSequence = [];
+                current = 1;
+                while (current <= range && validSequence.length < gameState.targetHeight) {
+                    validSequence.push(current);
+                    current += x;
+                }
+            }
+        } else if (rule.text.includes("times the last")) {
+            let current = range;
+            validSequence = [];
+            while (current >= 1 && validSequence.length < gameState.targetHeight) {
+                if (current % x === 0 || validSequence.length === 0) {
+                    validSequence.unshift(current);
+                    current = current / x;
+                } else {
+                    current--;
+                }
+            }
+            validSequence.reverse();
+            if (validSequence.length < gameState.targetHeight) {
+                current = 1;
+                validSequence = [current];
+                while (current <= range && validSequence.length < gameState.targetHeight) {
+                    current *= x;
+                    if (current <= range) validSequence.push(current);
+                }
+            }
+        }
+
+        numberPool = [...validSequence];
+        
+        // Add other valid numbers that fit the rule to ensure enough options
+        const validNumbersNeeded = Math.max(gameState.targetHeight + 2, Math.ceil(totalCells * 0.4));
+        while (numberPool.length < validNumbersNeeded) {
+            const potentialNumbers = gameState.currentRule.numbers.filter(n => 
+                !numberPool.includes(n) && 
+                (gameState.currentHeight === 0 || gameState.currentRule.fn(n, gameState.lastNumber))
             );
+            if (potentialNumbers.length > 0) {
+                numberPool.push(potentialNumbers[Math.floor(Math.random() * potentialNumbers.length)]);
+            } else {
+                break;
+            }
         }
         
-        const randomNeeded = totalCells - numberPool.length;
-        for (let i = 0; i < randomNeeded; i++) {
-            numberPool.push(Math.floor(Math.random() * getNumberRange()) + 1);
+        // Fill remaining cells with random numbers within range
+        while (numberPool.length < totalCells) {
+            const randomNum = Math.floor(Math.random() * range) + 1;
+            numberPool.push(randomNum);
         }
         
         numberPool = shuffleArray(numberPool);
         
+        // Create the grid cells
         for (let i = 0; i < totalCells; i++) {
             const num = numberPool[i];
             gameState.currentNumbers.push(num);
@@ -276,16 +383,16 @@ export function initPuzzle() {
     }
 
     function getGridSize() {
-        if (gameState.level <= 3) return 4;
-        if (gameState.level <= 6) return 5;
-        return 6;
+        if (gameState.level <= 3) return 6;
+        if (gameState.level <= 6) return 8;
+        return 10;
     }
 
     function getNumberRange() {
         if (gameState.level <= 2) return 20;
-        if (gameState.level <= 4) return 30;
-        if (gameState.level <= 6) return 50;
-        return 75;
+        if (gameState.level <= 4) return 100;
+        if (gameState.level <= 6) return 500;
+        return 1000;
     }
 
     function handleCellClick(cell) {
@@ -409,6 +516,9 @@ export function initPuzzle() {
         elements.towerLevel.textContent = `Level: ${gameState.level}`;
         elements.towerScore.textContent = `Score: ${gameState.score}`;
         elements.towerTime.textContent = `Time: ${gameState.timeLeft}s`;
+        if (elements.towerDifficulty) {
+            elements.towerDifficulty.textContent = `Difficulty: ${gameState.difficulty.charAt(0).toUpperCase() + gameState.difficulty.slice(1)}`;
+        }
     }
 
     function updateProgress() {
@@ -428,6 +538,7 @@ export function initPuzzle() {
         gameState.currentHeight--;
         elements.towerHeight.textContent = gameState.currentHeight;
 
+        // Modified to clear both correct and wrong selections
         const lastSelectedCell = Array.from(document.querySelectorAll('.tower-cell.selected')).pop();
         if (lastSelectedCell) {
             lastSelectedCell.classList.remove('selected', 'correct', 'wrong');
@@ -463,6 +574,17 @@ export function initPuzzle() {
                 playSound('select');
             });
         }
+        // Add difficulty selection listeners
+        ['easy', 'medium', 'hard'].forEach(diff => {
+            const btn = document.getElementById(`difficulty-${diff}`);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    setDifficulty(diff);
+                    initGame();
+                    playSound('select');
+                });
+            }
+        });
     }
 
     initGame();

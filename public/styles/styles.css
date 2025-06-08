@@ -1,8 +1,8 @@
 /* Core Styles */
-/* :root {
+:root {
     --primary: #46178f;
     --secondary: #e22b5a;
-    --accent: #ffd700;
+    --accent: #00FFFF;  
     --card: #eb4ce0;
     --bg: #1a1a2e;
     --card-bg: #2a2a4a;
@@ -10,20 +10,20 @@
     --correct: #80e6a3;
     --wrong: #ff7d7d;
     --present: #ffd700;
-} */
+} 
 
-:root {
-    --primary: #ff008c;  /* Medium purple */
-    --secondary: #890044; /* Hot pink */
-    --accent: #00FFFF;   /* Cyan */
-    --card: #FF8C00;     /* Dark orange */
-    --bg: #0f0e17;      /* Almost black */
-    --card-bg: #242629;  /* Dark gray */
-    --text: #fffffe;     /* Off-white */
-    --correct: #38e69d;  /* Emerald */
-    --wrong: #ff6682;    /* Ruby */
-    --present: #ffd803;  /* Gold */
-}
+/*:root {
+    --primary: #ff008c;  
+    --secondary: #890044; 
+    --accent: #00FFFF;  
+    --card: #FF8C00;    
+    --bg: #0f0e17;      
+    --card-bg: #242629; 
+    --text: #fffffe;   
+    --correct: #38e69d; 
+    --wrong: #ff6682;  
+    --present: #ffd803;
+}*/
 
 * {
     box-sizing: border-box;

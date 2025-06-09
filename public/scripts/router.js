@@ -435,6 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showHomeScreen();
             } else if (path.startsWith('/trivias')) {
                     const triviaType = pathParts[1];
+                    document.querySelector('.floating-cta').classList.add('hidden');
                     if (triviaType === 'catalog') {
                         document.body.classList.remove('game-screen-active');
                         await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
@@ -449,6 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         showHomeScreen();
                     }
             } else if (path.startsWith('/tbank')) {
+                document.querySelector('.floating-cta').classList.add('hidden');
                 console.log(pathParts);
                 if (pathParts.length === 2) {
                    window.location.href = `/tbank${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
@@ -457,6 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showHomeScreen();
                 }         
             } else if (path.startsWith('/blog')) {
+                document.querySelector('.floating-cta').classList.add('hidden');
                 console.log(pathParts);
                 if (pathParts.length === 2) {
                    window.location.href = `/blog${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
@@ -466,6 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }        
             } else if (path.startsWith('/number-puzzle')) {
                 const puzzleType = pathParts[1];
+                document.querySelector('.floating-cta').classList.add('hidden');
                 if (puzzleType === 'catalog') {
                     document.querySelector('.main-nav').classList.remove('hidden');
                     await loadTemplate('/templates/number-puzzle/catalog.html', dynamicContent);
@@ -478,6 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showHomeScreen();
                 }
             } else if (path.startsWith('/word-game')) {
+                document.querySelector('.floating-cta').classList.add('hidden');
                 const gameType = pathParts[1];
                 if (gameType === 'catalog') {
                     document.querySelector('.main-nav').classList.remove('hidden');
@@ -559,6 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryScreen) summaryScreen.classList.remove('active');
         const mainNav = document.querySelector('.main-nav');
         if (mainNav) mainNav.classList.remove('hidden');
+        document.querySelector('.floating-cta').classList.remove('hidden');
     }
 
     function toggleLoading(show) {

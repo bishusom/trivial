@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games','board-games','catalog', 
                          'tbank'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'primehunter', 'numbertower', 'sodoku', 'catalog'],
-            '/word-game': ['classic', 'anagram', 'spelling', 'boggle', 'wordsearch', 'wordladder', 'catalog']
+            '/word-game': ['classic', 'anagram', 'spelling', 'boggle', 'wordsearch', 'wordladder', 'wordcircle', 'catalog']
         };
 
         try {

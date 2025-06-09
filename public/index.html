@@ -64,7 +64,6 @@
                     <li class="submenu">
                         <button class="submenu-toggle">Timed Challenges</button>
                         <ul class="submenu-content">
-                            <li><a href="/trivias/daily">Daily Quiz</a></li>
                             <li><a href="/trivias/weekly">Weekly Quiz</a></li>
                             <li><a href="/trivias/monthly">Monthly Quiz</a></li>
                         </ul>
@@ -163,148 +162,223 @@
                         <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40">
                     </picture>
                 </div>
-                
-                <hr class="divider">
-                <h2 class="section-header">Select A Category</h2>
+                <!--hr class="divider">
+                <h2 class="section-header">Featured Trivia Quizzes</h2>
                 <div class="game-categories">
-                    <a href="/trivias/catalog" class="category-card featured-card" data-category="trivia">
-                        <img src="/imgs/trivia.webp" alt="trivia" class="category-image" width="150" height="150" >
-                        <span>Trivia Quizzes</span>
+                    <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
+                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
+                        <span class="popular-badge">Featured!</span>
                     </a>
-
-                    <a href="/word-game/catalog" class="category-card featured-card" data-category="Word Search">
-                        <img src="/imgs/word.webp" alt="Word Search" class="category-image" width="150" height="150">
-                        <span>Word Games</span>
+                    <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Weekly Quiz (Expires in <b>7 days</b>)</span>
+                        <span class="popular-badge">Featured!</span>
                     </a>
-
-                    <a href="/number-puzzle/catalog" class="category-card featured-card" data-category="Prime Hunter">
-                        <img src="/imgs/number.webp" alt="Prime Hunter" class="category-image" width="150" height="150">
-                        <span>Number Puzzles</span>
+                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly"width="70" height="70">
+                        <img src="/imgs/monthly-quiz-70.webp" alt="Monthly Quiz" class="game-category-image">
+                        <span>Monthly Quiz (New Quiz in <b>30 days</b>)</span>
+                        <span class="popular-badge">Featured!</span>
                     </a>
-
-                    <a href="/tbank/list" class="category-card featured-card" data-category="Word Search">
-                        <img src="/imgs/tbank.webp" alt="Word Search" class="category-image" width="150" height="150">
-                        <span>Trivia Qs Bank</span>
+                    <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
+                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70">
+                        <span>General Knowledge</span>
+                        <span class="popular-badge">Popular</span>
                     </a>
-                </div> 
-                
+                </div>
+                <a href="/trivias/daily" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
+                    <span class="material-icons">bolt</span> Daily Lightning Quiz
+                </a>
+                <a href="/trivias/catalog" class="btn primary browse-categories" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">search</span> Browse Categories
+                </a-->
                 <hr class="divider">
+                <h2 class="section-header">Popular Games</h2>
+                <div class="game-categories">
+                    <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
+                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
+                        <span class="popular-badge">Easy</span>
+                    </a>
+
+                    <!--a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Weekly Quiz (Expires in <b>7 days</b>)</span>
+                    </a-->
+
+                    <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
+                        <img src="/imgs/general-knowledge-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
+                        <span>General Knowledge Trivia</span>
+                        <span class="popular-badge">Tough</span>
+                    </a>
+
+                    <a href="/number-puzzle/primehunter" class="game-category-card featured-card" data-category="Prime Hunter">
+                        <img src="/imgs/primehunter-70.webp" alt="Prime Hunter" class="game-category-image" width="70" height="70">
+                        <span>Prime Hunter</span>
+                        <span class="popular-badge">Tough</span>
+                    </a>
+
+                    <a href="/word-game/wordsearch" class="game-category-card featured-card" data-category="Word Search">
+                        <img src="/imgs/wordsearch-70.webp" alt="Word Search" class="game-category-image" width="70" height="70">
+                        <span>Word Search</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+
+                    <!--a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
+                        <img src="/imgs/anagram-70.webp" alt="Anagram" class="game-category-image">
+                        <span>Anagram</span>
+                        <span class="popular-badge">Popular</span>
+                    </a-->
+
+                    <a href="/number-puzzle/sequence" class="game-category-card featured-card" data-category="Number Sequence">
+                        <img src="/imgs/number-sequence-70.webp" alt="Number Sequence" class="game-category-image" width="70" height="70">
+                        <span>Number Sequence</span>
+                        <span class="popular-badge">Featured</span>
+                    </a>
+                    
+                    <a href="/word-game/boggle" class="game-category-card featured-card" data-category="Boggle">
+                        <img src="/imgs/boggle-70.webp" alt="Boggle" class="game-category-image" width="70" height="70">
+                        <span>Boggle</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+
+                    <!--a href="/number-puzzle/scramble" class="game-category-card featured-card" data-category="Number Scramble">
+                        <img src="/imgs/number-scramble-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
+                        <span>Number Scramble</span>
+                    </a-->
+
+                </div>
+                <a href="/trivias/daily" class="btn primary browse-categories" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">bolt</span> Daily Trivia
+                </a>
+                <a href="/trivias/weekly" class="btn primary browse-categories" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">event</span> Weekly Trivia
+                </a>
+                <a href="/trivias/catalog" class="btn primary browse-categories" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">search</span> Browse Trivias
+                </a>
+                 <a href="/number-puzzle/catalog" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">casino</span> Browse Games
+                </a>
+            </div>
             
-                <div class="all-categories-container">
-                    <h2 class="section-header">All Trivia Categories</h2>
-                    <!-- Culture & Entertainment Section -->
-                    <div class="category-group">
-                        <h3 class="group-header">
-                        <span class="material-icons">palette</span>
-                        Culture & Entertainment
-                        <span class="material-icons expand-icon">expand_more</span>
-                        </h3>
-                        <div class="category-grid">
-                            <a href="/trivias/literature" class="mini-category-card">
-                                <img src="/imgs/literature-50.webp" alt="Literature" width="50" height="50">
-                                <span>Literature</span>
-                            </a>
-                            <a href="/trivias/arts" class="mini-category-card">
-                                <img src="/imgs/arts-50.webp" alt="Arts" width="50" height="50">
-                                <span>Arts</span>
-                            </a>
-                            <a href="/trivias/movies" class="mini-category-card">
-                                <img src="/imgs/movies-50.webp" alt="Movies" width="50" height="50">
-                                <span>Movies</span>
-                            </a>
-                            <a href="/trivias/tv" class="mini-category-card">
-                                <img src="/imgs/tv-50.webp" alt="TV & Web Series" width="50" height="50">
-                                <span>TV & Web Series</span>
-                            </a>
-                            <a href="/trivias/music" class="mini-category-card">
-                                <img src="/imgs/music-50.webp" alt="Music" width="50" height="50">
-                                <span>Music</span>
-                            </a>
-                            <a href="/trivias/video-games" class="mini-category-card">
-                                <img src="/imgs/video-games-50.webp" alt="Vidseo Games" width="50" height="50">
-                                <span>Video Games</span>
-                            </a>
-                            <a href="/trivias/board-games" class="mini-category-card">
-                                <img src="/imgs/board-games-50.webp" alt="Board Games" width="50" height="50">
-                                <span>Board Games</span>
-                            </a>
-                        </div>
-                    </div>
-                    <!-- Knowledge & History Section -->
-                    <div class="category-group">
-                        <h3 class="group-header">
-                        <span class="material-icons">school</span>
-                        Knowledge & History
-                        <span class="material-icons expand-icon">expand_more</span>
-                        </h3>
-                        <div class="category-grid">
-                            <a href="/trivias/general-knowledge" class="mini-category-card">
-                                <img src="/imgs/general-knowledge-50.webp" alt="General Knowledge" width="50" height="50">
-                                <span>General Knowledge</span>
-                            </a>
-                            <a href="/trivias/science" class="mini-category-card">
-                                <img src="/imgs/science-50.webp" alt="Science" width="50" height="50">
-                                <span>Science</span>
-                            </a>
-                            <a href="/trivias/history" class="mini-category-card">
-                                <img src="/imgs/history-50.webp" alt="History" width="50" height="50">
-                                <span>History</span>
-                            </a>
-                            <a href="/trivias/geography" class="mini-category-card">
-                                <img src="/imgs/geography-50.webp" alt="Geography" width="50" height="50">
-                                <span>Geography</span>
-                            </a>
-                            <a href="/trivias/mythology" class="mini-category-card">
-                                <img src="/imgs/mythology-50.webp" alt="Mythology" width="50" height="50">
-                                <span>Mythology</span>
-                            </a>
-                            <a href="/trivias/philosophy" class="mini-category-card">
-                                <img src="/imgs/philosophy-50.webp" alt="Philosophy" width="50" height="50">
-                                <span>Philosophy</span>
-                            </a>
-                        </div>
-                    </div>
-                    <!-- Lifestyle & Society Section -->
-                    <div class="category-group">
-                        <h3 class="group-header">
-                        <span class="material-icons">people</span>
-                        Lifestyle & Society
-                        <span class="material-icons expand-icon">expand_more</span>
-                        </h3>
-                        <div class="category-grid">
-                            <a href="/trivias/politics" class="mini-category-card">
-                                <img src="/imgs/politics-50.webp" alt="Politics" width="50" height="50">
-                                <span>Politics</span>
-                            </a>
-                            <a href="/trivias/food" class="mini-category-card">
-                                <img src="/imgs/food-50.webp" alt="Food" width="50" height="50">
-                                <span>Food</span>
-                            </a>
-                            <a href="/trivias/sports" class="mini-category-card">
-                                <img src="/imgs/sports-50.webp" alt="Sports" width="50" height="50">
-                                <span>Sports</span>
-                            </a>
-                            <a href="/trivias/business" class="mini-category-card">
-                                <img src="/imgs/business-50.webp" alt="Business" width="50" height="50">
-                                <span>Business</span>
-                            </a>
-                            <a href="/trivias/fashion" class="mini-category-card">
-                                <img src="/imgs/fashion-50.webp" alt="Fashion" width="50" height="50">
-                                <span>Fashion</span>
-                            </a>
-                            <a href="/trivias/festivals" class="mini-category-card">
-                                <img src="/imgs/festivals-50.webp" alt="Festivals" width="50" height="50">
-                                <span>Festivals</span>
-                            </a>
-                            <a href="/trivias/celebrities" class="mini-category-card">
-                                <img src="/imgs/celebrities-50.webp" alt="Celebrities" width="50" height="50">
-                                <span>Celebrities</span>
-                            </a>
-                        </div>
+            <hr class="divider">
+            
+            <div class="all-categories-container">
+                <h2 class="section-header">All Trivia Categories</h2>
+                <!-- Culture & Entertainment Section -->
+                <div class="category-group">
+                    <h3 class="group-header">
+                    <span class="material-icons">palette</span>
+                    Culture & Entertainment
+                    <span class="material-icons expand-icon">expand_more</span>
+                    </h3>
+                    <div class="category-grid">
+                        <a href="/trivias/literature" class="mini-category-card">
+                            <img src="/imgs/literature-50.webp" alt="Literature" width="50" height="50">
+                            <span>Literature</span>
+                        </a>
+                        <a href="/trivias/arts" class="mini-category-card">
+                            <img src="/imgs/arts-50.webp" alt="Arts" width="50" height="50">
+                            <span>Arts</span>
+                        </a>
+                        <a href="/trivias/movies" class="mini-category-card">
+                            <img src="/imgs/movies-50.webp" alt="Movies" width="50" height="50">
+                            <span>Movies</span>
+                        </a>
+                        <a href="/trivias/tv" class="mini-category-card">
+                            <img src="/imgs/tv-50.webp" alt="TV & Web Series" width="50" height="50">
+                            <span>TV & Web Series</span>
+                        </a>
+                        <a href="/trivias/music" class="mini-category-card">
+                            <img src="/imgs/music-50.webp" alt="Music" width="50" height="50">
+                            <span>Music</span>
+                        </a>
+                        <a href="/trivias/video-games" class="mini-category-card">
+                            <img src="/imgs/video-games-50.webp" alt="Vidseo Games" width="50" height="50">
+                            <span>Video Games</span>
+                        </a>
+                         <a href="/trivias/board-games" class="mini-category-card">
+                            <img src="/imgs/board-games-50.webp" alt="Board Games" width="50" height="50">
+                            <span>Board Games</span>
+                        </a>
                     </div>
                 </div>
-                
-                <hr class="divider">
+                <!-- Knowledge & History Section -->
+                <div class="category-group">
+                    <h3 class="group-header">
+                    <span class="material-icons">school</span>
+                    Knowledge & History
+                    <span class="material-icons expand-icon">expand_more</span>
+                    </h3>
+                    <div class="category-grid">
+                        <a href="/trivias/general-knowledge" class="mini-category-card">
+                            <img src="/imgs/general-knowledge-50.webp" alt="General Knowledge" width="50" height="50">
+                            <span>General Knowledge</span>
+                        </a>
+                        <a href="/trivias/science" class="mini-category-card">
+                            <img src="/imgs/science-50.webp" alt="Science" width="50" height="50">
+                            <span>Science</span>
+                        </a>
+                        <a href="/trivias/history" class="mini-category-card">
+                            <img src="/imgs/history-50.webp" alt="History" width="50" height="50">
+                            <span>History</span>
+                        </a>
+                        <a href="/trivias/geography" class="mini-category-card">
+                            <img src="/imgs/geography-50.webp" alt="Geography" width="50" height="50">
+                            <span>Geography</span>
+                        </a>
+                        <a href="/trivias/mythology" class="mini-category-card">
+                            <img src="/imgs/mythology-50.webp" alt="Mythology" width="50" height="50">
+                            <span>Mythology</span>
+                        </a>
+                        <a href="/trivias/philosophy" class="mini-category-card">
+                            <img src="/imgs/philosophy-50.webp" alt="Philosophy" width="50" height="50">
+                            <span>Philosophy</span>
+                        </a>
+                    </div>
+                </div>
+                <!-- Lifestyle & Society Section -->
+                <div class="category-group">
+                    <h3 class="group-header">
+                    <span class="material-icons">people</span>
+                    Lifestyle & Society
+                    <span class="material-icons expand-icon">expand_more</span>
+                    </h3>
+                    <div class="category-grid">
+                        <a href="/trivias/politics" class="mini-category-card">
+                            <img src="/imgs/politics-50.webp" alt="Politics" width="50" height="50">
+                            <span>Politics</span>
+                        </a>
+                        <a href="/trivias/food" class="mini-category-card">
+                            <img src="/imgs/food-50.webp" alt="Food" width="50" height="50">
+                            <span>Food</span>
+                        </a>
+                        <a href="/trivias/sports" class="mini-category-card">
+                            <img src="/imgs/sports-50.webp" alt="Sports" width="50" height="50">
+                            <span>Sports</span>
+                        </a>
+                        <a href="/trivias/business" class="mini-category-card">
+                            <img src="/imgs/business-50.webp" alt="Business" width="50" height="50">
+                            <span>Business</span>
+                        </a>
+                        <a href="/trivias/fashion" class="mini-category-card">
+                            <img src="/imgs/fashion-50.webp" alt="Fashion" width="50" height="50">
+                            <span>Fashion</span>
+                        </a>
+                        <a href="/trivias/festivals" class="mini-category-card">
+                            <img src="/imgs/festivals-50.webp" alt="Festivals" width="50" height="50">
+                            <span>Festivals</span>
+                        </a>
+                        <a href="/trivias/celebrities" class="mini-category-card">
+                            <img src="/imgs/celebrities-50.webp" alt="Celebrities" width="50" height="50">
+                            <span>Celebrities</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="divider">
             
             <div class="all-categories-container">
                 <h2 class="section-header">All Games Categories</h2>
@@ -335,10 +409,6 @@
                         <a href="/word-games/wordsearch" class="mini-category-card">
                             <img src="/imgs/wordsearch-50.webp" alt="Word Search" width="50" height="50">
                             <span>Word Search</span>
-                        </a>
-                        <a href="/word-games/wordladder" class="mini-category-card">
-                            <img src="/imgs/wordladder-50.webp" alt="Word Ladder" width="50" height="50">
-                            <span>Word Ladder</span>
                         </a>                         
                     </div>
                 </div>    
@@ -369,15 +439,9 @@
                         <a href="/number-puzzles/primehunter" class="mini-category-card">
                             <img src="/imgs/primehunter-50.webp" alt="Prime Hunter" width="50" height="50">
                             <span>Prime Hunter</span>
-                        </a> 
-                        <a href="/number-puzzles/sodoku" class="mini-category-card">
-                            <img src="/imgs/sodoku-50.webp" alt="Prime Hunter" width="50" height="50">
-                            <span>Soduku</span>
                         </a>                                               
                     </div>
                 </div> 
-
-            </div>
             </div>
         </div>
 
@@ -437,7 +501,5 @@
         db = firebase.firestore();
     </script>
     <script type="module" src="/scripts/router.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
-    <script src="https://unpkg.com/compromise" defer></script>
 </body>
 </html>

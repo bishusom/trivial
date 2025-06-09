@@ -1,0 +1,43 @@
+
+<link rel="stylesheet" href="/styles/word-games/word-games-styles.min.css">
+<div class="card word-game-card" id="wordcircle-screen">
+    <div class="word-game-header">
+        <div class="header-row">
+            <a href="/" id="home-btn" class="btn icon-btn" aria-label="Home">
+                <span class="material-icons">home</span>
+            </a>
+            <h2>WordCircle</h2>
+            <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
+                <span class="material-icons">volume_up</span>
+            </button>
+        </div>
+        <div class="word-game-meta">
+            <span id="wordcircle-words-left">Words Found: 0/0</span>
+            <span id="wordcircle-level">Level: 1 (easy)</span>
+            <span id="wordcircle-games-remaining">Wins to next level: 3</span>
+        </div>
+    </div>
+    <div class="word-game-body">
+        <!-- New Crossword Grid Display - Moved to the top -->
+        <div id="crossword-grid">
+            <!-- Crossword words will be rendered here by JS -->
+        </div>
+
+        <div class="current-word" id="current-word"></div>
+        
+        <!-- Container for letters and SVG drawing -->
+        <div id="wordcircle-letters-container">
+            <svg id="wordcircle-drawing-svg"></svg> 
+            <div class="wordcircle-letters" id="wordcircle-letters"></div>
+        </div>
+
+        <div class="word-feedback" id="wordcircle-feedback"></div>
+
+        <div class="wordcircle-controls">
+            <button class="btn secondary" id="wordcircle-shuffle">Shuffle</button>
+            <button class="btn secondary" id="wordcircle-hint">Hint</button>
+            <button class="btn secondary" id="wordcircle-check-puzzle">Check Puzzle</button>
+            <button class="btn secondary" id="wordcircle-new">New Game</button>
+        </div>
+    </div>
+</div>

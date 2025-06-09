@@ -374,7 +374,7 @@ button {
     position: absolute;
     top: 5px;
     right: 5px;
-    background: var(--primary);
+    background: var(--secondary);
     color: var(--text);
     font-size: 0.65rem;
     padding: 2px 5px;

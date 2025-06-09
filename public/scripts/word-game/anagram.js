@@ -60,7 +60,7 @@ export function initWordGame() {
         const element = document.createElement('span');
         element.id = 'anagram-time';
         element.className = 'word-game-timer';
-        document.querySelector('.game-meta').appendChild(element);
+        document.querySelector('.word-game-meta').appendChild(element);
         return element;
     }
 

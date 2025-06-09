@@ -19,7 +19,7 @@
 }
 
 body {
-    background: var(--bg);
+    background: linear-gradient(135deg, #1A1A2E 0%, #3a3a67 100%);
     color: var(--text);
     line-height: 1.5;
     padding: 10px;
@@ -1736,11 +1736,22 @@ input:checked + .slider:before {
     z-index: 999;
     background: var(--card-bg);
     border-top: 1px solid var(--accent);
+    max-height: 60px; /* Limit ad height to 60px on mobile */
     padding: 8px;
   }
   body {
-    padding-bottom: 100px; /* Prevents content hiding behind ad */
+    padding-bottom: 70px; /* Prevents content hiding behind ad */
   }
+}
+
+@media (max-width: 468px) {
+    .ad-bottom {
+        max-height: 50px; /* Reduced height for smaller screens */
+        padding: 6px; /* Adjusted padding to fit the smaller height */
+    }
+    body {
+        padding-bottom: 60px; /* Adjusted padding to match the new ad height */
+    }
 }
 
 /* Hide ads on quiz screens */

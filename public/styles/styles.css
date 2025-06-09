@@ -1711,3 +1711,39 @@ input:checked + .slider:before {
     .category-group.active .expand-icon { transform: rotate(180deg); } 
     .group-header { padding: 0.8rem; margin-bottom: 0; }
 }
+
+.ad-container {
+  margin: 1.5rem auto;
+  max-width: 1200px;
+  padding: 10px;
+  background: transparent;
+  text-align: center;
+}
+
+/* Top/Bottom Ads */
+.ad-top, .ad-bottom {
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+/* Sticky Bottom Ad (Mobile Only) */
+@media (max-width: 768px) {
+  .ad-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: var(--card-bg);
+    border-top: 1px solid var(--accent);
+    padding: 8px;
+  }
+  body {
+    padding-bottom: 100px; /* Prevents content hiding behind ad */
+  }
+}
+
+/* Hide ads on quiz screens */
+.game-screen-active .ad-container {
+  display: none;
+}

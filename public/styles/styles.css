@@ -15,7 +15,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', 'Roboto', sans-serif;
 }
 
 body {
@@ -980,14 +980,15 @@ input:checked + .slider:before {
 }
 
 #question {
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 800;
     line-height: 1.4;
     margin-bottom: 1.5rem;
     padding: 1.5rem;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
-    border-left: 4px solid var(--accent);
+    border-left: 6px solid var(--accent);
+    color: var(--accent);
 }
 
 .question-image-container {
@@ -1016,6 +1017,10 @@ input:checked + .slider:before {
     margin-top: 8px;
     align-items: center;
     flex-wrap: wrap;
+    font-size: 1rem;
+    opacity: 0.8;
+    line-height: 1.4;
+    color: var(--secondary);
 }
 
 .question-category {
@@ -1029,7 +1034,7 @@ input:checked + .slider:before {
     background-color: rgba(227, 242, 253, 0.2);
     padding: 2px 8px;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     color: #e3f2fd;
     line-height: 1.4;
 }
@@ -1037,7 +1042,7 @@ input:checked + .slider:before {
 .question-difficulty {
     padding: 2px 8px;
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
     text-transform: capitalize;
     line-height: 1.4;
 }
@@ -1106,8 +1111,9 @@ input:checked + .slider:before {
     padding: 1.2rem;
     border: none;
     border-radius: 12px;
-    background: rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.2));
     color: white;
+    font-weight: 600;
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1117,27 +1123,43 @@ input:checked + .slider:before {
     justify-content: center;
     text-align: center;
     line-height: 1.4;
+    transition: all 0.3s ease;
 }
 
 .options-grid button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.3));
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .options-grid button.correct {
-    background: var(--correct) !important;
+    background: linear-gradient(135deg, var(--correct), #4dffa6) !important;
     color: #1a1a2e !important;
     border: 2px solid #4dffa6 !important;
+    animation: correctFlash 0.5s ease;
 }
 
 .options-grid button.wrong {
-    background: var(--wrong) !important;
+    background: linear-gradient(135deg, var(--wrong), #ff4d4d) !important;
     color: #1a1a2e !important;
     border: 2px solid #ff4d4d !important;
+    animation: wrongFlash 0.5s ease;
 }
 
 .options-grid button:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes correctFlash {
+    0% { background: var(--correct); }
+    50% { background: #4dffa6; }
+    100% { background: var(--correct); }
+}
+
+@keyframes wrongFlash {
+    0% { background: var(--wrong); }
+    50% { background: #ff4d4d; }
+    100% { background: var(--wrong); }
 }
 
 /* Add to styles.css */
@@ -1146,6 +1168,13 @@ input:checked + .slider:before {
     align-items: center;
     gap: 10px;
     margin-top: 10px;
+}
+
+.urgent-timer {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent);
+    animation: pulse 1s infinite;
 }
 
 .question-container {
@@ -1165,6 +1194,8 @@ input:checked + .slider:before {
     padding: 12px;
     margin-top: 20px;
     background: var(--primary);
+    font-size: 1.2rem;
+    font-weight: 700;
     color: white;
     border: none;
     border-radius: 8px;
@@ -1712,49 +1743,30 @@ input:checked + .slider:before {
     .group-header { padding: 0.8rem; margin-bottom: 0; }
 }
 
-.ad-container {
-  margin: 1.5rem auto;
-  max-width: 1200px;
-  padding: 10px;
-  background: transparent;
-  text-align: center;
+/* Typography Changes */
+
+/* Timer Urgency */
+
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
-/* Top/Bottom Ads */
-.ad-top, .ad-bottom {
-  background: rgba(255,255,255,0.05);
-  border-radius: 8px;
-}
+/* Answer Button Redesign *
 
-/* Sticky Bottom Ad (Mobile Only) */
+/* Media Query Adjustments */
 @media (max-width: 768px) {
-  .ad-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 999;
-    background: var(--card-bg);
-    border-top: 1px solid var(--accent);
-    max-height: 60px; /* Limit ad height to 60px on mobile */
-    padding: 8px;
-  }
-  body {
-    padding-bottom: 70px; /* Prevents content hiding behind ad */
-  }
+    #question { font-size: 1.5rem; padding: 1rem; }
+    .options-grid button { font-size: 1rem; padding: 1rem; }
+    .next-btn { font-size: 1rem; }
+    .urgent-timer { font-size: 1.2rem; }
 }
 
-@media (max-width: 468px) {
-    .ad-bottom {
-        max-height: 50px; /* Reduced height for smaller screens */
-        padding: 6px; /* Adjusted padding to fit the smaller height */
-    }
-    body {
-        padding-bottom: 60px; /* Adjusted padding to match the new ad height */
-    }
-}
-
-/* Hide ads on quiz screens */
-.game-screen-active .ad-container {
-  display: none;
+@media (max-width: 480px) {
+    #question { font-size: 1.2rem; }
+    .options-grid button { font-size: 0.9rem; padding: 0.8rem; }
+    .next-btn { font-size: 0.9rem; }
+    .urgent-timer { font-size: 1rem; }
 }

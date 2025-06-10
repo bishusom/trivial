@@ -1,5 +1,3 @@
-<script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" ></script>
-<script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" ></script>
 <div class="container">
     <div class="screen game-screen active">
         <div class="game-header">
@@ -8,13 +6,9 @@
                 <span id="score">0</span>
                 <span id="question-counter">1/10</span>
             </div>
-            <div class="timer-box hidden" id="timer-container">
+            <div class="timer-box" id="timer-container">
                 <span class="material-icons">timer</span>
-                <span id="question-timer">60</span>
-            </div>
-            <div class="timer-box hidden" id="total-timer-container">
-                <span class="material-icons">hourglass_empty</span>
-                <span id="total-timer">10:00</span>
+                <span id="question-timer" class="urgent-timer">60</span>
             </div>
             <button id="mute-btn" class="btn icon-btn" aria-label="Toggle mute">
                 <span class="material-icons">volume_up</span>
@@ -54,6 +48,14 @@
                     <select id="timer-duration">
                         <option value="quick">30 seconds</option>
                         <option value="long">60 seconds</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label>Difficulty:</label>
+                    <select id="difficulty-level">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
                     </select>
                 </div>
                 <button id="save-settings-btn" class="btn primary">Save</button>
@@ -107,3 +109,5 @@
         </div>
     </div>
 </div>
+<script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js"></script>

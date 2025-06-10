@@ -40,7 +40,7 @@ const els = {
     nextBtn: () => document.getElementById('next-btn'),
     score: () => document.getElementById('score'),
     questionTimer: () => document.getElementById('question-timer'),
-    totalTimer: () => document.getElementById('total-timer'),
+    totalTimer: () => null, // Removed total timer
     highscores: () => document.querySelector('.highscores'),
     highscoresList: () => document.getElementById('highscores-list'),
     resultMessage: () => document.getElementById('result-message'),
@@ -65,9 +65,7 @@ let state = {
     current: 0,
     score: 0,
     timeLeft: null,
-    totalTime: null,
     timerId: null,
-    totalTimerId: null,
     highScores: [],
     answers: [],
     isScoreSaved: false,
@@ -77,7 +75,8 @@ let state = {
     fbUsedQuestions: JSON.parse(localStorage.getItem('fbUsedQuestions') || '[]'),
     fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds') || '[]'),
     isTimedMode: true,
-    timerDuration: 'long'
+    timerDuration: 'long',
+    difficulty: 'medium' // Default difficulty
 };
 
 let nlp;
@@ -85,7 +84,6 @@ if (typeof window !== 'undefined' && window.nlp) {
     nlp = window.nlp;
     console.log('Found nlp');
 } else {
-    // Fallback if Compromise fails to load
     nlp = {
         nouns: () => ({ out: () => [] }),
         adjectives: () => ({ out: () => [] })
@@ -93,7 +91,7 @@ if (typeof window !== 'undefined' && window.nlp) {
     console.log('Creating home-grown nlp');
 }
 
-const QUIZ_TYPES = { DAILY: 'daily', WEEKLY: 'weekly', MONTHLY: 'monthly'};
+const QUIZ_TYPES = { DAILY: 'daily', WEEKLY: 'weekly', MONTHLY: 'monthly' };
 const CACHE = { QUESTIONS: 'trivia-questions-v1', EXPIRY: 24 * 60 * 60 * 1000 };
 
 function trackEvent(action, category, label, value) {
@@ -128,14 +126,12 @@ function stopAllSounds() {
 
 function loadMuteState() {
     state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || 'false';
-    
-    // Only use saved timer settings if they exist, otherwise use defaults
     const savedTimedMode = localStorage.getItem('triviaMasterTimedMode');
     state.isTimedMode = savedTimedMode !== null ? JSON.parse(savedTimedMode) : true;
-    
     const savedTimerDuration = localStorage.getItem('triviaMasterTimerDuration');
     state.timerDuration = savedTimerDuration !== null ? savedTimerDuration : 'long';
-    
+    const savedDifficulty = localStorage.getItem('triviaMasterDifficulty');
+    state.difficulty = savedDifficulty || 'medium';
     const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
     if (muteBtnIcon) {
         muteBtnIcon.textContent = state.isMuted ? 'volume_off' : 'volume_up';
@@ -171,13 +167,9 @@ function getWeekNumber(date) {
 async function updatePlayerCount(category) {
     try {
         const countRef = db.collection('playerCounts').doc(category);
-        
-        // First try to get the current count
         const doc = await countRef.get();
         const currentCount = doc.exists ? doc.data().count : 0;
         const newCount = currentCount + 1;
-        
-        // Try to update with the new count
         await countRef.set({
             count: newCount,
             lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
@@ -186,56 +178,38 @@ async function updatePlayerCount(category) {
         console.log('Updating player count: ', newCount);
     } catch (error) {
         console.error('Error updating player count:', error);
-        // Fallback to random number if update fails
         return Math.floor(Math.random() * 40) + 100;
     }
 }
 
 function extractKeywordNLP(question) {
     const doc = nlp(question);
-    
-    // Get nouns, prioritizing main subject
     const nouns = doc.nouns().out('array');
     if (nouns.length > 0) return nouns[0];
-    
-    // Fallback to adjectives if no nouns found
     const adjectives = doc.adjectives().out('array');
     if (adjectives.length > 0) return adjectives[0];
-    
-    // Final fallback
     const words = question.replace('?', '').split(' ');
     return words.find(w => w.length > 3) || words[0];
 }
 
 async function fetchImage(keyword) {
-  if (imageCache[keyword]) return imageCache[keyword];
-  console.log('Fetching image for ', keyword);
-  
-  try {
-    const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
-    
-    // Check if response is OK
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (imageCache[keyword]) return imageCache[keyword];
+    console.log('Fetching image for ', keyword);
+    try {
+        const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) throw new Error('Invalid content type');
+        const data = await response.json();
+        if (data.url) {
+            imageCache[keyword] = data.url;
+            return data.url;
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching image:', error);
+        return null;
     }
-    console.log(response);
-    
-    // Check content type is JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Invalid content type');
-    }
-    
-    const data = await response.json();
-    if (data.url) {
-      imageCache[keyword] = data.url;
-      return data.url;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching image:', error);
-    return null;
-  }
 }
 
 async function fetchQuestions(category) {
@@ -244,7 +218,7 @@ async function fetchQuestions(category) {
         if ([QUIZ_TYPES.DAILY, QUIZ_TYPES.WEEKLY, QUIZ_TYPES.MONTHLY].includes(category.toLowerCase())) {
             return await fetchfbQuiz(category.toLowerCase());
         }
-        return await fetchfbQuestions(category);
+        return await fetchfbQuestions(category, state.selectedQuestions, state.difficulty);
     } catch (e) {
         console.error('Error in fetchQuestions:', e);
         showError(e.message || 'Failed to load questions.');
@@ -253,28 +227,22 @@ async function fetchQuestions(category) {
 }
 
 async function fetchfbQuiz(type) {
-    // Add this at the beginning of the function
-        if (type === 'daily') {
+    if (type === 'daily') {
         const now = new Date();
         const today = now.toISOString().split('T')[0];
         const cacheKey = `fb-daily-quiz-${today}`;
-        
-        // Check cache with the same expiration as router.js (midnight)
-        const cached = JSON.parse(localStorage.getItem('fbdailyQuizCache'))?.[cacheKey];
         const midnight = new Date();
         midnight.setHours(24, 0, 0, 0);
-        
+        const cached = JSON.parse(localStorage.getItem('fbdailyQuizCache'))?.[cacheKey];
         if (cached && now < midnight) {
             return shuffle(cached.questions);
         }
-        
-        // Fetch 5 general knowledge questions
         const querySnapshot = await db.collection('basic_intro_questions')
                              .where('randomIndex', '>=', Math.floor(Math.random() * 900))
+                             .where('difficulty', '==', state.difficulty)
                              .orderBy('randomIndex')
                              .limit(5)
                              .get();
-            
         const questions = querySnapshot.docs.map(doc => ({
             id: doc.id,
             question: decodeHTML(doc.data().question),
@@ -285,12 +253,10 @@ async function fetchfbQuiz(type) {
             titbits: doc.data().titbits || '',
             image_keyword: doc.data().image_keyword || null 
         })).slice(0, 5);
-            
         localStorage.setItem('fbdailyQuizCache', JSON.stringify({
             ...JSON.parse(localStorage.getItem('fbdailyQuizCache') || '{}'),
             [cacheKey]: { questions, timestamp: now.getTime() }
         }));
-        
         return shuffle(questions);
     }
     const now = new Date();
@@ -311,7 +277,7 @@ async function fetchfbQuiz(type) {
         subcategory: q.subcategory || '',
         difficulty: q.difficulty || 'medium',
         titbits: q.titbits || '',
-        image_keyword: q.image_keyword || null  // Add this line
+        image_keyword: q.image_keyword || null
     }));
     localStorage.setItem('fbQuizCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuizCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     state.fbUsedQuizIds.push(cacheKey);
@@ -319,10 +285,10 @@ async function fetchfbQuiz(type) {
     return shuffle(questions);
 }
 
-async function fetchfbQuestions(category, amount = 10) {
+async function fetchfbQuestions(category, amount = 10, difficulty = 'medium') {
     const normalizedCategory = category.toLowerCase();
-    console.log('Fetching questions for category:', category);
-    const cacheKey = `fb_questions-${normalizedCategory}`;
+    console.log('Fetching questions for category:', category, 'difficulty:', difficulty);
+    const cacheKey = `fb_questions-${normalizedCategory}-${difficulty}`;
     const cache = JSON.parse(localStorage.getItem('fbQuestionsCache'))?.[cacheKey];
     if (cache && cache.questions.length >= amount && cache.questions.filter(q => !state.fbUsedQuestions.includes(q.id)).length >= amount) {
         console.log('Using cached questions:', cache.questions);
@@ -331,13 +297,14 @@ async function fetchfbQuestions(category, amount = 10) {
     let query = db.collection('triviaMaster').doc('questions').collection('items');
     if (category !== 'general knowledge') query = query.where('category', '==', category);
     query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
+            .where('difficulty', '==', difficulty)
             .orderBy('randomIndex')
             .limit(amount * 2);
     const snapshot = await query.get();
     if (snapshot.empty) {
         console.warn(`No questions found for ${category}, falling back to general knowledge`);
         showError(`No questions available for ${category}. Loading general knowledge instead.`);
-        return fetchfbQuestions('general knowledge', amount);
+        return fetchfbQuestions('general knowledge', amount, difficulty);
     }
     const questions = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -348,9 +315,8 @@ async function fetchfbQuestions(category, amount = 10) {
         subcategory: doc.data().subcategory || '',
         difficulty: doc.data().difficulty || 'medium',
         titbits: doc.data().titbits || '',
-        image_keyword: doc.data().image_keyword || null  // Add this line
+        image_keyword: doc.data().image_keyword || null
     }));
-    
     console.log('Fetched questions:', questions);
     localStorage.setItem('fbQuestionsCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
     return processfbQuestions(questions, amount);
@@ -364,7 +330,7 @@ function processfbQuestions(questions, amount) {
     return selected.map(q => ({ 
         ...q, 
         options: shuffle([...q.options]),
-        image_keyword: q.image_keyword || null  // Ensure image_keyword is included
+        image_keyword: q.image_keyword || null
     }));
 }
 
@@ -389,19 +355,13 @@ function toInitCaps(str) {
 
 function updateTimerUI() {
     state.timeLeft = state.isTimedMode ? timers[state.timerDuration] : null;
-    state.totalTime = state.isTimedMode ? state.selectedQuestions * state.timeLeft : null;
     const questionTimerParent = els.questionTimer()?.parentElement;
-    const totalTimerParent = els.totalTimer()?.parentElement;
     if (state.isTimedMode) {
         toggleClass(questionTimerParent, 'remove', 'hidden');
-        toggleClass(totalTimerParent, 'remove', 'hidden');
         if (els.questionTimer()) els.questionTimer().textContent = state.timeLeft;
-        if (els.totalTimer()) els.totalTimer().textContent = `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}`;
     } else {
         toggleClass(questionTimerParent, 'add', 'hidden');
-        toggleClass(totalTimerParent, 'add', 'hidden');
         if (els.questionTimer()) els.questionTimer().textContent = 'N/A';
-        if (els.totalTimer()) els.totalTimer().textContent = 'N/A';
     }
 }
 
@@ -410,6 +370,7 @@ export function initTriviaGame(category) {
         state.isTimedMode = true;
         state.timerDuration = 'quick';
         state.selectedQuestions = 5;
+        state.difficulty = 'medium';
         localStorage.setItem('triviaMasterTimedMode', 'true');
         localStorage.setItem('triviaMasterTimerDuration', 'quick');
         messages.zero = [
@@ -419,12 +380,11 @@ export function initTriviaGame(category) {
             "Ready for another quick try?"
         ];
     } else {
-        // For non-daily games, use the loaded settings (which default to timed mode with 60s timer)
         state.isTimedMode = JSON.parse(localStorage.getItem('triviaMasterTimedMode')) || true;
         state.timerDuration = localStorage.getItem('triviaMasterTimerDuration') || 'long';
+        state.difficulty = localStorage.getItem('triviaMasterDifficulty') || 'medium';
     }
     
-    // Ensure game screen is active
     els.game().classList.add('active');
     els.game().classList.remove('hidden');
     els.summary().classList.remove('active');
@@ -453,7 +413,6 @@ export function initTriviaGame(category) {
     setupEvents();
 }
 
-
 async function showQuestion() {
     toggleClass(document.querySelector('.app-footer'), 'add', 'hidden');
     els.question().classList.remove('correct-bg', 'wrong-bg');
@@ -462,20 +421,13 @@ async function showQuestion() {
     
     const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
     
-    // Clear previous content
-    els.question().innerHTML = '';
-    
-    // Add loading state while fetching image
     els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
     
     try {
-        // Use image_keyword from database if available, otherwise use NLP extraction
         const keyword = q.image_keyword || extractKeywordNLP(q.question);
         const imageUrl = await fetchImage(keyword);
         
-        // Build question HTML
         let questionHTML = '';
-        
         if (imageUrl) {
             questionHTML += `
                 <div class="question-image-container">
@@ -487,26 +439,23 @@ async function showQuestion() {
         questionHTML += `
             <div class="question-text">${q.question}</div>
             <div class="question-meta">
-                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                <div class="question-category">${displayCategory}<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span></div>
                 ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
             </div>
         `;
         
         els.question().innerHTML = questionHTML;
-        
     } catch (error) {
         console.error('Error loading question image:', error);
-        // Fallback to text-only question if image loading fails
         els.question().innerHTML = `
             <div class="question-text">${q.question}</div>
             <div class="question-meta">
-                <div class="question-category">${displayCategory}${q.difficulty ? `<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span>` : ''}</div>
+                <div class="question-category">${displayCategory}<span class="question-difficulty ${q.difficulty}">${toInitCaps(q.difficulty)}</span></div>
                 ${q.subcategory ? `<div class="question-subcategory">${q.subcategory}</div>` : ''}
             </div>
         `;
     }
     
-    // Rest of your existing code
     els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
     if (els.questionCounter()) {
         els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
@@ -514,7 +463,6 @@ async function showQuestion() {
     toggleClass(els.game(), 'add', 'active');
     toggleClass(els.summary(), 'remove', 'active');
     els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';
-    els.totalTimer().textContent = state.isTimedMode ? `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}` : 'N/A';
     setupOptionEvents();
     startTimer();
 }
@@ -540,27 +488,21 @@ function handleOptionClick(e) {
 
 function startTimer() {
     clearInterval(state.timerId);
-    clearInterval(state.totalTimerId);
     if (state.isTimedMode) {
         state.timeLeft = timers[state.timerDuration];
-        state.totalTime = state.selectedQuestions * state.timeLeft;
         els.questionTimer().textContent = state.timeLeft;
-        els.totalTimer().textContent = `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}`;
         state.timerId = setInterval(() => {
             if (--state.timeLeft <= 0) {
                 clearInterval(state.timerId);
                 handleTimeout();
             }
+            els.questionTimer().classList.add('urgent');
+            if (state.timeLeft <= 5) playSound('tick'); // Urgent ticking
             els.questionTimer().textContent = state.timeLeft;
-        }, 1000);
-        state.totalTimerId = setInterval(() => {
-            if (--state.totalTime <= 0) clearInterval(state.totalTimerId);
-            els.totalTimer().textContent = `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}`;
         }, 1000);
         if (!state.isMuted) playSound('tick');
     } else {
         els.questionTimer().textContent = 'N/A';
-        els.totalTimer().textContent = 'N/A';
     }
 }
 
@@ -576,11 +518,8 @@ function checkAnswer(correct) {
     playSound(correct ? 'correct' : 'wrong');
     state.answers.push({ correct });
     clearInterval(state.timerId);
-    clearInterval(state.totalTimerId);
-    //els.question().classList.add(correct ? 'correct-bg' : 'wrong-bg');
-    const questionEl = els.question();
-    questionEl.classList.remove('correct-bg', 'wrong-bg');
-    questionEl.classList.add(correct ? 'correct-bg' : 'wrong-bg');
+    els.question().classList.remove('correct-bg', 'wrong-bg');
+    els.question().classList.add(correct ? 'correct-bg' : 'wrong-bg');
 
     els.options().querySelectorAll('button').forEach(btn => {
         btn.disabled = true;
@@ -589,14 +528,14 @@ function checkAnswer(correct) {
     if (correct && state.isTimedMode) state.score += state.timeLeft * 10;
     els.score().textContent = state.score;
     const q = state.questions[state.current];
-    const existingTitbits = questionEl.querySelector('.question-titbits');
+    const existingTitbits = els.question().querySelector('.question-titbits');
     if (existingTitbits) existingTitbits.remove();
     
     if (q.titbits) {
         const titbitsEl = document.createElement('div');
         titbitsEl.className = 'question-titbits';
         titbitsEl.innerHTML = `<span class="titbits-icon">💡</span> Fun Fact: ${q.titbits}`;
-        questionEl.appendChild(titbitsEl);
+        els.question().appendChild(titbitsEl);
     }
     if (state.current < state.selectedQuestions - 1) {
         els.nextBtn().classList.add('visible');
@@ -624,7 +563,6 @@ function handleNextQuestion() {
 
 async function endGame() {
     console.log('Starting endGame, answers:', state.answers.length, 'questions:', state.selectedQuestions);
-    window.endGame = endGame;
     const correctCount = state.answers.filter(a => a.correct).length;
     trackEvent('game_complete', 'performance', `${correctCount}/${state.selectedQuestions} correct`, state.score);
     
@@ -641,14 +579,12 @@ async function endGame() {
         return;
     }
     
-    console.log('Removing active from game-screen, adding active to summary-screen, showing highscores');
     gameScreen.classList.add('hidden');
     summaryScreen.classList.add('active');
     highscores.classList.remove('hidden');
     document.querySelector('.app-footer')?.classList.remove('hidden');
     
     clearInterval(state.timerId);
-    clearInterval(state.totalTimerId);
     stopAllSounds();
 
     const category = state.questions[0]?.category || 'general knowledge';
@@ -659,8 +595,6 @@ async function endGame() {
                                         .orderBy('score', 'desc')
                                         .limit(1)
                                         .get();
-        
-        console.log(highScoreSnapshot);                   
         globalHigh = highScoreSnapshot.empty ? null : highScoreSnapshot.docs[0].data();
     } catch (error) {
         console.error('endGame: Error fetching global high score:', error);
@@ -678,7 +612,6 @@ async function endGame() {
         console.error('endGame: Error in showSummary:', error);
     }
     
-    // Handle daily game specific UI
     if (state.questions[0]?.category === 'daily') {
         const actionButtons = document.querySelector('.action-buttons');
         if (actionButtons) {
@@ -687,14 +620,10 @@ async function endGame() {
                     <p>You've completed today's daily challenge!</p>
                     <p>New questions in <span id="daily-reset-timer"></span></p>
                     <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
-                </div>
-            `;
-            
-            // Properly set up the upgrade button
+                </div>`;
             const upgradeBtn = document.getElementById('upgrade-btn');
             if (upgradeBtn) {
                 upgradeBtn.addEventListener('click', () => {
-                    // Reset game state for regular quiz
                     state.isTimedMode = false;
                     state.selectedQuestions = 10;
                     localStorage.removeItem('triviaMasterTimedMode');
@@ -702,22 +631,16 @@ async function endGame() {
                     initTriviaGame('general knowledge');
                 });
             }
-            
-            // Update the timer display
             updateDailyResetTimer();
             setInterval(updateDailyResetTimer, 1000);
         }
     } else {
-        // Show restart button for non-daily games
         const actionButtons = document.querySelector('.action-buttons');
         if (actionButtons) {
             actionButtons.innerHTML = `
                 <button class="btn primary" id="restart-btn">
                     <span class="material-icons">replay</span>Play Again
-                </button>
-            `;
-            
-            // Set up restart button
+                </button>`;
             const restartBtn = document.getElementById('restart-btn');
             if (restartBtn) {
                 restartBtn.addEventListener('click', restartGame);
@@ -726,16 +649,13 @@ async function endGame() {
     }
 }
 
-// Add this new function to update the daily reset timer
 function updateDailyResetTimer() {
     const now = new Date();
     const midnight = new Date();
     midnight.setHours(24, 0, 0, 0);
     const diff = midnight - now;
-    
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
     const timerElement = document.getElementById('daily-reset-timer');
     if (timerElement) {
         timerElement.textContent = `${hours}h ${minutes}m`;
@@ -751,12 +671,8 @@ function restartGame() {
     state.answers = [];
     updateTimerUI();
     els.score().textContent = '0';
-    els.totalTimer().textContent = state.isTimedMode ? `${Math.floor(state.totalTime / 60)}:${(state.totalTime % 60).toString().padStart(2, '0')}` : 'N/A';
-    
-    // Fix: Remove hidden class and add active class
     els.game().classList.remove('hidden');
     els.game().classList.add('active');
-    
     els.summary().classList.remove('active');
     els.highscores().classList.add('hidden');
     localStorage.removeItem(CACHE.QUESTIONS);
@@ -765,7 +681,7 @@ function restartGame() {
 
 async function showSummary(globalHigh) {
     console.log('Starting showSummary, globalHigh:', globalHigh);
-    const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.totalTime) : 0;
+    const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.timeLeft) : 0;
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = state.questions[0]?.category || 'general knowledge';
     
@@ -792,7 +708,7 @@ async function showSummary(globalHigh) {
     }
 
     const perfMsg = document.querySelector('.performance-message');
-    if ( perfMsg ) {
+    if (perfMsg) {
         perfMsg.classList.add(messageClass);
     }
     
@@ -811,13 +727,11 @@ async function showSummary(globalHigh) {
         return;
     }
     
-    console.log('Updating summary: correctCount=', correctCount, 'timeUsed=', timeUsed, 'message=', message);
     correctCountEl.textContent = `${correctCount}/${state.selectedQuestions}`;
     timeUsedEl.textContent = state.isTimedMode ? `${Math.floor(timeUsed / 60)}m ${(timeUsed % 60).toString().padStart(2, '0')}s` : 'N/A';
     resultMessageEl.innerHTML = message;
     
     if (globalHigh) {
-        console.log('Adding global high score:', globalHigh);
         resultMessageEl.insertAdjacentHTML('afterend', `
             <div class="global-high-score">
                 <div class="global-high-details">
@@ -828,10 +742,7 @@ async function showSummary(globalHigh) {
         `);
     }
 
-    // Update total score display
     document.getElementById('total-score').textContent = state.score;
-
-    // Ensure high scores fit in compact view
     els.highscoresList().innerHTML = state.highScores.length ? 
         state.highScores.map((e, i) => `
             <div class="highscore-entry compact">
@@ -845,32 +756,22 @@ async function showSummary(globalHigh) {
     if (restartBtn) {
         restartBtn.removeEventListener('click', restartGame);
         restartBtn.addEventListener('click', restartGame);
-        console.log('Restart button event listener set');
-    } else {
-        console.error('Restart button (#restart-btn) not found in DOM');
     }
     
     els.highscores().classList.remove('hidden');
     localStorage.setItem('gamesPlayed', (parseInt(localStorage.getItem('gamesPlayed') || '0') + 1));
-    
-    try {
-        await updateHighScores();
-        console.log('High scores updated');
-    } catch (error) {
-        console.error('showSummary: Error updating high scores:', error);
-    }
+    await updateHighScores();
 }
-
 
 async function saveHighScore() {
     if (state.isScoreSaved || !state.score) return;
     const category = state.questions[0]?.category || 'general knowledge';
     const name = prompt('Enter your name:', 'Anonymous') || 'Anonymous';
-    
     await db.collection('scores').add({
         name, 
         score: state.score, 
         category, 
+        difficulty: state.difficulty,
         timestamp: firebase.firestore.Timestamp.now()
     });
     state.isScoreSaved = true;
@@ -885,10 +786,10 @@ async function updateHighScores() {
     try {
         const snapshot = await db.collection('scores')
             .where('category', '==', category)
+            .where('difficulty', '==', state.difficulty)
             .orderBy('score', 'desc')
             .limit(5)
             .get();
-            
         state.highScores = snapshot.docs.map(doc => doc.data());
         highscoresList.innerHTML = state.highScores.length ? 
             state.highScores.map((e, i) => `
@@ -933,6 +834,7 @@ function setupEvents() {
     const saveSettingsBtn = document.getElementById('save-settings-btn');
     const closeSettingsBtn = document.getElementById('close-settings-btn');
     const timerDurationSelect = document.getElementById('timer-duration');
+    const difficultySelect = document.getElementById('difficulty-level');
 
     if (settingsBtn && settingsPanel) {
         settingsBtn.addEventListener('click', () => {
@@ -943,12 +845,12 @@ function setupEvents() {
                 timerDurationSelect.value = state.timerDuration;
                 timerDurationSelect.parentElement.style.display = state.isTimedMode ? 'flex' : 'none';
             }
+            if (difficultySelect) difficultySelect.value = state.difficulty;
         });
     }
 
     if (timedModeToggle) {
         timedModeToggle.addEventListener('change', () => {
-            console.log('Timed mode toggled to:', timedModeToggle.checked);
             modeLabel.textContent = timedModeToggle.checked ? 'Timed' : 'Non-Timed';
             if (timerDurationSelect) {
                 timerDurationSelect.parentElement.style.display = timedModeToggle.checked ? 'flex' : 'none';
@@ -960,11 +862,14 @@ function setupEvents() {
         saveSettingsBtn.addEventListener('click', () => {
             const newTimedMode = timedModeToggle ? timedModeToggle.checked : state.isTimedMode;
             const newTimerDuration = timerDurationSelect ? timerDurationSelect.value : state.timerDuration;
-            if (newTimedMode !== state.isTimedMode || newTimerDuration !== state.timerDuration) {
+            const newDifficulty = difficultySelect ? difficultySelect.value : state.difficulty;
+            if (newTimedMode !== state.isTimedMode || newTimerDuration !== state.timerDuration || newDifficulty !== state.difficulty) {
                 state.isTimedMode = newTimedMode;
                 state.timerDuration = newTimerDuration;
+                state.difficulty = newDifficulty;
                 localStorage.setItem('triviaMasterTimedMode', state.isTimedMode);
                 localStorage.setItem('triviaMasterTimerDuration', state.timerDuration);
+                localStorage.setItem('triviaMasterDifficulty', state.difficulty);
                 state.current = 0;
                 updateTimerUI();
                 showQuestion();
@@ -981,17 +886,14 @@ function setupEvents() {
 }
 
 function setupStartQuizListener() {
-    console.log('Setting up startQuiz listener');
     document.addEventListener('startQuiz', (e) => {
         const { category, isTimedMode } = e.detail;
-        console.log('Received startQuiz event:', { category, isTimedMode });
         state.isTimedMode = isTimedMode;
         initTriviaGame(category);
     });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('trivia.js DOMContentLoaded');
     setupStartQuizListener();
     loadMuteState();
     if (window.location.pathname.includes('catalog.html')) return;

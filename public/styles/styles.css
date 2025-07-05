@@ -921,7 +921,7 @@ input:checked + .slider:before {
 
 .game-screen .game-header { 
     position: relative; 
-    padding-top: 70px; 
+    padding-top: 20px; 
 }
 
 .score-box, .timer-box {

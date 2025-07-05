@@ -620,6 +620,9 @@ async function endGame() {
                     <p>You've completed today's daily challenge!</p>
                     <p>New questions in <span id="daily-reset-timer"></span></p>
                     <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
+                    <a href="/" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">home</span> Back Home
+                    </a>
                 </div>`;
             const upgradeBtn = document.getElementById('upgrade-btn');
             if (upgradeBtn) {
@@ -640,7 +643,10 @@ async function endGame() {
             actionButtons.innerHTML = `
                 <button class="btn primary" id="restart-btn">
                     <span class="material-icons">replay</span>Play Again
-                </button>`;
+                </button>
+               <a href="/" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">home</span> Back Home
+                </a>`;
             const restartBtn = document.getElementById('restart-btn');
             if (restartBtn) {
                 restartBtn.addEventListener('click', restartGame);
@@ -761,6 +767,9 @@ async function showSummary(globalHigh) {
                     <p>You've completed today's daily challenge!</p>
                     <p>New questions in <span id="daily-reset-timer"></span></p>
                     <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
+                    <a href="/" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">home</span> Back Home
+                    </a>
                 </div>`;
             const upgradeBtn = document.getElementById('upgrade-btn');
             if (upgradeBtn) {
@@ -778,7 +787,10 @@ async function showSummary(globalHigh) {
             actionButtons.innerHTML = `
                 <button class="btn primary" id="restart-btn">
                     <span class="material-icons">replay</span>Play Again
-                </button>`;
+                </button>
+                <a href="/" class="btn primary" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <span class="material-icons">home</span> Back Home
+                </a>`;
             const restartBtn = document.getElementById('restart-btn');
             if (restartBtn) {
                 restartBtn.addEventListener('click', restartGame);

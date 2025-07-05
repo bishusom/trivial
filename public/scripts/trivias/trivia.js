@@ -640,24 +640,10 @@ async function endGame() {
             actionButtons.innerHTML = `
                 <button class="btn primary" id="restart-btn">
                     <span class="material-icons">replay</span>Play Again
-                </button>
-                <button class="btn primary" id="share-facebook-btn">
-                    <span class="material-icons">facebook</span>Share on Facebook
-                </button>
-                <button class="btn primary" id="share-twitter-btn">
-                    <span class="material-icons">twitter</span>Share on Twitter
                 </button>`;
             const restartBtn = document.getElementById('restart-btn');
             if (restartBtn) {
                 restartBtn.addEventListener('click', restartGame);
-            }
-            const facebookBtn = document.getElementById('share-facebook-btn');
-            if (facebookBtn) {
-                facebookBtn.addEventListener('click', () => shareResults('facebook'));
-            }
-            const twitterBtn = document.getElementById('share-twitter-btn');
-            if (twitterBtn) {
-                twitterBtn.addEventListener('click', () => shareResults('twitter'));
             }
         }
     }
@@ -691,57 +677,6 @@ function restartGame() {
     els.highscores().classList.add('hidden');
     localStorage.removeItem(CACHE.QUESTIONS);
     initTriviaGame(state.questions[0]?.category || 'general knowledge');
-}
-
-/*function shareResults(platform) {
-    const correctCount = state.answers.filter(a => a.correct).length;
-    const totalQuestions = state.selectedQuestions;
-    const score = state.score;
-    const category = state.questions[0]?.category || 'general knowledge';
-    const difficulty = state.difficulty;
-    const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.timeLeft) : 0;
-    const timeStr = state.isTimedMode ? `${Math.floor(timeUsed / 60)}m ${(timeUsed % 60).toString().padStart(2, '0')}s` : 'N/A';
-
-    let shareText = `I just scored ${score} points in a ${difficulty} ${category} trivia quiz! Got ${correctCount}/${totalQuestions} correct in ${timeStr}. Can you beat me? #TriviaMaster #BrainGame`;
-    const shareUrl = window.location.href;
-
-    if (platform === 'facebook') {
-        const fbShareUrl = `https://www.facebook.com/dialog/share?app_id=1047889413555252&display=popup&href=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
-        window.open(fbShareUrl, '_blank', 'width=600,height=400');
-    } else if (platform === 'twitter') {
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-    }
-}*/
-
-function shareResults(platform) {
-    const correctCount = state.answers.filter(a => a.correct).length;
-    const totalQuestions = state.selectedQuestions;
-    const score = state.score;
-    const category = state.questions[0]?.category || 'general knowledge';
-    const difficulty = state.difficulty;
-
-    // Update Open Graph meta tags dynamically
-    const metaTitle = `I scored ${score} in ${difficulty} ${category} trivia!`;
-    const metaDescription = `Got ${correctCount}/${totalQuestions} correct. Can you beat me?`;
-    const metaUrl = window.location.href;
-
-    document.querySelector('meta[property="og:title"]').setAttribute('content', metaTitle);
-    document.querySelector('meta[property="og:description"]').setAttribute('content', metaDescription);
-    document.querySelector('meta[property="og:url"]').setAttribute('content', metaUrl);
-
-    if (platform === 'facebook') {
-        // Use Facebook's Sharing Dialog
-        FB.ui({
-            method: 'share',
-            href: metaUrl,
-            quote: `${metaTitle} - ${metaDescription}`,
-        }, function(response) {
-            console.log('Shared on Facebook:', response);
-        });
-    } else if (platform === 'twitter') {
-        const twitterText = `${metaTitle} - ${metaDescription} Try it now: ${metaUrl}`;
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}`, '_blank');
-    }
 }
 
 
@@ -843,24 +778,10 @@ async function showSummary(globalHigh) {
             actionButtons.innerHTML = `
                 <button class="btn primary" id="restart-btn">
                     <span class="material-icons">replay</span>Play Again
-                </button>
-                <button class="btn primary" id="share-facebook-btn">
-                    <span class="material-icons">facebook</span>Share on Facebook
-                </button>
-                <button class="btn primary" id="share-twitter-btn">
-                    <span class="material-icons">twitter</span>Share on Twitter
                 </button>`;
             const restartBtn = document.getElementById('restart-btn');
             if (restartBtn) {
                 restartBtn.addEventListener('click', restartGame);
-            }
-            const facebookBtn = document.getElementById('share-facebook-btn');
-            if (facebookBtn) {
-                facebookBtn.addEventListener('click', () => shareResults('facebook'));
-            }
-            const twitterBtn = document.getElementById('share-twitter-btn');
-            if (twitterBtn) {
-                twitterBtn.addEventListener('click', () => shareResults('twitter'));
             }
         }
     }

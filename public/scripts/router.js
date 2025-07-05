@@ -443,6 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         initTriviaCatalog();       
                     } else if (validChildren['/trivias'].includes(triviaType)) {
                         //document.body.classList.add('game-screen-active');
+                        document.querySelector('.main-nav').classList.add('hidden');
                         await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
                         const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
                         initTriviaGame(triviaType.replace(/-/g, ' '));

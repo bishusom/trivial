@@ -6,11 +6,11 @@
     <title>Triviaah: Free Daily Trivia Games | 20+ Categories & 5000 questions</title>
     <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science, 10000+ questions. No signup required - start playing now!">
     <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
-    <meta property="og:type" content="website">
+    <!--meta property="og:type" content="website">
     <meta property="og:url" content="https://triviaah.com/">
     <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
     <meta property="og:description" content="Play free online trivia games daily with 10000+ questions across 20+ categories!">
-    <meta property="og:image" content="https://triviaah.com/social-preview.webp">
+    <meta property="og:image" content="https://triviaah.com/social-preview.webp"-->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
     <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
@@ -45,12 +45,6 @@
     </div-->
     <nav class="main-nav" role="navigation" aria-label="Main navigation">
         <div class="nav-header">
-            <div class="logo-container-mobile">
-                <picture>
-                     <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-140.webp">
-                    <img src="/imgs/triviaah-logo-140.webp" alt="Triviaah Logo" class="logo" width="180" height="30" fetchpriority="high" loading="eager">
-                </picture>
-            </div>
             <div class="nav-controls">
                 <button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
                     <span class="material-icons">menu</span>
@@ -74,13 +68,6 @@
                     <span class="material-icons dropdown-icon">expand_more</span>
                 </button>
                 <ul class="dropdown-content">
-                    <li class="submenu">
-                        <button class="submenu-toggle">Timed Challenges</button>
-                        <ul class="submenu-content">
-                            <li><a href="/trivias/weekly">Weekly Quiz</a></li>
-                            <li><a href="/trivias/monthly">Monthly Quiz</a></li>
-                        </ul>
-                    </li>
                     <li class="submenu">
                         <button class="submenu-toggle">Culture & Entertainment</button>
                         <ul class="submenu-content">
@@ -168,14 +155,9 @@
     <main>
         <div class="screen setup-screen active">
             <div class="hero-section">
-                <div class="logo-container-desktop">
-                    <picture>
-                        <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
-                        <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp 180w">
-                        <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40">
-                    </picture>
-                </div>
-                <!--hr class="divider">
+                <h1>Can You Score 10/10?</h1>
+                <p>Challenge yourself with our addictive trivia quizzes. Average play time: just 60 seconds!</p>
+                <hr class="divider">
                 <h2 class="section-header">Featured Trivia Quizzes</h2>
                 <div class="game-categories">
                     <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
@@ -183,20 +165,30 @@
                         <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
-                    <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
-                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
-                        <span>Weekly Quiz (Expires in <b>7 days</b>)</span>
-                        <span class="popular-badge">Featured!</span>
-                    </a>
-                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly"width="70" height="70">
-                        <img src="/imgs/monthly-quiz-70.webp" alt="Monthly Quiz" class="game-category-image">
-                        <span>Monthly Quiz (New Quiz in <b>30 days</b>)</span>
-                        <span class="popular-badge">Featured!</span>
-                    </a>
                     <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
                         <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70">
                         <span>General Knowledge</span>
                         <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/trivias/movies" class="game-category-card featured-card" data-category="Movies">
+                        <img src="/imgs/movies-70.webp" alt="Movies Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Movies</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/science" class="game-category-card featured-card" data-category="Movies">
+                        <img src="/imgs/science-70.webp" alt="Science Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Science</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/geography" class="game-category-card featured-card" data-category="Geography">
+                        <img src="/imgs/geography-70.webp" alt="Geography Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Geography</span>
+                        <span class="popular-badge">Tough!</span>
+                    </a>
+                    <a href="/trivias/celebrities" class="game-category-card featured-card" data-category="celebrities">
+                        <img src="/imgs/celebrities-70.webp" alt="Celebrities Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Celebrities</span>
+                        <span class="popular-badge">Easy</span>
                     </a>
                 </div>
                 <a href="/trivias/daily" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
@@ -204,27 +196,10 @@
                 </a>
                 <a href="/trivias/catalog" class="btn primary browse-categories" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
                     <span class="material-icons">search</span> Browse Categories
-                </a-->
+                </a>
                 <hr class="divider">
                 <h2 class="section-header">Popular Games</h2>
                 <div class="game-categories">
-                    <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
-                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
-                        <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
-                        <span class="popular-badge">Easy</span>
-                    </a>
-
-                    <!--a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
-                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
-                        <span>Weekly Quiz (Expires in <b>7 days</b>)</span>
-                    </a-->
-
-                    <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
-                        <img src="/imgs/general-knowledge-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
-                        <span>General Knowledge Trivia</span>
-                        <span class="popular-badge">Tough</span>
-                    </a>
-
                     <a href="/number-puzzle/primehunter" class="game-category-card featured-card" data-category="Prime Hunter">
                         <img src="/imgs/primehunter-70.webp" alt="Prime Hunter" class="game-category-image" width="70" height="70">
                         <span>Prime Hunter</span>
@@ -237,7 +212,7 @@
                         <span class="popular-badge">Popular</span>
                     </a>
 
-                    <!--a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
+                    <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
                         <img src="/imgs/anagram-70.webp" alt="Anagram" class="game-category-image">
                         <span>Anagram</span>
                         <span class="popular-badge">Popular</span>
@@ -255,19 +230,19 @@
                         <span class="popular-badge">Popular</span>
                     </a>
 
-                    <!--a href="/number-puzzle/scramble" class="game-category-card featured-card" data-category="Number Scramble">
+                    <a href="/number-puzzle/scramble" class="game-category-card featured-card" data-category="Number Scramble">
                         <img src="/imgs/number-scramble-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
                         <span>Number Scramble</span>
-                    </a-->
+                        <span class="popular-badge">Popular</span>
+                    </a>
 
+                    <a href="/number-puzzle/sodoku" class="game-category-card featured-card" data-category="Sodoku">
+                        <img src="/imgs/sodoku-50.webp" alt="Sodoku" class="game-category-image" width="70" height="70">
+                        <span>Sodoku</span>
+                        <span class="popular-badge">Tough</span>
+                    </a>
                 </div>
                 <div class="cta-buttons" style="display: flex; flex-direction: column; gap: 1rem; max-width: 300px; margin: 0 auto 2rem;">
-                    <a href="/trivias/daily" class="btn primary pulse-btn" style="background: #00FFFF; color: #1A1A2E; font-weight: bold;">
-                        ⚡ Play Daily Trivia
-                    </a>
-                    <a href="/trivias/catalog" class="btn secondary" style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent);">
-                        Browse All Categories
-                    </a>
                     <a href="/number-puzzle/catalog" class="btn secondary" style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent);">
                         Browse All Games
                     </a>
@@ -528,6 +503,17 @@
             <span class="material-icons">bolt</span> Play Now
         </a>
     </div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <script>
+        window.fbAsyncInit = function() {
+        FB.init({
+        appId: '1047889413555252',
+        autoLogAppEvents: true,
+        xfbml: true,
+        version: 'v18.0'
+        });
+    };
+    </script>
 </body>
 <!--div class="ad-container ad-bottom">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4386714040098164"

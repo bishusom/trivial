@@ -2,7 +2,7 @@
 :root {
     --primary: #6C5CE7;  /* Vibrant purple (main brand color) */
     --secondary: #00B894; /* Fresh teal (secondary accent) */
-    --accent: #FDCB6E;    /* Warm gold (for highlights) */
+    --accent: #00ffe5;    /* Warm gold (for highlights) */
     --card-bg: #2D3436;   /* Dark slate (cards) */
     --bg: #1A1A2E;        /* Deep navy (background) */
     --text: #FFFFFF;      /* White text */
@@ -1028,6 +1028,7 @@ input:checked + .slider:before {
     opacity: 0.8;
     margin: 0;
     line-height: 1.4;
+    color: var(--present);
 }
 
 .question-subcategory {
@@ -1298,9 +1299,15 @@ input:checked + .slider:before {
 
 .action-buttons .btn {
     flex: 1;
-    padding: 0.75rem;
-    text-decoration: none;
+    padding: 0.75rem 1rem; /* Consistent padding */
+    min-width: 150px; /* Ensure minimum width for uniformity */
+    text-align: center; /* Center the text */
+    white-space: nowrap; /* Prevent text wrapping */
 }
+
+.action-buttons .btn .material-icons {
+    margin-right: 0.5rem; /* Space between icon and text */
+}    
 
 .highscores.compact {
     margin-top: 1.5rem;

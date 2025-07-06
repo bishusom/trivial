@@ -76,7 +76,9 @@ let state = {
     fbUsedQuizIds: JSON.parse(localStorage.getItem('fbUsedQuizIds') || '[]'),
     isTimedMode: true,
     timerDuration: 'long',
-    difficulty: 'medium' // Default difficulty
+    difficulty: 'mixed',
+    rememberSettings: false,
+    showSettingsOnStart: true
 };
 
 let nlp;
@@ -125,13 +127,16 @@ function stopAllSounds() {
 }
 
 function loadMuteState() {
-    state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || 'false';
+    state.isMuted = JSON.parse(localStorage.getItem('triviaMasterMuteState')) || false;
     const savedTimedMode = localStorage.getItem('triviaMasterTimedMode');
     state.isTimedMode = savedTimedMode !== null ? JSON.parse(savedTimedMode) : true;
     const savedTimerDuration = localStorage.getItem('triviaMasterTimerDuration');
     state.timerDuration = savedTimerDuration !== null ? savedTimerDuration : 'long';
+    
+    // Load difficulty with proper fallback
     const savedDifficulty = localStorage.getItem('triviaMasterDifficulty');
-    state.difficulty = savedDifficulty || 'medium';
+    state.difficulty = savedDifficulty !== null ? savedDifficulty : 'mixed';
+    
     const muteBtnIcon = document.querySelector('#mute-btn .material-icons');
     if (muteBtnIcon) {
         muteBtnIcon.textContent = state.isMuted ? 'volume_off' : 'volume_up';
@@ -285,41 +290,62 @@ async function fetchfbQuiz(type) {
     return shuffle(questions);
 }
 
-async function fetchfbQuestions(category, amount = 10, difficulty = 'medium') {
+async function fetchfbQuestions(category, amount = 10, difficulty = 'mixed') {
     const normalizedCategory = category.toLowerCase();
     console.log('Fetching questions for category:', category, 'difficulty:', difficulty);
+    
+    // Handle mixed difficulty
+    const difficulties = difficulty === 'mixed' ? ['easy', 'medium', 'hard'] : [difficulty];
+    
     const cacheKey = `fb_questions-${normalizedCategory}-${difficulty}`;
     const cache = JSON.parse(localStorage.getItem('fbQuestionsCache'))?.[cacheKey];
+    
     if (cache && cache.questions.length >= amount && cache.questions.filter(q => !state.fbUsedQuestions.includes(q.id)).length >= amount) {
         console.log('Using cached questions:', cache.questions);
         return processfbQuestions(cache.questions, amount);
     }
-    let query = db.collection('triviaMaster').doc('questions').collection('items');
-    if (category !== 'general knowledge') query = query.where('category', '==', category);
-    query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
-            .where('difficulty', '==', difficulty)
-            .orderBy('randomIndex')
-            .limit(amount * 2);
-    const snapshot = await query.get();
-    if (snapshot.empty) {
+    
+    let questions = [];
+    
+    // Fetch questions for each difficulty if mixed is selected
+    for (const diff of difficulties) {
+        let query = db.collection('triviaMaster').doc('questions').collection('items');
+        if (category !== 'general knowledge') query = query.where('category', '==', category);
+        
+        query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
+                .where('difficulty', '==', diff)
+                .orderBy('randomIndex')
+                .limit(Math.ceil(amount / difficulties.length) * 2);
+                
+        const snapshot = await query.get();
+        if (!snapshot.empty) {
+            questions.push(...snapshot.docs.map(doc => ({
+                id: doc.id,
+                question: decodeHTML(doc.data().question),
+                correct: decodeHTML(doc.data().correct_answer),
+                options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
+                category: doc.data().category,
+                subcategory: doc.data().subcategory || '',
+                difficulty: doc.data().difficulty || diff,
+                titbits: doc.data().titbits || '',
+                image_keyword: doc.data().image_keyword || null
+            })));
+        }
+    }
+    
+    if (questions.length === 0) {
         console.warn(`No questions found for ${category}, falling back to general knowledge`);
         showError(`No questions available for ${category}. Loading general knowledge instead.`);
         return fetchfbQuestions('general knowledge', amount, difficulty);
     }
-    const questions = snapshot.docs.map(doc => ({
-        id: doc.id,
-        question: decodeHTML(doc.data().question),
-        correct: decodeHTML(doc.data().correct_answer),
-        options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
-        category: doc.data().category,
-        subcategory: doc.data().subcategory || '',
-        difficulty: doc.data().difficulty || 'medium',
-        titbits: doc.data().titbits || '',
-        image_keyword: doc.data().image_keyword || null
-    }));
+    
     console.log('Fetched questions:', questions);
-    localStorage.setItem('fbQuestionsCache', JSON.stringify({ ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), [cacheKey]: { questions, timestamp: Date.now() } }));
-    return processfbQuestions(questions, amount);
+    localStorage.setItem('fbQuestionsCache', JSON.stringify({ 
+        ...JSON.parse(localStorage.getItem('fbQuestionsCache') || '{}'), 
+        [cacheKey]: { questions, timestamp: Date.now() } 
+    }));
+    
+    return processfbQuestions(shuffle(questions), amount); // Extra shuffle for mixed difficulty
 }
 
 function processfbQuestions(questions, amount) {
@@ -366,11 +392,17 @@ function updateTimerUI() {
 }
 
 export function initTriviaGame(category) {
+    // Load saved settings
+    loadMuteState();
+    state.rememberSettings = JSON.parse(localStorage.getItem('triviaMasterRememberSettings')) || false;
+    state.showSettingsOnStart = !state.rememberSettings && category !== 'daily';
+    
     if (category === 'daily') {
+        // Daily quiz settings (unchanged except difficulty)
         state.isTimedMode = true;
         state.timerDuration = 'quick';
         state.selectedQuestions = 5;
-        state.difficulty = 'medium';
+        state.difficulty = 'mixed'; // Daily quizzes still use medium difficulty
         localStorage.setItem('triviaMasterTimedMode', 'true');
         localStorage.setItem('triviaMasterTimerDuration', 'quick');
         messages.zero = [
@@ -380,9 +412,11 @@ export function initTriviaGame(category) {
             "Ready for another quick try?"
         ];
     } else {
+        // Load regular settings
         state.isTimedMode = JSON.parse(localStorage.getItem('triviaMasterTimedMode')) || true;
         state.timerDuration = localStorage.getItem('triviaMasterTimerDuration') || 'long';
-        state.difficulty = localStorage.getItem('triviaMasterDifficulty') || 'medium';
+        state.rememberSettings = JSON.parse(localStorage.getItem('triviaMasterRememberSettings')) || true;
+        state.difficulty = localStorage.getItem('triviaMasterDifficulty') || 'mixed';
     }
     
     els.game().classList.add('active');
@@ -399,16 +433,15 @@ export function initTriviaGame(category) {
     state.isNextPending = false;
     updateTimerUI();
     els.score().textContent = '0';
-    loadMuteState();
     updatePlayerCount(category);
     
-    fetchQuestions(category).then(questions => {
-        state.questions = questions;
-        showQuestion();
-    }).catch(err => {
-        console.error('Error fetching questions:', err);
-        showError(err.message || 'Failed to load questions.');
-    });
+    if (state.showSettingsOnStart) {
+        // Show settings panel before starting game
+        showSettingsPanel(true);
+    } else {
+        // Start game immediately with saved settings
+        startGameWithSettings(category);
+    }
     
     setupEvents();
 }
@@ -668,6 +701,53 @@ function updateDailyResetTimer() {
     }
 }
 
+function showSettingsPanel(isInitial) {
+    const settingsPanel = document.getElementById('settings-panel');
+    const timedModeToggle = document.getElementById('timed-mode');
+    const modeLabel = document.getElementById('mode-label');
+    const timerDurationSelect = document.getElementById('timer-duration');
+    const difficultySelect = document.getElementById('difficulty-level');
+    const rememberCheckbox = document.getElementById('remember-settings');
+    
+    if (!settingsPanel || !timedModeToggle || !modeLabel || !timerDurationSelect || !difficultySelect || !rememberCheckbox) return;
+    
+    // Set current values
+    timedModeToggle.checked = state.isTimedMode;
+    modeLabel.textContent = state.isTimedMode ? 'Timed' : 'Non-Timed';
+    timerDurationSelect.value = state.timerDuration;
+    timerDurationSelect.parentElement.style.display = state.isTimedMode ? 'flex' : 'none';
+    
+    // Ensure difficulty is set properly
+    difficultySelect.value = state.difficulty || 'mixed'; // Fallback to 'mixed' if undefined
+    rememberCheckbox.checked = state.rememberSettings;
+    rememberCheckbox.checked = state.rememberSettings || true;
+      
+    // Show panel
+    settingsPanel.classList.remove('hidden');
+    
+    // If this is the initial settings panel, disable the close button
+    const closeBtn = document.getElementById('close-settings-btn');
+    if (isInitial && closeBtn) {
+        closeBtn.disabled = true;
+        closeBtn.style.opacity = '0.5';
+        closeBtn.style.cursor = 'not-allowed';
+    } else if (closeBtn) {
+        closeBtn.disabled = false;
+        closeBtn.style.opacity = '1';
+        closeBtn.style.cursor = 'pointer';
+    }
+}
+
+function startGameWithSettings(category) {
+    fetchQuestions(category).then(questions => {
+        state.questions = questions;
+        showQuestion();
+    }).catch(err => {
+        console.error('Error fetching questions:', err);
+        showError(err.message || 'Failed to load questions.');
+    });
+}
+
 function restartGame() {
     trackEvent('restart_game', 'navigation', 'from_summary');
     state.usedQuestions.clear();
@@ -875,6 +955,40 @@ function setupEvents() {
     const closeSettingsBtn = document.getElementById('close-settings-btn');
     const timerDurationSelect = document.getElementById('timer-duration');
     const difficultySelect = document.getElementById('difficulty-level');
+
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', () => {
+            const newTimedMode = timedModeToggle ? timedModeToggle.checked : state.isTimedMode;
+            const newTimerDuration = timerDurationSelect ? timerDurationSelect.value : state.timerDuration;
+            const newDifficulty = difficultySelect ? difficultySelect.value : state.difficulty;
+            const rememberSettings = document.getElementById('remember-settings')?.checked || false;
+            
+            // Save settings
+            state.isTimedMode = newTimedMode;
+            state.timerDuration = newTimerDuration;
+            state.difficulty = newDifficulty;
+            state.rememberSettings = rememberSettings;
+            
+            localStorage.setItem('triviaMasterTimedMode', state.isTimedMode);
+            localStorage.setItem('triviaMasterTimerDuration', state.timerDuration);
+            localStorage.setItem('triviaMasterDifficulty', state.difficulty);
+            localStorage.setItem('triviaMasterRememberSettings', state.rememberSettings);
+            
+            // Close panel and start game
+            toggleClass(settingsPanel, 'add', 'hidden');
+            
+            // If this was the initial settings panel, start the game
+            if (state.showSettingsOnStart) {
+                state.showSettingsOnStart = false;
+                startGameWithSettings(state.questions[0]?.category || 'general knowledge');
+            } else {
+                // If changing settings mid-game, restart the current question
+                state.current = 0;
+                updateTimerUI();
+                showQuestion();
+            }
+        });
+    }
 
     if (settingsBtn && settingsPanel) {
         settingsBtn.addEventListener('click', () => {

@@ -38,12 +38,12 @@
             </button>
         </div>
         <div class="instruction-tooltip">
-            <span class="material-icons">info</span>Use the settings icon on the top right hand corner to customize
+            <span class="material-icons">info</span>Use the gear icon on the top right hand corner to customize timer and difficulty level.
         </div>
         
         <div id="settings-panel" class="settings-panel hidden">
             <div class="settings-content">
-                <h3>Game Settings</h3>
+                <h3>Game Settings - let's get you started</h3>
                 <div class="setting">
                     <label>Quiz Mode:</label>
                     <div class="toggle-switch">
@@ -62,17 +62,21 @@
                 <div class="setting">
                     <label>Difficulty:</label>
                     <select id="difficulty-level">
+                        <option value="mixed" selected>Mixed</option>
                         <option value="easy">Easy</option>
                         <option value="medium">Medium</option>
                         <option value="hard">Hard</option>
                     </select>
                 </div>
+                <div class="setting">
+                    <input type="checkbox" id="remember-settings">
+                    <label for="remember-settings">Remember my settings</label>
+                </div>
                 <button id="save-settings-btn" class="btn primary">Save</button>
                 <button id="close-settings-btn" class="btn secondary">Close</button>
             </div>
         </div>
-    </div>
-
+    </div>    
     <div class="screen summary-screen">
         <div class="card performance-card compact">
             <h2>Game Report</h2>

@@ -18,8 +18,8 @@
     <link rel="canonical" href="https://www.triviaah.com/">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
-    <link rel="preload" href="/styles/styles.min.css" as="style">
-    <link rel="stylesheet" href="/styles/styles.min.css">
+    <link rel="preload" href="/styles/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles/styles.min.css"></noscript>
     <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
     <link rel="preload" href="/imgs/triviaah-logo-140.webp" as="image" fetchpriority="high">
     <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
@@ -87,6 +87,7 @@
                             <li><a href="/trivias/science">Science</a></li>
                             <li><a href="/trivias/history">History</a></li>
                             <li><a href="/trivias/geography">Geography</a></li>
+                            <li><a href="/trivias/animals">Animals</a></li>
                             <li><a href="/trivias/mythology">Mythology</a></li>
                             <li><a href="/trivias/philosophy">Philosophy</a></li>
                         </ul>
@@ -161,32 +162,38 @@
                 <h2 class="section-header">Featured Trivia Quizzes</h2>
                 <div class="game-categories">
                     <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
-                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
+                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
                         <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
-                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70">
+                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
                         <span>General Knowledge</span>
                         <span class="popular-badge">Popular</span>
                     </a>
                     <a href="/trivias/movies" class="game-category-card featured-card" data-category="Movies">
-                        <img src="/imgs/movies-70.webp" alt="Movies Quiz" class="game-category-image" width="70" height="70" >
+                        <img src="/imgs/movies-70.webp" alt="Movies Quiz" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
                         <span>Movies</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/science" class="game-category-card featured-card" data-category="Movies">
-                        <img src="/imgs/science-70.webp" alt="Science Quiz" class="game-category-image" width="70" height="70" >
+                        <img src="/imgs/science-70.webp" alt="Science Quiz" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
                         <span>Science</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/geography" class="game-category-card featured-card" data-category="Geography">
-                        <img src="/imgs/geography-70.webp" alt="Geography Quiz" class="game-category-image" width="70" height="70" >
+                        <img src="/imgs/geography-70.webp" alt="Geography Quiz" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
                         <span>Geography</span>
                         <span class="popular-badge">Tough!</span>
                     </a>
                     <a href="/trivias/celebrities" class="game-category-card featured-card" data-category="celebrities">
-                        <img src="/imgs/celebrities-70.webp" alt="Celebrities Quiz" class="game-category-image" width="70" height="70" >
+                        <img src="/imgs/celebrities-70.webp" alt="Celebrities Quiz" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
                         <span>Celebrities</span>
                         <span class="popular-badge">Easy</span>
                     </a>
@@ -234,12 +241,6 @@
                         <img src="/imgs/number-scramble-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
                         <span>Number Scramble</span>
                         <span class="popular-badge">Popular</span>
-                    </a>
-
-                    <a href="/number-puzzle/sodoku" class="game-category-card featured-card" data-category="Sodoku">
-                        <img src="/imgs/sodoku-50.webp" alt="Sodoku" class="game-category-image" width="70" height="70">
-                        <span>Sodoku</span>
-                        <span class="popular-badge">Tough</span>
                     </a>
                 </div>
                 <div class="cta-buttons" style="display: flex; flex-direction: column; gap: 1rem; max-width: 300px; margin: 0 auto 2rem;">
@@ -314,6 +315,10 @@
                         <a href="/trivias/geography" class="mini-category-card">
                             <img src="/imgs/geography-50.webp" alt="Geography" width="50" height="50">
                             <span>Geography</span>
+                        </a>
+                        <a href="/trivias/animals" class="mini-category-card">
+                            <img src="/imgs/animals-50.webp" alt="animals" width="50" height="50">
+                            <span>Animals</span>
                         </a>
                         <a href="/trivias/mythology" class="mini-category-card">
                             <img src="/imgs/mythology-50.webp" alt="Mythology" width="50" height="50">
@@ -498,23 +503,10 @@
     <script type="module" src="/scripts/router.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
     <script src="https://unpkg.com/compromise" defer></script>
-    <div class="floating-cta">
+    <!--div class="floating-cta">
         <a href="/trivias/daily" class="btn primary" style="border-radius: 50px;">
             <span class="material-icons">bolt</span> Play Now
         </a>
-    </div>
+    </div-->
 </body>
-<!--div class="ad-container ad-bottom">
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4386714040098164"
-        crossorigin="anonymous"></script>
-    <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-4386714040098164"
-        data-ad-slot="2207590813"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-</div-->
 </html>

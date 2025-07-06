@@ -434,33 +434,42 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (path === '/home') {
                 showHomeScreen();
             } else if (path.startsWith('/trivias')) {
-                    const triviaType = pathParts[1];
-                    document.querySelector('.floating-cta').classList.add('hidden');
-                    if (triviaType === 'catalog') {
-                        document.body.classList.remove('game-screen-active');
-                        await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
-                        const { initTriviaCatalog } = await import('/scripts/trivias/catalog.min.js');
-                        initTriviaCatalog();       
-                    } else if (validChildren['/trivias'].includes(triviaType)) {
-                        //document.body.classList.add('game-screen-active');
-                        document.querySelector('.main-nav').classList.add('hidden');
-                        await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
-                        const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
-                        initTriviaGame(triviaType.replace(/-/g, ' '));
-                    } else {
-                        showHomeScreen();
-                    }
+                const triviaType = pathParts[1];
+                const floatingCTA = document.querySelector('.floating-cta')
+                if (floatingCTA ) {
+                    floatingCTA.classList.add('hidden');
+                }
+                if (triviaType === 'catalog') {
+                    document.body.classList.remove('game-screen-active');
+                    await loadTemplate('/templates/trivias/catalog.html', dynamicContent);
+                    const { initTriviaCatalog } = await import('/scripts/trivias/catalog.min.js');
+                    initTriviaCatalog();       
+                } else if (validChildren['/trivias'].includes(triviaType)) {
+                    //document.body.classList.add('game-screen-active');
+                    document.querySelector('.main-nav').classList.add('hidden');
+                    await loadTemplate('/templates/trivias/trivia.html', dynamicContent);
+                    const { initTriviaGame } = await import('/scripts/trivias/trivia.min.js');
+                    initTriviaGame(triviaType.replace(/-/g, ' '));
+                } else {
+                    showHomeScreen();
+                }
             } else if (path.startsWith('/tbank')) {
-                document.querySelector('.floating-cta').classList.add('hidden');
+                const floatingCTA = document.querySelector('.floating-cta')
+                if (floatingCTA ) {
+                    floatingCTA.classList.add('hidden');
+                }
                 console.log(pathParts);
                 if (pathParts.length === 2) {
-                   window.location.href = `/tbank${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
-                   return; // Exit early since we're doing a full page load 
+                window.location.href = `/tbank${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
+                return; // Exit early since we're doing a full page load 
                 } else {
                     showHomeScreen();
                 }         
             } else if (path.startsWith('/blog')) {
-                document.querySelector('.floating-cta').classList.add('hidden');
+                const floatingCTA = document.querySelector('.floating-cta')
+                if (floatingCTA ) {
+                    floatingCTA.classList.add('hidden');
+                }
                 console.log(pathParts);
                 if (pathParts.length === 2) {
                    window.location.href = `/blog${pathParts.length > 1 ? `/${pathParts[1]}` : ''}`;
@@ -470,7 +479,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }        
             } else if (path.startsWith('/number-puzzle')) {
                 const puzzleType = pathParts[1];
-                document.querySelector('.floating-cta').classList.add('hidden');
+                const floatingCTA = document.querySelector('.floating-cta')
+                if (floatingCTA ) {
+                    floatingCTA.classList.add('hidden');
+                }
                 if (puzzleType === 'catalog') {
                     document.querySelector('.main-nav').classList.remove('hidden');
                     await loadTemplate('/templates/number-puzzle/catalog.html', dynamicContent);
@@ -483,7 +495,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     showHomeScreen();
                 }
             } else if (path.startsWith('/word-game')) {
-                document.querySelector('.floating-cta').classList.add('hidden');
+                const floatingCTA = document.querySelector('.floating-cta')
+                if (floatingCTA ) {
+                    floatingCTA.classList.add('hidden');
+                }
                 const gameType = pathParts[1];
                 if (gameType === 'catalog') {
                     document.querySelector('.main-nav').classList.remove('hidden');
@@ -565,7 +580,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (summaryScreen) summaryScreen.classList.remove('active');
         const mainNav = document.querySelector('.main-nav');
         if (mainNav) mainNav.classList.remove('hidden');
-        document.querySelector('.floating-cta').classList.remove('hidden');
+        const floatingCTA = document.querySelector('.floating-cta')
+        if (floatingCTA ) {
+            floatingCTA.classList.remove('hidden');
+        }
     }
 
     function toggleLoading(show) {

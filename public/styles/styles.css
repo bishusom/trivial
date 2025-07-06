@@ -900,6 +900,18 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
+.setting input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.setting label {
+    cursor: pointer;
+    user-select: none;
+}
+
 /* Game Screen */
 .game-screen {
     max-width: 800px;
@@ -1723,7 +1735,7 @@ input:checked + .slider:before {
     .carousel-arrow { display: none; }
     .close-btn { top: 5rem; right: 1rem; /* Moved further right */ }
     .question-meta { gap: 4px; }
-    .game-screen .game-header { position: relative; padding-top: 70px; flex-direction: row;
+    .game-screen .game-header { position: relative; padding-top: 20px; flex-direction: row;
                                 justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
     .game-screen .score-box, .game-screen .timer-box { width: 48%; padding: 0.5rem; font-size: 0.9rem; margin: 0; }
     .question-category, .question-subcategory, .question-difficulty { font-size: 0.65rem; padding: 1px 5px; }

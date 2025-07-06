@@ -946,6 +946,47 @@ input:checked + .slider:before {
     margin: 0;
 }
 
+.difficulty-box {
+    background: rgba(255,255,255,0.1);
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Add difficulty-specific colors */
+.difficulty-box.easy {
+    color: #80e6a3;
+    border: 1px solid #80e6a3;
+}
+
+.difficulty-box.medium {
+    color: #ffd700;
+    border: 1px solid #ffd700;
+}
+
+.difficulty-box.hard {
+    color: #ff7d7d;
+    border: 1px solid #ff7d7d;
+}
+
+.difficulty-box.mixed {
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+
 .icon-btn {
     width: 40px;
     height: 40px;

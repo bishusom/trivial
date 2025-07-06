@@ -46,7 +46,9 @@ const els = {
     resultMessage: () => document.getElementById('result-message'),
     correctCount: () => document.getElementById('correct-count'),
     timeUsed: () => document.getElementById('time-used'),
-    questionCounter: () => document.getElementById('question-counter')
+    questionCounter: () => document.getElementById('question-counter'),
+    difficultyDisplay: () => document.getElementById('difficulty-level-display'),
+    difficultyBox: () => document.querySelector('.difficulty-box')
 };
 
 const timers = { quick: 30, long: 60 };
@@ -377,6 +379,34 @@ function shuffle(arr) {
 
 function toInitCaps(str) {
     return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+}
+
+function updateDifficultyDisplay() {
+    const display = els.difficultyDisplay();
+    const box = els.difficultyBox();
+    if (!display || !box) return;
+    
+    // Remove all difficulty classes
+    box.classList.remove('easy', 'medium', 'hard', 'mixed');
+    
+    // Set text and add appropriate class
+    switch(state.difficulty) {
+        case 'easy':
+            display.textContent = 'Easy';
+            box.classList.add('easy');
+            break;
+        case 'medium':
+            display.textContent = 'Medium';
+            box.classList.add('medium');
+            break;
+        case 'hard':
+            display.textContent = 'Hard';
+            box.classList.add('hard');
+            break;
+        default:
+            display.textContent = 'Mixed';
+            box.classList.add('mixed');
+    }
 }
 
 function updateTimerUI() {
@@ -973,6 +1003,9 @@ function setupEvents() {
             localStorage.setItem('triviaMasterTimerDuration', state.timerDuration);
             localStorage.setItem('triviaMasterDifficulty', state.difficulty);
             localStorage.setItem('triviaMasterRememberSettings', state.rememberSettings);
+            
+            // Update difficulty display
+            updateDifficultyDisplay();
             
             // Close panel and start game
             toggleClass(settingsPanel, 'add', 'hidden');

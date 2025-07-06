@@ -246,10 +246,10 @@ async function fetchfbQuiz(type) {
         }
         const querySnapshot = await db.collection('basic_intro_questions')
                              .where('randomIndex', '>=', Math.floor(Math.random() * 900))
-                             .where('difficulty', '==', state.difficulty)
                              .orderBy('randomIndex')
                              .limit(5)
                              .get();
+                             
         const questions = querySnapshot.docs.map(doc => ({
             id: doc.id,
             question: decodeHTML(doc.data().question),

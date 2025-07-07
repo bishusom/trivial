@@ -1006,7 +1006,7 @@
 
 @media (max-width: 480px) {
     .hunter-cell {
-        font-size: 0.6rem;
+        font-size: 0.8rem;
         min-width: 16px;
         min-height: 16px;
     }

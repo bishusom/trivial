@@ -47,7 +47,7 @@
         <div class="nav-header">
             <div class="logo-container-mobile">
                 <picture>
-                     <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-140.webp">
+                     <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-140.webp" fetchpriority="high" >
                     <img src="/imgs/triviaah-logo-140.webp" alt="Triviaah Logo" class="logo" width="180" height="30" fetchpriority="high" loading="eager">
                 </picture>
             </div>
@@ -514,7 +514,7 @@
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
     </script>
-    <script type="module" src="/scripts/router.js" defer></script>
+    <script type="module" src="/scripts/router.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
     <script src="https://unpkg.com/compromise" defer></script>
     <div class="floating-cta">

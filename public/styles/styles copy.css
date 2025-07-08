@@ -1,20 +1,14 @@
 /* Core Styles */
 :root {
-    --primary: #6C5CE7;
-    --secondary: #00B894;
-    --accent: #00ffe5;
-    --card-bg: #2D3436;
-    --bg: #1A1A2E;
-    --text: #FFFFFF;
-    --correct: #00B894;
-    --wrong: #FF7675;
-    --present: #FDCB6E;
-}
-
-@font-face {
-    font-family: 'Poppins';
-    src: url('/fonts/poppins.woff2') format('woff2');
-    font-display: swap;
+    --primary: #6C5CE7;  /* Vibrant purple (main brand color) */
+    --secondary: #00B894; /* Fresh teal (secondary accent) */
+    --accent: #00ffe5;    /* Warm gold (for highlights) */
+    --card-bg: #2D3436;   /* Dark slate (cards) */
+    --bg: #1A1A2E;        /* Deep navy (background) */
+    --text: #FFFFFF;      /* White text */
+    --correct: #00B894;   /* Teal for correct answers */
+    --wrong: #FF7675;     /* Soft red for wrong answers */
+    --present: #FDCB6E;   /* Gold for partial answers */
 }
 
 * {
@@ -29,22 +23,10 @@ body {
     color: var(--text);
     line-height: 1.5;
     padding: 10px;
-    padding-top: 0 !important;
     min-height: 100vh;
 }
 
-/* Layout Shift Prevention */
-img, picture, video {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-[width][height] {
-    aspect-ratio: attr(width) / attr(height);
-}
-
-/* Shared Components */
+/* Shared Styles */
 .card, .modal-content, .setup-card {
     background: var(--card-bg);
     border-radius: 15px;
@@ -70,9 +52,10 @@ img, picture, video {
 }
 
 .btn.primary {
-    background: linear-gradient(135deg, var(--primary), #A569BD);
+    background: linear-gradient(135deg, var(--primary), #A569BD); /* Purple gradient */
     color: white;
     box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+    border: none;
 }
 
 .btn:hover {
@@ -83,7 +66,7 @@ img, picture, video {
     background: linear-gradient(135deg, #A569BD, var(--primary));
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
-}
+}   
 
 .btn.secondary {
     background: rgba(255, 255, 255, 0.2);
@@ -108,29 +91,28 @@ img, picture, video {
 }
 
 button.start-quiz {
-    animation: pulse 2s infinite;
+  animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
 }
 
 button.browse-categories {
-    background: linear-gradient(45deg, #ff6f61, #de4d7b);
-    transition: transform 0.2s;
+  background: linear-gradient(45deg, #ff6f61, #de4d7b);
+  transition: transform 0.2s;
 }
-
 button.browse-categories:hover {
-    transform: scale(1.05);
+  transform: scale(1.05);
 }
 
+/* Hidden Class */
 .hidden {
     display: none !important;
 }
 
-/* Logo */
+/* Logo Container */
 .logo-container-desktop {
     display: block;
     text-align: center;
@@ -139,17 +121,14 @@ button.browse-categories:hover {
 
 .logo {
     width: 200px;
-    height: 40px;
-    aspect-ratio: 200/40;
+    max-width: 100%;
     filter: drop-shadow(0 0 8px rgba(70, 23, 143, 0.5));
 }
 
 .logo-container-mobile img {
-    width: 140px;
+    width: 180px;
     height: 30px;
-    aspect-ratio: 140/30;
 }
-
 /* Navigation */
 .main-nav {
     background: var(--card-bg);
@@ -158,6 +137,7 @@ button.browse-categories:hover {
     left: 0;
     right: 0;
     z-index: 1000;
+    background: var(--card-bg);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -299,7 +279,7 @@ ul {
 }
 
 .menu-icon {
-    padding: 10px;
+  padding: 10px;
 }
 
 body.game-screen-active .main-nav {
@@ -307,7 +287,7 @@ body.game-screen-active .main-nav {
 }
 
 button {
-    min-height: 48px;
+  min-height: 48px;
 }
 
 /* Hero Section */
@@ -349,7 +329,6 @@ button {
     padding: 0.8rem;
     text-align: center;
     width: 120px;
-    height: 140px;
     transition: all 0.2s;
     text-decoration: none;
     color: var(--text);
@@ -364,7 +343,6 @@ button {
     border-radius: 10px;
     margin: 0 auto 0.5rem;
     display: block;
-    aspect-ratio: 1/1;
 }
 
 .game-category-card:hover {
@@ -402,6 +380,7 @@ button {
     margin: 1.5rem 0;
 }
 
+/* Add to styles.css */
 .floating-cta {
     position: fixed;
     bottom: 20px;
@@ -414,7 +393,7 @@ button {
     background: var(--card-bg);
     border-radius: 50px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    display: none;
+    display: none; /* Show only on mobile */
 }
 
 @media (max-width: 768px) {
@@ -423,10 +402,10 @@ button {
     }
 }
 
+/* Animation for primary button */
 .pulse-btn {
     animation: pulse 2s infinite;
 }
-
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
@@ -435,86 +414,84 @@ button {
 
 /* All Categories Container */
 .all-categories-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 /* Category Group Styles */
 .category-group {
-    margin-bottom: 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 0.8rem;
-    transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.8rem;
+  transition: all 0.3s ease;
 }
 
 .category-group:hover {
-    background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .group-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.1rem;
-    margin-bottom: 0.8rem;
-    padding: 0.5rem;
-    cursor: pointer;
-    user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  user-select: none;
 }
 
 .group-header .material-icons {
-    font-size: 1.2rem;
-    color: var(--accent);
+  font-size: 1.2rem;
+  color: var(--accent);
 }
 
 .expand-icon {
-    margin-left: auto;
-    transition: transform 0.3s ease;
+  margin-left: auto;
+  transition: transform 0.3s ease;
 }
 
 /* Category Grid Styles */
 .category-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.8rem;
 }
 
 .mini-category-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.8rem 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    text-decoration: none;
-    color: var(--text);
-    transition: all 0.2s ease;
-    min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.8rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s ease;
 }
 
 .mini-category-card:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .mini-category-card img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 0.5rem;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    aspect-ratio: 1/1;
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .mini-category-card span {
-    font-size: 0.8rem;
-    text-align: center;
-    font-weight: 500;
-    line-height: 1.2;
+  font-size: 0.8rem;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 /* Setup Screen Scroll Indicator */
@@ -540,6 +517,7 @@ button {
     display: none;
 }
 
+/* Override hiding rules for setup-screen */
 .setup-screen .setup-scroll-indicator {
     opacity: 0.8 !important;
     pointer-events: auto !important;
@@ -589,7 +567,7 @@ button {
     height: 50px;
     border: 5px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    border-top-color: var(--accent);
+    border-top-color: var(--accent-color);
     animation: spin 1s ease-in-out infinite;
 }
 
@@ -608,7 +586,6 @@ button {
     text-align: center;
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
-    padding-bottom: 80px;
 }
 
 .footer-link {
@@ -638,34 +615,34 @@ button {
 .contact-card form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.5rem; /* Increased spacing between form groups */
     padding: 1rem;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.5rem; /* Space between label and input */
 }
 
 .contact-card label {
-    margin: 0;
-    font-size: 1rem;
+    margin: 0; /* Remove any default margins */
+    font-size: 1rem; /* Consistent font size */
 }
 
 .contact-card input,
 .contact-card textarea,
 .contact-card select {
-    width: 100%;
-    max-width: 100%;
-    padding: 0.75rem;
-    font-size: 1rem;
+    width: 100%; /* Ensure full width for better alignment */
+    max-width: 100%; /* Prevent overflow */
+    padding: 0.75rem; /* Consistent padding */
+    font-size: 1rem; /* Consistent font size */
 }
 
 .contact-card .btn.primary {
-    align-self: flex-start;
-    width: auto;
-    padding: 0.75rem 1.5rem;
+    align-self: flex-start; /* Align button to start */
+    width: auto; /* Allow button to size naturally */
+    padding: 0.75rem 1.5rem; /* Consistent button padding */
 }
 
 /* Privacy Section */
@@ -834,7 +811,6 @@ button {
     object-fit: cover;
     border-radius: 8px;
     margin-bottom: 10px;
-    aspect-ratio: 1/1;
 }
 
 .carousel-arrow {
@@ -940,6 +916,7 @@ input:checked + .slider:before {
 .game-screen {
     max-width: 800px;
     margin: 0 auto;
+    /*background: var(--card-bg);*/
     background-image: url('/imgs/trivia-bg.webp');
     border-radius: 15px;
     padding: 20px;
@@ -989,6 +966,7 @@ input:checked + .slider:before {
     margin-bottom: 1rem;
 }
 
+/* Add difficulty-specific colors */
 .difficulty-box.easy {
     color: #80e6a3;
     border: 1px solid #80e6a3;
@@ -1077,7 +1055,6 @@ input:checked + .slider:before {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     object-fit: contain;
-    aspect-ratio: attr(width) / attr(height);
 }
 
 .question-loading {
@@ -1086,6 +1063,7 @@ input:checked + .slider:before {
     color: var(--accent);
 }
 
+/* Question Meta Styling */
 .question-meta {
     display: flex;
     gap: 8px;
@@ -1123,6 +1101,7 @@ input:checked + .slider:before {
     line-height: 1.4;
 }
 
+/* Difficulty color schemes */
 .question-difficulty.easy {
     background-color: rgba(46, 125, 50, 0.2);
     color: #80e6a3;
@@ -1150,26 +1129,29 @@ input:checked + .slider:before {
     background-color: var(--wrong) !important;
 }
 
+/* Style for the titbits container */
 .question-titbits {
     margin-top: 1rem;
     font-size: 0.9rem;
     padding: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background for contrast */
     border-radius: 8px;
-    color: #1a1a1a;
-    display: block;
+    color: #1a1a1a; /* Dark color for readability on green/red */
+    display: block; /* Ensure it shows up */
 }
 
+/* Style for the emoji/icon */
 .titbits-icon {
     margin-right: 0.5rem;
-    color: #1a1a1a;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
-    font-size: 1.1em;
+    color: #1a1a1a; /* Match text color */
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7); /* Add shadow to make emoji stand out */
+    font-size: 1.1em; /* Slightly larger for emphasis */
 }
 
+/* Ensure titbits appear over the background */
 .question.correct-bg .question-titbits,
 .question.wrong-bg .question-titbits {
-    display: block;
+    display: block; /* Ensure visibility when question is answered */
 }
 
 .options-grid {
@@ -1218,6 +1200,10 @@ input:checked + .slider:before {
     animation: wrongFlash 0.5s ease;
 }
 
+.options-grid button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 @keyframes correctFlash {
     0% { background: var(--correct); }
     50% { background: #4dffa6; }
@@ -1230,6 +1216,7 @@ input:checked + .slider:before {
     100% { background: var(--wrong); }
 }
 
+/* Add to styles.css */
 .quiz-mode-container {
     display: flex;
     align-items: center;
@@ -1308,6 +1295,7 @@ input:checked + .slider:before {
     align-items: center;
 }
 
+
 /* Summary Screen */
 .summary-screen {
     padding: 1rem;
@@ -1364,14 +1352,14 @@ input:checked + .slider:before {
 
 .action-buttons .btn {
     flex: 1;
-    padding: 0.75rem 1rem;
-    min-width: 150px;
-    text-align: center;
-    white-space: nowrap;
+    padding: 0.75rem 1rem; /* Consistent padding */
+    min-width: 150px; /* Ensure minimum width for uniformity */
+    text-align: center; /* Center the text */
+    white-space: nowrap; /* Prevent text wrapping */
 }
 
 .action-buttons .btn .material-icons {
-    margin-right: 0.5rem;
+    margin-right: 0.5rem; /* Space between icon and text */
 }    
 
 .highscores.compact {
@@ -1586,7 +1574,7 @@ input:checked + .slider:before {
     border-radius: 15px;
     padding: 1rem;
     box-shadow: 0 0 15px rgba(70, 23, 143, 0.3);
-    pointer-events: auto;
+    pointer-events: auto; /* Ensure panel is clickable */
 }
 
 .settings-panel:not(.hidden) {
@@ -1598,7 +1586,7 @@ input:checked + .slider:before {
     align-items: center;
     gap: 10px;
     margin: 1rem 0;
-    pointer-events: auto;
+    pointer-events: auto; /* Ensure settings are clickable */
 }
 
 .toggle-switch {
@@ -1606,7 +1594,7 @@ input:checked + .slider:before {
     display: inline-block;
     width: 50px;
     height: 24px;
-    pointer-events: auto;
+    pointer-events: auto; /* Ensure slider is clickable */
 }
 
 .toggle-switch input {
@@ -1615,7 +1603,7 @@ input:checked + .slider:before {
     height: 100%;
     position: absolute;
     cursor: pointer;
-    z-index: 1;
+    z-index: 1; /* Ensure input is above slider */
 }
 
 .slider {
@@ -1628,7 +1616,7 @@ input:checked + .slider:before {
     background: #ccc;
     transition: .4s;
     border-radius: 24px;
-    pointer-events: none;
+    pointer-events: none; /* Slider itself doesn't need to handle clicks, input does */
 }
 
 .slider:before {
@@ -1649,6 +1637,18 @@ input:checked + .slider {
 
 input:checked + .slider:before {
     transform: translateX(26px);
+}
+
+/* Ensure no overlay blocks clicks */
+.settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    pointer-events: auto;
 }
 
 .settings-content .btn {
@@ -1679,459 +1679,154 @@ input:checked + .slider:before {
 
 /* Desktop Navigation */
 @media (min-width: 769px) {
-    .nav-menu { 
-        display: flex; 
-        flex-direction: row; 
-        justify-content: center; 
-        padding: 0.5rem 1rem; 
-    }   
-    .nav-link, .dropdown-toggle { 
-        padding: 1rem 1.5rem; 
-        border-bottom: none; 
-    }
-    .dropdown { 
-        position: relative; 
-    }
-    .dropdown-content { 
-        position: absolute; 
-        top: 100%; 
-        left: 0; 
-        min-width: 200px; 
-        border-radius: 0 0 4px 4px; 
-    }
-    .dropdown:hover .dropdown-content { 
-        display: block; 
-    }
-    .submenu-content { 
-        position: absolute; 
-        top: 0; 
-        left: 100%; 
-        min-width: 200px; 
-        border-radius: 4px; 
-    }
-    .submenu:hover .submenu-content { 
-        display: block; 
-    }
-    .hamburger, .nav-close { 
-        display: none; 
-    }
-    .logo-container-mobile { 
-        display: none; 
-    }   
-    .logo-container-mobile img { 
-        height: 40px; 
-    }  
-    .setup-screen { 
-        padding-top: 80px; 
-    }
-    .expand-icon { 
-        display: none;
-    }
-    .card.spelling-screen { 
-        max-width: 600px; 
-        margin: 2rem auto; 
-    }
+    .nav-menu { display: flex; flex-direction: row; justify-content: center; padding: 0.5rem 1rem; }   
+    .nav-link, .dropdown-toggle { padding: 1rem 1.5rem; border-bottom: none; }
+    .dropdown { position: relative; }
+    .dropdown-content { position: absolute; top: 100%; left: 0; min-width: 200px; border-radius: 0 0 4px 4px; }
+    .dropdown:hover .dropdown-content { display: block; }
+    .submenu-content { position: absolute; top: 0; left: 100%; min-width: 200px; border-radius: 4px; }
+    .submenu:hover .submenu-content { display: block; }
+    .hamburger, .nav-close { display: none; }
+    .logo-container-mobile { display: none; }   
+    .logo-container-mobile img { height: 40px; }  
+    .setup-screen { padding-top: 80px; }
+    .expand-icon { display: none;}
+    .card.spelling-screen { max-width: 600px; margin: 2rem auto; }
 }
 
 /* Mobile Navigation */
 @media (max-width: 768px) {
-    body { 
-        padding: 5px; 
-    }
-    .main-nav { 
-        background: transparent; 
-        box-shadow: none; 
-        padding: 0.5rem;
-        margin: 0; 
-        top: 10px; 
-        left: 10px; 
-        border-radius: 0; 
-    }
-    .nav-menu { 
-        position: fixed; 
-        top: 80px; 
-        left: 0; 
-        height: calc(100vh - 80px); 
-        width: 100%; 
-        transform: translateX(-100%); 
-        transition: transform 0.3s ease; 
-        flex-direction: column; 
-        align-items: center; 
-        padding: 2rem; 
-        background: rgba(16, 16, 36, 0.95); 
-        z-index: 2000; 
-    }
-    .nav-menu.active { 
-        transform: translateX(0); 
-    }
-    .nav-menu.active .hamburger { 
-        display: none; 
-    }
-    .nav-menu.active .nav-close { 
-        display: block; 
-    }
-    .nav-link, .dropdown-toggle { 
-        font-size: 1.2rem; 
-        padding: 1rem; 
-        width: 100%; 
-        text-align: center; 
-        justify-content: center; 
-    }
-    .dropdown-content { 
-        position: static; 
-        box-shadow: none; 
-        width: 100%;
-        background: var(--card-bg); 
-        border-radius: 8px;
-        margin: 0.5rem 0; 
-    }
-    .dropdown.active .dropdown-content { 
-        display: block; 
-    }
-    .dropdown-content a { 
-        text-align: center; 
-        padding: 1rem; 
-    }
-    .submenu-toggle { 
-        font-size: 1rem; 
-        padding: 1rem; 
-    }
-    .submenu-content { 
-        position: static; 
-        width: 100%; 
-        background: var(--card-bg);
-        border-radius: 8px; 
-        margin: 0.5rem 0; 
-    }
-    .submenu.active .submenu-content { 
-        display: block; 
-    }
-    .submenu-content a { 
-        padding: 1rem 2rem; 
-        text-align: center; 
-    }
-    .hamburger { 
-        display: block; 
-    }
-    .scroll-indicator { 
-        right: 15px; 
-        bottom: 15px; 
-    }
-    .scroll-indicator .scroll-arrow { 
-        font-size: 1.5rem; 
-        padding: 8px; 
-    }
-    .scroll-indicator .scroll-text { 
-        font-size: 0.7rem; 
-    }
-    .setup-screen { 
-        padding-top: 70px; 
-    }
-    .hero-section { 
-        padding: 1rem; 
-        gap: 0.8rem; 
-    }
-    .logo-container-desktop { 
-        display: none; 
-    }
-    .logo-container-mobile { 
-        display: block; 
-    }
-    .category-grid { 
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
-    }
-    .progress-tracker { 
-        padding: 0.8rem; 
-    }
-    .progress-bar-container { 
-        height: 8px; 
-    }
-    .setup-card { 
-        max-width: 600px; 
-    }
-    .featured-card { 
-        margin: 0 auto; 
-        max-width: 150px; 
-    }
-    .instruction-tooltip { 
-        bottom: auto; 
-        top: 100px; 
-        z-index: 150; 
-    }
-    .category-carousel {  
-        margin: 0 -10px; 
-        padding: 0 2rem; 
-    }
-    .scroll-indicator { 
-        padding: 0 1.5rem; 
-    }
-    .popular-badge { 
-        font-size: 0.6rem; 
-        padding: 1px 4px; 
-    }
-    .carousel-wrapper {
-        overflow-x: auto; 
-        -webkit-overflow-scrolling: touch; 
-        scroll-behavior: smooth; 
-        margin: 0 10px; 
-        padding: 10px 0;
-    }
-    .carousel-track { 
-        scroll-snap-type: x mandatory; 
-        gap: 8px;
-    }
-    .category-grid { 
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
-        gap: 0.6rem; 
-    }
-    .group-header { 
-        font-size: 1rem; 
-    } 
-    .mini-category-card { 
-        padding: 0.6rem 0.3rem; 
-    }
-    .mini-category-card img { 
-        width: 40px; 
-        height: 40px;
-    }
-    .mini-category-card span { 
-        font-size: 0.7rem; 
-    }
-    .category-card, .featured-card { 
-        flex: 0 0 130px; 
-        min-width: 150px; 
-        height: 150px; 
-        scroll-snap-align: center; 
-        padding: 10px; 
-    }
-    .category-image { 
-        width: 70px;
-        height: 70px; 
-    }
-    .category-card span { 
-        font-size: 0.8rem; 
-    }
-    .carousel-arrow { 
-        display: none; 
-    }
-    .carousel-arrow .material-icons { 
-        font-size: 20px; 
-    }
-    .question-image {  
-        max-height: 150px; 
-    }
-    .question-meta { 
-        gap: 6px; 
-    }
+    body { padding: 5px; }
+    .main-nav { background: transparent; box-shadow: none; padding: 0.5rem;
+                margin: 0; top: 10px; left: 10px; border-radius: 0; }
+    .nav-menu { position: fixed; top: 80px; left: 0; height: calc(100vh - 80px); width: 100%; 
+                transform: translateX(-100%); transition: transform 0.3s ease; flex-direction: column; 
+                align-items: center; padding: 2rem; background: rgba(16, 16, 36, 0.95); z-index: 2000; }
+    .nav-menu.active { transform: translateX(0); }
+    .nav-menu.active .hamburger { display: none; }
+    .nav-menu.active .nav-close { display: block; }
+    .nav-link, .dropdown-toggle { font-size: 1.2rem; padding: 1rem; width: 100%; 
+                                  text-align: center; justify-content: center; }
+    .dropdown-content { position: static; box-shadow: none; width: 100%;
+                    background: var(--card-bg); border-radius: 8px;margin: 0.5rem 0; }
+    .dropdown.active .dropdown-content { display: block; }
+    .dropdown-content a { text-align: center; padding: 1rem; }
+    .submenu-toggle { font-size: 1rem; padding: 1rem; }
+    .submenu-content { position: static; width: 100%; background: var(--card-bg);
+                    border-radius: 8px; margin: 0.5rem 0; }
+    .submenu.active .submenu-content { display: block; }
+    .submenu-content a { padding: 1rem 2rem; text-align: center; }
+    .hamburger { display: block; }
+    .scroll-indicator { right: 15px; bottom: 15px; }
+    .scroll-indicator .scroll-arrow { font-size: 1.5rem; padding: 8px; }
+    .scroll-indicator .scroll-text { font-size: 0.7rem; }
+    .setup-screen { padding-top: 70px; }
+    .hero-section { padding: 1rem; gap: 0.8rem; }
+    .logo-container-desktop { display: none; }
+    .logo-container-mobile { display: block; }
+    .category-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+    .progress-tracker { padding: 0.8rem; }
+    .progress-bar-container { height: 8px; }
+    .setup-card { max-width: 600px; }
+    .featured-card { margin: 0 auto; max-width: 150px; }
+    .instruction-tooltip { bottom: auto; top: 100px; z-index: 150; }
+    .category-carousel {  margin: 0 -10px; padding: 0 2rem; }
+    .scroll-indicator { padding: 0 1.5rem; }
+    .popular-badge { font-size: 0.6rem; padding: 1px 4px; }
+    .carousel-wrapper {overflow-x: auto; -webkit-overflow-scrolling: touch; 
+                       scroll-behavior: smooth; margin: 0 10px; padding: 10px 0;}
+    .carousel-track { scroll-snap-type: x mandatory; gap: 8px;}
+    .category-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.6rem; }
+    .group-header { font-size: 1rem; } 
+    .mini-category-card { padding: 0.6rem 0.3rem; }
+    .mini-category-card img { width: 40px; height: 40px;}
+    .mini-category-card span { font-size: 0.7rem; }
+    .category-card, .featured-card { flex: 0 0 130px; min-width: 150px; height: 150px; 
+                                     scroll-snap-align: center; padding: 10px; }
+    .category-image { width: 70px;; height: 70px; }
+    .category-card span { font-size: 0.8rem; }
+    .carousel-arrow { display: none; }
+    .carousel-arrow .material-icons { font-size: 20px; }
+    .question-image {  max-height: 150px; }
+    .question-meta { gap: 6px; }
     .question-category,
     .question-subcategory,
-    .question-difficulty { 
-        font-size: 0.7rem; 
-        padding: 2px 6px; 
-    }
+    .question-difficulty { font-size: 0.7rem; padding: 2px 6px; }
 }
 
 @media (max-width: 480px) {
-    .logo { 
-        width: 140px; 
-        height: 30px;
-    }
-    .btn { 
-        padding: 0.6rem 1rem; 
-        font-size: 0.8rem; 
-    }
-    .game-header { 
-        flex-direction: column; 
-        gap: 0.5rem; 
-    }
-    .score-box, .timer-box { 
-        width: 100%; 
-        text-align: center; 
-    }
-    .featured-card { 
-        max-width: 250px; 
-    }
-    .progress-tracker { 
-        padding: 0.6rem; 
-    }
-    #normal-timer, #quick-timer { 
-        font-size: 0.8rem; 
-    }
-    .setup-card { 
-        max-width: 100%; 
-        padding-left: 100px;
-    }
-    .scroll-indicator { 
-        padding: 0 1rem;  
-        right: 10px; 
-        bottom: 10px; 
-    }
-    .scroll-indicator .scroll-arrow { 
-        font-size: 1.3rem; 
-        padding: 6px; 
-    }
-    .scroll-indicator .scroll-text { 
-        font-size: 0.65rem; 
-    }
-    .category-card, .featured-card { 
-        flex: 0 0 110px; 
-        min-width: 110px; 
-        height: 140px; 
-    }
-    .category-image { 
-        width: 60px; 
-        height: 60px; 
-    }
-    .category-carousel { 
-        padding: 0 1.5rem; 
-    }
-    .carousel-wrapper { 
-        overflow-x: auto; 
-        -webkit-overflow-scrolling: touch; 
-        scroll-behavior: smooth; 
-    }
-    .carousel-track { 
-        scroll-snap-type: x mandatory; 
-    }
-    .category-card, .featured-card { 
-        flex: 0 0 120px; 
-        min-width: 120px; 
-        height: 140px; 
-        scroll-snap-align: center; 
-    }
-    .category-image { 
-        width: 70px; 
-        height: 70px; 
-        margin-bottom: 8px;
-    }
-    .carousel-arrow { 
-        display: none; 
-    }
-    .close-btn { 
-        top: 5rem; 
-        right: 1rem;
-    }
-    .question-meta { 
-        gap: 4px; 
-    }
-    .game-screen .game-header { 
-        position: relative; 
-        padding-top: 20px; 
-        flex-direction: row;
-        justify-content: space-between; 
-        align-items: flex-start; 
-        margin-bottom: 1rem; 
-    }
-    .game-screen .score-box, .game-screen .timer-box { 
-        width: 48%; 
-        padding: 0.5rem; 
-        font-size: 0.9rem; 
-        margin: 0; 
-    }
-    .question-category, .question-subcategory, .question-difficulty { 
-        font-size: 0.65rem; 
-        padding: 1px 5px; 
-    }
-    .performance-card.compact { 
-        padding: 1rem; 
-    }
-    .stats-row { 
-        gap: 0.5rem; 
-    }
-    .performance-message { 
-        padding: 0.75rem; 
-        font-size: 0.9rem; 
-    }
-    .stats-row { 
-        grid-template-columns: 1fr; 
-    } 
-    .stat-item { 
-        justify-content: center; 
-    } 
-    .stat-item h3 { 
-        font-size: 1rem; 
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
-    }   
-    .stat-item { 
-        padding: 0.5rem; 
-        min-width: 0; 
-    }
-    .action-buttons { 
-        flex-direction: column; 
-    }
-    .action-buttons .btn { 
-        padding: 0.5rem;
-    }
-    .logo-container-mobile { 
-        display: block; 
-    }   
-    .logo-container-mobile img { 
-        height: 40px; 
-    }
-    .game-categories { 
-        display: grid; 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 0.8rem; 
-        padding: 0.5rem; 
-        margin: 0 auto; 
-        max-width: 300px; 
-    }
-    .game-category-card { 
-        height: 95%; 
-        width: 80%; 
-        padding: 0.8rem; 
-        margin: 0; 
-    }
-    .game-category-card span { 
-        font-size: 0.7rem; 
-    }   
-    .game-category-image { 
-        width: 60px; 
-        height: 60px; 
-    }
-    .popular-badge { 
-        font-size: 0.6rem; 
-        padding: 1px 3px; 
-    }
-    .category-grid { 
-        display: none; 
-    }
-    .category-group.active .category-grid { 
-        display: grid; 
-    }
-    .category-group.active .expand-icon { 
-        transform: rotate(180deg); 
-    } 
-    .group-header { 
-        padding: 0.8rem; 
-        margin-bottom: 0; 
-    }
+    .logo { width: 140px; }
+    .btn { padding: 0.6rem 1rem; font-size: 0.8rem; }
+    .game-header { flex-direction: column; gap: 0.5rem; }
+    .score-box, .timer-box { width: 100%; text-align: center; }
+    .featured-card { max-width: 250px; }
+    .progress-tracker { padding: 0.6rem; }
+     #normal-timer, #quick-timer { font-size: 0.8rem; }
+    .setup-card { max-width: 100%; padding-left: 100px;}
+    .scroll-indicator { padding: 0 1rem;  right: 10px; bottom: 10px; }
+    .scroll-indicator .scroll-arrow { font-size: 1.3rem; padding: 6px; }
+    .scroll-indicator .scroll-text { font-size: 0.65rem; }
+    .category-card, .featured-card { flex: 0 0 110px; min-width: 110px; height: 140px; }
+    .category-image { width: 60px; height: 60px; }
+    .category-carousel { padding: 0 1.5rem; }
+    .carousel-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+    .carousel-track { scroll-snap-type: x mandatory; }
+    .category-card, .featured-card { flex: 0 0 120px; min-width: 120px; height: 140px; scroll-snap-align: center; }
+    .category-image { width: 70px; height: 70px; margin-bottom: 8px;}
+    .carousel-arrow { display: none; }
+    .close-btn { top: 5rem; right: 1rem; /* Moved further right */ }
+    .question-meta { gap: 4px; }
+    .game-screen .game-header { position: relative; padding-top: 20px; flex-direction: row;
+                                justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .game-screen .score-box, .game-screen .timer-box { width: 48%; padding: 0.5rem; font-size: 0.9rem; margin: 0; }
+    .question-category, .question-subcategory, .question-difficulty { font-size: 0.65rem; padding: 1px 5px; }
+    .performance-card.compact { padding: 1rem; }
+    .stats-row { gap: 0.5rem; }
+    .performance-message { padding: 0.75rem; font-size: 0.9rem; }
+    .stats-row { grid-template-columns: 1fr; } 
+    .stat-item { justify-content: center; } 
+    .stat-item h3 { font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   
+    .stat-item { padding: 0.5rem; min-width: 0; }
+    .action-buttons { flex-direction: column; }
+    .action-buttons .btn { padding: 0.5rem; /* Tighter button padding */ }
+    .logo-container-mobile { display: block; }   
+    .logo-container-mobile img { height: 40px; }
+    .game-categories { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; 
+                       padding: 0.5rem; margin: 0 auto; max-width: 300px; }
+    .game-category-card { height: 95%; width: 80%; padding: 0.8rem; margin: 0; }
+    .game-category-card span { font-size: 0.7rem; }   
+    .game-category-image { width: 60px; height: 60px; }
+    .popular-badge { font-size: 0.6rem; padding: 1px 3px; }
+    .category-grid { display: none; }
+    .category-group.active .category-grid { display: grid; }
+    .category-group.active .expand-icon { transform: rotate(180deg); } 
+    .group-header { padding: 0.8rem; margin-bottom: 0; }
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation: none !important;
-        transition: none !important;
-    }
+/* Typography Changes */
+
+/* Timer Urgency */
+
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
-/* Replace your current .ad-container styles with these */
-.ad-container.ad-top {
-    min-height: 50px; /* Reduced from 90px */
-    background: transparent;
-    margin: 0 auto;
-    width: 100%;
-    max-width: 970px; /* Standard leaderboard width */
-    padding: 5px 0;
-}
+/* Answer Button Redesign *
 
-/* Mobile ad container */
+/* Media Query Adjustments */
 @media (max-width: 768px) {
-    .ad-container.ad-top {
-        min-height: 32px; /* Even more compact on mobile */
-        padding: 3px 0;
-    }
+    #question { font-size: 1.5rem; padding: 1rem; }
+    .options-grid button { font-size: 1rem; padding: 1rem; }
+    .next-btn { font-size: 1rem; }
+    .urgent-timer { font-size: 1.2rem; }
+}
+
+@media (max-width: 480px) {
+    #question { font-size: 1.2rem; }
+    .options-grid button { font-size: 0.9rem; padding: 0.8rem; }
+    .next-btn { font-size: 0.9rem; }
+    .urgent-timer { font-size: 1rem; }
 }

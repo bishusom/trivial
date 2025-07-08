@@ -17,40 +17,38 @@
     <meta name="twitter:image" content="https://triviaah.com/social-preview.webp">
     <link rel="canonical" href="https://www.triviaah.com/">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    
-    <!-- Preload critical resources -->
-    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style" onload="this.rel='stylesheet'">
     <link rel="preload" href="/styles/styles.min.css" as="style">
+    <link rel="stylesheet" href="/styles/styles.min.css">
     <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
     <link rel="preload" href="/imgs/triviaah-logo-140.webp" as="image" fetchpriority="high">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="/styles/styles.min.css">
-    
-    <!-- Google Adsense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4386714040098164" crossorigin="anonymous"></script>
-    
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+     <!-- Goolge Adsense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4386714040098164"
+     crossorigin="anonymous"></script>
     <!-- Firebase SDKs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
 </head>
 <body>
+    <!--div class="ad-container ad-top">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4386714040098164"
+            crossorigin="anonymous"></script>
+        <ins class="adsbygoogle"
+            style="display:block"
+            data-ad-client="ca-pub-4386714040098164"
+            data-ad-slot="2207590813"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div-->
     <nav class="main-nav" role="navigation" aria-label="Main navigation">
         <div class="nav-header">
-            <!-- Desktop Logo (hidden on mobile) -->
-            <!--div class="logo-container-desktop">
-                <picture>
-                    <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp" width="140" height="30">
-                    <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp" width="180" height="36">
-                    <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40" style="aspect-ratio: 200/40">
-                </picture>
-            </div-->
-            
-            <!-- Mobile Logo (hidden on desktop) -->
             <div class="logo-container-mobile">
                 <picture>
-                    <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-140.webp" width="140" height="30">
-                    <img src="/imgs/triviaah-logo-140.webp" alt="Triviaah Logo" class="logo" width="140" height="30" fetchpriority="high" loading="eager" style="aspect-ratio: 140/30">
+                     <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-140.webp" fetchpriority="high" >
+                    <img src="/imgs/triviaah-logo-140.webp" alt="Triviaah Logo" class="logo" width="180" height="30" fetchpriority="high" loading="eager">
                 </picture>
             </div>
             <div class="nav-controls">
@@ -170,47 +168,36 @@
 
     <main>
         <div class="screen setup-screen active">
-            <div class="hero-section">                
-                <h1>Can You Score 10/10?</h1>
-                <p>Challenge yourself with our addictive trivia quizzes. Average play time: just 60 seconds!</p>
-                <hr class="divider">
+            <div class="hero-section">
+                <div class="logo-container-desktop">
+                    <picture>
+                        <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
+                        <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp 180w">
+                        <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40">
+                    </picture>
+                </div>
+                <!--hr class="divider">
                 <h2 class="section-header">Featured Trivia Quizzes</h2>
                 <div class="game-categories">
                     <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
-                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
+                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
                         <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
+                    <a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Weekly Quiz (Expires in <b>7 days</b>)</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/monthly" class="game-category-card featured-card" data-category="Monthly"width="70" height="70">
+                        <img src="/imgs/monthly-quiz-70.webp" alt="Monthly Quiz" class="game-category-image">
+                        <span>Monthly Quiz (New Quiz in <b>30 days</b>)</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
                     <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
-                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
+                        <img src="/imgs/general-knowledge-70.webp" alt="General Knowledge" class="game-category-image" width="70" height="70">
                         <span>General Knowledge</span>
                         <span class="popular-badge">Popular</span>
-                    </a>
-                    <a href="/trivias/movies" class="game-category-card featured-card" data-category="Movies">
-                        <img src="/imgs/movies-70.webp" alt="Movies Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Movies</span>
-                        <span class="popular-badge">Featured!</span>
-                    </a>
-                    <a href="/trivias/science" class="game-category-card featured-card" data-category="Movies">
-                        <img src="/imgs/science-70.webp" alt="Science Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Science</span>
-                        <span class="popular-badge">Featured!</span>
-                    </a>
-                    <a href="/trivias/geography" class="game-category-card featured-card" data-category="Geography">
-                        <img src="/imgs/geography-70.webp" alt="Geography Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Geography</span>
-                        <span class="popular-badge">Tough!</span>
-                    </a>
-                    <a href="/trivias/celebrities" class="game-category-card featured-card" data-category="celebrities">
-                        <img src="/imgs/celebrities-70.webp" alt="Celebrities Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Celebrities</span>
-                        <span class="popular-badge">Easy</span>
                     </a>
                 </div>
                 <a href="/trivias/daily" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
@@ -218,10 +205,27 @@
                 </a>
                 <a href="/trivias/catalog" class="btn primary browse-categories" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto;">
                     <span class="material-icons">search</span> Browse Categories
-                </a>
+                </a-->
                 <hr class="divider">
                 <h2 class="section-header">Popular Games</h2>
                 <div class="game-categories">
+                    <a href="/trivias/daily" class="game-category-card featured-card" data-category="Daily">
+                        <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
+                        <span class="popular-badge">Easy</span>
+                    </a>
+
+                    <!--a href="/trivias/weekly" class="game-category-card featured-card" data-category="Weekly">
+                        <img src="/imgs/weekly-quiz-70.webp" alt="Weekly Quiz" class="game-category-image" width="70" height="70" >
+                        <span>Weekly Quiz (Expires in <b>7 days</b>)</span>
+                    </a-->
+
+                    <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
+                        <img src="/imgs/general-knowledge-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" >
+                        <span>General Knowledge Trivia</span>
+                        <span class="popular-badge">Tough</span>
+                    </a>
+
                     <a href="/number-puzzle/primehunter" class="game-category-card featured-card" data-category="Prime Hunter">
                         <img src="/imgs/primehunter-70.webp" alt="Prime Hunter" class="game-category-image" width="70" height="70">
                         <span>Prime Hunter</span>
@@ -234,7 +238,7 @@
                         <span class="popular-badge">Popular</span>
                     </a>
 
-                    <a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
+                    <!--a href="/word-game/anagram" class="game-category-card featured-card" data-category="Anagram" width="70" height="70">
                         <img src="/imgs/anagram-70.webp" alt="Anagram" class="game-category-image">
                         <span>Anagram</span>
                         <span class="popular-badge">Popular</span>
@@ -252,18 +256,20 @@
                         <span class="popular-badge">Popular</span>
                     </a>
 
-                    <a href="/number-puzzle/scramble" class="game-category-card featured-card" data-category="Number Scramble">
+                    <!--a href="/number-puzzle/scramble" class="game-category-card featured-card" data-category="Number Scramble">
                         <img src="/imgs/number-scramble-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
                         <span>Number Scramble</span>
-                        <span class="popular-badge">Popular</span>
-                    </a>
+                    </a-->
+
                 </div>
                 <div class="cta-buttons" style="display: flex; flex-direction: column; gap: 1rem; max-width: 300px; margin: 0 auto 2rem;">
-                    <a href="/number-puzzle/catalog" class="btn secondary" style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent);">
-                        Browse All Games
+                    <a href="/trivias/daily" class="btn primary pulse-btn" style="background: #00FFFF; color: #1A1A2E; font-weight: bold;">
+                        ⚡ Play Daily Trivia
+                    </a>
+                    <a href="/trivias/catalog" class="btn secondary" style="background: rgba(255,255,255,0.1); border: 1px solid var(--accent);">
+                        Browse All Categories
                     </a>
                 </div>
-                
             </div>
             
             <hr class="divider">
@@ -332,8 +338,8 @@
                             <img src="/imgs/geography-50.webp" alt="Geography" width="50" height="50">
                             <span>Geography</span>
                         </a>
-                        <a href="/trivias/animals" class="mini-category-card">
-                            <img src="/imgs/animals-50.webp" alt="animals" width="50" height="50">
+                         <a href="/trivias/animals" class="mini-category-card">
+                            <img src="/imgs/animals-50.webp" alt="Geography" width="50" height="50">
                             <span>Animals</span>
                         </a>
                         <a href="/trivias/mythology" class="mini-category-card">
@@ -417,10 +423,6 @@
                         <a href="/word-games/wordsearch" class="mini-category-card">
                             <img src="/imgs/wordsearch-50.webp" alt="Word Search" width="50" height="50">
                             <span>Word Search</span>
-                        </a>
-                        <a href="/word-games/wordladder" class="mini-category-card">
-                            <img src="/imgs/wordladder-50.webp" alt="Word Search" width="50" height="50">
-                            <span>Word Ladder</span>
                         </a>                         
                     </div>
                 </div>    
@@ -451,15 +453,10 @@
                         <a href="/number-puzzles/primehunter" class="mini-category-card">
                             <img src="/imgs/primehunter-50.webp" alt="Prime Hunter" width="50" height="50">
                             <span>Prime Hunter</span>
-                        </a>
-                        <a href="/number-puzzles/sodoku" class="mini-category-card">
-                            <img src="/imgs/sodoku-50.webp" alt="Prime Hunter" width="50" height="50">
-                            <span>Sodoku</span>
                         </a>                                               
                     </div>
                 </div> 
             </div>
-            
         </div>
 
         <div class="screen" id="dynamic-content"></div>
@@ -476,7 +473,7 @@
         <span class="scroll-text">SCROLL</span>
     </div>
     
-    <footer class="app-footer" style="padding-bottom: 80px;">
+    <footer class="app-footer">
         <div class="footer-links">
             <a href="/privacy" class="footer-link">Privacy Policy</a>
             <span class="divider">|</span>
@@ -485,27 +482,25 @@
         <p class="copyright">© 2025 Triviaah. All rights reserved.</p>
     </footer>
 
-    <!-- Audio elements -->
     <audio id="tick-sound" src="/audio/tick.mp3" preload="auto"></audio>
     <audio id="correct-sound" src="/audio/correct.mp3" preload="auto"></audio>
     <audio id="wrong-sound" src="/audio/wrong.mp3" preload="auto"></audio>
     <audio id="win-sound" src="/audio/win.mp3" preload="auto"></audio>
     <audio id="lose-sound" src="/audio/lose.mp3" preload="auto"></audio>
     <audio id="hint-sound" src="/audio/hint.mp3" preload="auto"></audio>
-    
-    <!-- Google Analytics -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-K4KZ7XR85V"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
+
         gtag('config', 'G-K4KZ7XR85V');
     </script>
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-app-compat.js" ></script>
+    <script src="https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore-compat.js" ></script>
     <script>
+        // Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyD476kdtlngttCBw6vMnc73QWA7P1OnHdg",
             authDomain: "triviaahdb.firebaseapp.com",
@@ -514,21 +509,31 @@
             messagingSenderId: "758082588437",
             appId: "1:758082588437:web:9eada609e974b9e458631c",
             measurementId: "G-ZT8Q78QYDQ"
-        };
+            };
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
     </script>
-    
-    <!-- App Scripts -->
     <script type="module" src="/scripts/router.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
     <script src="https://unpkg.com/compromise" defer></script>
-    
-    <!-- Floating CTA -->
     <div class="floating-cta">
         <a href="/trivias/daily" class="btn primary" style="border-radius: 50px;">
             <span class="material-icons">bolt</span> Play Now
         </a>
     </div>
 </body>
+<!--div class="ad-container ad-bottom">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4386714040098164"
+        crossorigin="anonymous"></script>
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-4386714040098164"
+        data-ad-slot="2207590813"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div-->
 </html>

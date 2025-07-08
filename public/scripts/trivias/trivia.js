@@ -80,7 +80,8 @@ let state = {
     timerDuration: 'long',
     difficulty: 'mixed',
     rememberSettings: false,
-    showSettingsOnStart: true
+    showSettingsOnStart: true,
+    category: 'general knowledge'
 };
 
 let nlp;
@@ -426,6 +427,7 @@ export function initTriviaGame(category) {
     loadMuteState();
     state.rememberSettings = JSON.parse(localStorage.getItem('triviaMasterRememberSettings')) || false;
     state.showSettingsOnStart = !state.rememberSettings && category !== 'daily';
+    state.category = category; // Store the category in state
     
     if (category === 'daily') {
         // Daily quiz settings (unchanged except difficulty)
@@ -1013,7 +1015,7 @@ function setupEvents() {
             // If this was the initial settings panel, start the game
             if (state.showSettingsOnStart) {
                 state.showSettingsOnStart = false;
-                startGameWithSettings(state.questions[0]?.category || 'general knowledge');
+                startGameWithSettings(state.category); // Use state.category
             } else {
                 // If changing settings mid-game, restart the current question
                 state.current = 0;

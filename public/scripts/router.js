@@ -203,21 +203,26 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        if (endBtn) {
-            endBtn.onclick = () => {
-                modal.classList.add('hidden');
-                if (typeof window.endGame === 'function') {
-                    window.endGame();
+            if (endBtn) {
+                endBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    
+                    // Properly end the game by calling the exported function
+                    if (typeof window.triviaGame !== 'undefined' && typeof window.triviaGame.endGame === 'function') {
+                        window.triviaGame.endGame();
+                    }
+                    
+                    // Clear any stored game state
                     localStorage.removeItem('triviaMasterGameState');
-                }
-                if (window.pendingNavigation) {
-                    window.history.pushState({ path: window.pendingNavigation }, '', window.pendingNavigation);
-                    handleRouting(window.pendingNavigation);
-                    window.pendingNavigation = null;
-                }
-            };
+                    
+                    if (window.pendingNavigation) {
+                        window.history.pushState({ path: window.pendingNavigation }, '', window.pendingNavigation);
+                        handleRouting(window.pendingNavigation);
+                        window.pendingNavigation = null;
+                    }
+                };
+            }
         }
-    }
 
     // Main Routing Function
     async function handleRouting(path) {
@@ -251,8 +256,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const validChildren = {
             '/trivias': ['daily', 'weekly', 'monthly', 'general-knowledge', 'literature', 'arts','animals', 'science', 
                         'history', 'fashion', 'festivals', 'geography', 'movies', 'tv', 'music', 'celebrities', 'politics', 
-                        'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games','board-games','catalog', 
-                        'tbank'],
+                        'food', 'sports', 'business', 'mythology', 'philosophy', 'video-games','board-games',
+                        'country-capitals','90s-movie-trivia','famous-quotes','pub-quiz','catalog', 'tbank'],
             '/number-puzzle': ['guess', 'scramble', 'sequence', 'primehunter', 'numbertower', 'sodoku', 'catalog'],
             '/word-game': ['classic', 'anagram', 'spelling', 'boggle', 'wordsearch', 'wordladder', 'wordcircle', 'catalog']
         };
@@ -417,10 +422,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Scroll Indicator
+    // Scroll Indicator - Corrected Implementation
     if (scrollIndicator && scrollArrow) {
         const updateScrollIndicator = () => {
-            if (!setupScreen || !setupScreen.classList.contains('active')) {
+            const shouldShowIndicator = 
+                (setupScreen && setupScreen.classList.contains('active')) ||
+                (dynamicContent && dynamicContent.classList.contains('active') && 
+                 document.querySelector('.categories-grid'));
+            
+            if (!shouldShowIndicator) {
                 scrollIndicator.style.display = 'none';
                 return;
             }

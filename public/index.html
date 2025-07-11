@@ -37,15 +37,6 @@
 <body>
     <nav class="main-nav" role="navigation" aria-label="Main navigation">
         <div class="nav-header">
-            <!-- Desktop Logo (hidden on mobile) -->
-            <!--div class="logo-container-desktop">
-                <picture>
-                    <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp" width="140" height="30">
-                    <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp" width="180" height="36">
-                    <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40" style="aspect-ratio: 200/40">
-                </picture>
-            </div-->
-            
             <!-- Mobile Logo (hidden on desktop) -->
             <div class="logo-container-mobile">
                 <picture>
@@ -76,13 +67,6 @@
                     <span class="material-icons dropdown-icon">expand_more</span>
                 </button>
                 <ul class="dropdown-content">
-                    <li class="submenu">
-                        <button class="submenu-toggle">Timed Challenges</button>
-                        <ul class="submenu-content">
-                            <li><a href="/trivias/weekly">Weekly Quiz</a></li>
-                            <li><a href="/trivias/monthly">Monthly Quiz</a></li>
-                        </ul>
-                    </li>
                     <li class="submenu">
                         <button class="submenu-toggle">Culture & Entertainment</button>
                         <ul class="submenu-content">
@@ -170,7 +154,14 @@
 
     <main>
         <div class="screen setup-screen active">
-            <div class="hero-section">                
+            <div class="hero-section"> 
+                <div class="logo-container-desktop">
+                    <picture>
+                        <source media="(max-width: 480px)" srcset="/imgs/triviaah-logo-140.webp 140w">
+                        <source media="(max-width: 768px)" srcset="/imgs/triviaah-logo-180.webp 180w">
+                        <img src="/imgs/triviaah-logo-200.webp" alt="Triviaah Logo" class="logo" width="200" height="40">
+                    </picture>
+                </div>
                 <h1>Can You Score 10/10?</h1>
                 <p>Challenge yourself with our addictive trivia quizzes. Average play time: just 60 seconds!</p>
                 <hr class="divider">
@@ -180,6 +171,30 @@
                         <img src="/imgs/daily-quiz-70.webp" alt="Daily Quiz" class="game-category-image" width="70" height="70" loading="lazy"
      fetchpriority="high">
                         <span>Daily Quiz (Resets in <b>24 hrs</b>)</span>
+                        <span class="popular-badge">Easy!</span>
+                    </a>
+                    <a href="/trivias/country-capitals" class="game-category-card featured-card" data-category="Country-Capitals">
+                        <img src="/imgs/country-capitals-70.webp" alt="90s Movie Trivia" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
+                        <span>Country Capitals</span>
+                        <span class="popular-badge">Featured</span>
+                    </a>
+                    <a href="/trivias/90s-movie-trivia" class="game-category-card featured-card" data-category="90s-Movie-trivia">
+                        <img src="/imgs/90s-movie-trivia-70.webp" alt="90s Movie Trivia" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
+                        <span>90s Movie Trivia</span>
+                        <span class="popular-badge">Popular</span>
+                    </a>
+                    <a href="/trivias/famous-quotes" class="game-category-card featured-card" data-category="famous-quotes">
+                        <img src="/imgs/famous-quotes-70.webp" alt="Famous Quotes" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
+                        <span>Who Said That?</span>
+                        <span class="popular-badge">Featured!</span>
+                    </a>
+                    <a href="/trivias/pub-quiz" class="game-category-card featured-card" data-category="pub-quiz">
+                        <img src="/imgs/pub-quiz-70.webp" alt="Pub Quiz" class="game-category-image" width="70" height="70" loading="lazy"
+     fetchpriority="high">
+                        <span>Pub Quiz</span>
                         <span class="popular-badge">Featured!</span>
                     </a>
                     <a href="/trivias/general-knowledge" class="game-category-card featured-card" data-category="General Knowledge">
@@ -187,30 +202,6 @@
      fetchpriority="high">
                         <span>General Knowledge</span>
                         <span class="popular-badge">Popular</span>
-                    </a>
-                    <a href="/trivias/movies" class="game-category-card featured-card" data-category="Movies">
-                        <img src="/imgs/movies-70.webp" alt="Movies Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Movies</span>
-                        <span class="popular-badge">Featured!</span>
-                    </a>
-                    <a href="/trivias/science" class="game-category-card featured-card" data-category="Movies">
-                        <img src="/imgs/science-70.webp" alt="Science Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Science</span>
-                        <span class="popular-badge">Featured!</span>
-                    </a>
-                    <a href="/trivias/geography" class="game-category-card featured-card" data-category="Geography">
-                        <img src="/imgs/geography-70.webp" alt="Geography Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Geography</span>
-                        <span class="popular-badge">Tough!</span>
-                    </a>
-                    <a href="/trivias/celebrities" class="game-category-card featured-card" data-category="celebrities">
-                        <img src="/imgs/celebrities-70.webp" alt="Celebrities Quiz" class="game-category-image" width="70" height="70" loading="lazy"
-     fetchpriority="high">
-                        <span>Celebrities</span>
-                        <span class="popular-badge">Easy</span>
                     </a>
                 </div>
                 <a href="/trivias/daily" class="btn primary cta-start-quiz" style="margin-top: 1rem; max-width: 300px; margin-left: auto; margin-right: auto; background-color: #ff5733; color: white; font-size: 1.2rem; padding: 15px 30px;">
@@ -243,7 +234,7 @@
                     <a href="/number-puzzle/sequence" class="game-category-card featured-card" data-category="Number Sequence">
                         <img src="/imgs/number-sequence-70.webp" alt="Number Sequence" class="game-category-image" width="70" height="70">
                         <span>Number Sequence</span>
-                        <span class="popular-badge">Featured</span>
+                        <span class="popular-badge">Easy</span>
                     </a>
                     
                     <a href="/word-game/boggle" class="game-category-card featured-card" data-category="Boggle">
@@ -255,7 +246,7 @@
                     <a href="/number-puzzle/scramble" class="game-category-card featured-card" data-category="Number Scramble">
                         <img src="/imgs/number-scramble-70.webp" alt="Spelling Bee" class="game-category-image" width="70" height="70">
                         <span>Number Scramble</span>
-                        <span class="popular-badge">Popular</span>
+                        <span class="popular-badge">Tough</span>
                     </a>
                 </div>
                 <div class="cta-buttons" style="display: flex; flex-direction: column; gap: 1rem; max-width: 300px; margin: 0 auto 2rem;">
@@ -525,10 +516,10 @@
     <script src="https://unpkg.com/compromise" defer></script>
     
     <!-- Floating CTA -->
-    <div class="floating-cta">
+    <!--div class="floating-cta">
         <a href="/trivias/daily" class="btn primary" style="border-radius: 50px;">
             <span class="material-icons">bolt</span> Play Now
         </a>
-    </div>
+    </div-->
 </body>
 </html>

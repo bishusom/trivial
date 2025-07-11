@@ -7,144 +7,128 @@
         <p id="progress-message">Start playing to earn badges!</p>
     </div>
 
-    <div class="category-carousel">
-        <button class="carousel-arrow left-arrow" aria-label="Previous categories">
-            <span class="material-icons">chevron_left</span>
-        </button>
-        
-        <div class="carousel-wrapper">
-            <div class="carousel-track">
-                <a href="/trivias/general-knowledge" class="category-card" data-category="General Knowledge">
-                    <div class="category-card" data-category="General Knowledge">
-                        <img src="/imgs/general-knowledge.webp" alt="General Knowledge" class="category-image">
-                        <span>General</span>
-                    </div>
-                </a> 
-                <a href="/trivias/literature" class="category-card" data-category="Literature">
-                    <div class="category-card" data-category="Literature">
-                        <img src="/imgs/literature.webp" alt="Literature" class="category-image">
-                        <span>Literature</span>
-                    </div>
-                </a>    
-                
-                <a href="/trivias/arts" class="category-card" data-category="Arts">
-                    <div class="category-card" data-category="arts">
-                        <img src="/imgs/arts.webp" alt="Arts" class="category-image">
-                        <span>Arts</span>
-                    </div>
-                </a>
-                
-                <a href="/trivias/animals" class="category-card" data-category="Animals">
-                    <div class="category-card" data-category="animals">
-                        <img src="/imgs/animals.webp" alt="Animals" class="category-image">
-                        <span>Animals</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/science" class="category-card" data-category="Science">
-                    <div class="category-card" data-category="science">
-                        <img src="/imgs/science.webp" alt="Science" class="category-image">
-                        <span>Science</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/history" class="category-card" data-category="History">
-                    <div class="category-card" data-category="history">
-                        <img src="/imgs/history.webp" alt="History" class="category-image">
-                        <span>History</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/geography" class="category-card" data-category="Geography">
-                    <div class="category-card" data-category="geography">
-                        <img src="/imgs/geography.webp" alt="Geography" class="category-image">
-                        <span>Geography</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/movie" class="category-card" data-category="Movies">
-                    <div class="category-card" data-category="movies">
-                        <img src="/imgs/movies.webp" alt="Movies" class="category-image">
-                        <span>Movies</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/tv" class="category-card" data-category="tv">
-                    <div class="category-card" data-category="tv">
-                        <img src="/imgs/tv-series.webp" alt="TV/Web Series" class="category-image">
-                        <span>TV/Web Series</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/music" class="category-card" data-category="Music">                       
-                    <div class="category-card" data-category="music">
-                        <img src="/imgs/music.webp" alt="Music" class="category-image">
-                        <span>Music</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/celebrities" class="category-card" data-category="Celebrities">
-                    <div class="category-card" data-category="celebrities">
-                        <img src="/imgs/celebrities.webp" alt="Celebrities" class="category-image">
-                        <span>Celebrities</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/politics" class="category-card" data-category="Politics">
-                    <div class="category-card" data-category="politics">
-                        <img src="/imgs/politics.webp" alt="Politics" class="category-image">
-                        <span>Politics</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/food" class="category-card" data-category="Food">
-                    <div class="category-card" data-category="food">
-                        <img src="/imgs/food.webp" alt="Food" class="category-image">
-                        <span>Food</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/sports" class="category-card" data-category="Sports">
-                    <div class="category-card" data-category="sports">
-                        <img src="/imgs/sports.webp" alt="Sports" class="category-image">
-                        <span>Sports</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/fashion" class="category-card" data-category="Fashion">
-                    <div class="category-card" data-category="fashion">
-                        <img src="/imgs/fashion.webp" alt="Fashion" class="category-image">
-                        <span>Fashion</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/festivals" class="category-card" data-category="Festivals">
-                    <div class="category-card" data-category="festivals">
-                        <img src="/imgs/festivals.webp" alt="Festivals" class="category-image">
-                        <span>Festivals</span>
-                    </div>
-                </a>
-                
-                <a href="/trivias/business" class="category-card" data-category="Business">
-                    <div class="category-card" data-category="business">
-                        <img src="/imgs/business.webp" alt="Business" class="category-image">
-                        <span>Business</span>
-                    </div>
-                </a>
-
-                <a href="/trivias/mythology" class="category-card" data-category="Mythology">
-                    <div class="category-card" data-category="mythology">
-                        <img src="/imgs/mythology.webp" alt="Mythology" class="category-image">
-                        <span>Mythology</span>
-                    </div>
-                </a>
-                
+    <div class="categories-grid">
+        <!-- Simplified category cards - removed nested structure -->
+        <a href="/trivias/general-knowledge" class="category-card" data-category="General Knowledge">
+            <div class="category-card" data-category="General Knowledge">
+                <img src="/imgs/general-knowledge.webp" alt="General Knowledge" class="category-image">
+                <span>General</span>
             </div>
-        </div>
-        
-        <button class="carousel-arrow right-arrow" aria-label="Next categories">
-            <span class="material-icons">chevron_right</span>
-        </button>
+        </a>
+        <a href="/trivias/literature" class="category-card" data-category="Literature">
+            <div class="category-card" data-category="Literature">
+                <img src="/imgs/literature.webp" alt="Literature" class="category-image">
+                <span>Literature</span>
+            </div>
+        </a> 
+         <a href="/trivias/arts" class="category-card" data-category="Arts">
+            <div class="category-card" data-category="Arts">
+                <img src="/imgs/arts.webp" alt="Arts" class="category-image">
+                <span>Arts</span>
+            </div>
+         </a>
+        <a href="/trivias/animals" class="category-card" data-category="Animals">
+            <div class="category-card" data-category="Animals">
+                <img src="/imgs/animals.webp" alt="Animals" class="category-image">
+                <span>Animals</span>
+            </div>
+        </a>    
+         <a href="/trivias/science" class="category-card" data-category="Science">
+            <div class="category-card" data-category="Science">
+                <img src="/imgs/science.webp" alt="Science" class="category-image">
+                <span>Science</span>
+            </div>
+         </a>    
+        <a href="/trivias/history" class="category-card" data-category="History">
+            <div class="category-card" data-category="History">
+                <img src="/imgs/history.webp" alt="History" class="category-image">
+                <span>History</span>
+            </div>
+        </a>    
+         <a href="/trivias/geography" class="category-card" data-category="Geography">
+            <div class="category-card" data-category="Geography">
+                <img src="/imgs/geography.webp" alt="Geography" class="category-image">
+                <span>Geography</span>
+            </div>
+         </a>    
+        <a href="/trivias/movie" class="category-card" data-category="Movies">
+            <div class="category-card" data-category="Movies">
+                <img src="/imgs/movies.webp" alt="Movies" class="category-image">
+                <span>Movies</span>
+            </div>
+        </a>
+        <a href="/trivias/tv" class="category-card" data-category="tv">
+            <div class="category-card" data-category="TV/Web Series">
+                <img src="/imgs/tv-series.webp" alt="TV/Web Series" class="category-image">
+                <span>TV/Web Series</span>
+            </div>
+        </a>
+        <a href="/trivias/music" class="category-card" data-category="Music">
+            <div class="category-card" data-category="Music">
+                <img src="/imgs/music.webp" alt="Music" class="category-image">
+                <span>Music</span>
+            </div>
+        </a>    
+        <a href="/trivias/celebrities" class="category-card" data-category="Celebrities">
+            <div class="category-card" data-category="Celebrities">
+                <img src="/imgs/celebrities.webp" alt="Celebrities" class="category-image">
+                <span>Celebrities</span>
+            </div>
+        </a>    
+        <a href="/trivias/politics" class="category-card" data-category="Politics">
+            <div class="category-card" data-category="Politics">
+                <img src="/imgs/politics.webp" alt="Politics" class="category-image">
+                <span>Politics</span>
+            </div>
+        </a>    
+        <a href="/trivias/food" class="category-card" data-category="Food">
+            <div class="category-card" data-category="Food">
+                <img src="/imgs/food.webp" alt="Food" class="category-image">
+                <span>Food</span>
+            </div>
+        </a>    
+        <a href="/trivias/sports" class="category-card" data-category="Sports">
+            <div class="category-card" data-category="Sports">
+                <img src="/imgs/sports.webp" alt="Sports" class="category-image">
+                <span>Sports</span>
+            </div>
+        </a>    
+        <a href="/trivias/fashion" class="category-card" data-category="Fashion">
+            <div class="category-card" data-category="Fashion">
+                <img src="/imgs/fashion.webp" alt="Fashion" class="category-image">
+                <span>Fashion</span>
+            </div>
+        </a>    
+        <a href="/trivias/festivals" class="category-card" data-category="Festivals">
+            <div class="category-card" data-category="Festivals">
+                <img src="/imgs/festivals.webp" alt="Festivals" class="category-image">
+                <span>Festivals</span>
+            </div>
+        </a>    
+        <a href="/trivias/business" class="category-card" data-category="Business">
+            <div class="category-card" data-category="Business">
+                <img src="/imgs/business.webp" alt="Business" class="category-image">
+                <span>Business</span>
+            </div>
+        </a> 
+        <a href="/trivias/board-games" class="category-card" data-category="Business">
+            <div class="category-card" data-category="Business">
+                <img src="/imgs/board-games.webp" alt="Business" class="category-image">
+                <span>Board Games</span>
+            </div>
+        </a>  
+        <a href="/trivias/video-games" class="category-card" data-category="Business">
+            <div class="category-card" data-category="Business">
+                <img src="/imgs/video-games.webp" alt="Business" class="category-image">
+                <span>Video Games</span>
+            </div>
+        </a>      
+        <a href="/trivias/mythology" class="category-card" data-category="Mythology">
+            <div class="category-card" data-category="Mythology">
+                <img src="/imgs/mythology.webp" alt="Mythology" class="category-image">
+                <span>Mythology</span>
+            </div>
+        </a>
     </div>
 </div>
 

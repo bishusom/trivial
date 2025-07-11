@@ -50,7 +50,7 @@ const els = {
     difficultyBox: () => document.querySelector('.difficulty-box')
 };
 
-const timers = { quick: 10, long: 60 };
+const timers = { quick: 10, long: 60 }; // Updated quick timer to 10s for special quizzes
 const audio = {
     tick: document.getElementById('tick-sound'),
     correct: document.getElementById('correct-sound'),
@@ -62,12 +62,13 @@ const imageCache = {};
 const SPECIAL_QUIZ_TYPES = ['daily', '90s movie trivia', 'pub quiz', 'famous quotes', 'country capitals'];
 
 const CATEGORY_ALIASES = {
-    'board games': 'board-games',
-    'video games': 'video-games', // Corrected typo from 'vidoe-games'
-    'famous quotes': 'famous-quotes',
-    'country capitals': 'country-capitals',
+    'board games' : 'board-games',
+    'vidoe games' : 'vidoe-games',
+    'famous quotes' : 'famous-quotes',
+    'countries and capitals': 'country-capitals',
     '90s movie trivia': '90s-movie-trivia',
     'pub quiz': 'pub-quiz'
+    // Add more aliases as needed
 };
 
 let state = {
@@ -231,6 +232,7 @@ async function preFetchImages(questions) {
         console.log('All images pre-fetched:', imageCache);
     } catch (error) {
         console.error('Error pre-fetching images:', error);
+        // Fallback to per-question fetching if pre-fetch fails
         imageCache = {};
     }
 }
@@ -251,10 +253,10 @@ async function fetchQuestions(category) {
 
 async function fetchSpecialQuiz(category) {
     const queryCategory = CATEGORY_ALIASES[category] || category;
-    console.log('Fetching special quiz for:', queryCategory);
+    console.log(queryCategory);
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    const cacheKey = `fb-${queryCategory}-quiz-${today}`;
+    const cacheKey = `fb-${category}-quiz-${today}`;
     const midnight = new Date();
     midnight.setHours(24, 0, 0, 0);
     const cached = JSON.parse(localStorage.getItem('fbQuizCache'))?.[cacheKey];
@@ -279,7 +281,7 @@ async function fetchSpecialQuiz(category) {
         question: decodeHTML(doc.data().question),
         correct: decodeHTML(doc.data().correct_answer),
         options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
-        category: queryCategory, // Use normalized category
+        category: doc.data().category,
         subcategory: doc.data().subcategory,
         difficulty: doc.data().difficulty,
         titbits: doc.data().titbits || '',
@@ -296,7 +298,7 @@ async function fetchSpecialQuiz(category) {
 async function fetchfbQuestions(category, amount = 10, difficulty = 'mixed') {
     const normalizedCategory = category.toLowerCase();
     const queryCategory = CATEGORY_ALIASES[category] || category;
-    console.log('Fetching questions for category:', queryCategory, 'difficulty:', difficulty);
+    console.log('Fetching questions for category:', category, 'difficulty:', difficulty);
     
     const difficulties = difficulty === 'mixed' ? ['easy', 'medium', 'hard'] : [difficulty];
     const cacheKey = `fb_questions-${normalizedCategory}-${difficulty}`;
@@ -310,7 +312,7 @@ async function fetchfbQuestions(category, amount = 10, difficulty = 'mixed') {
     let questions = [];
     for (const diff of difficulties) {
         let query = db.collection('triviaMaster').doc('questions').collection('items');
-        if (queryCategory !== 'general knowledge') query = query.where('category', '==', queryCategory);
+        if (category !== 'general knowledge') query = query.where('category', '==', queryCategory);
         
         query = query.where('randomIndex', '>=', Math.floor(Math.random() * 900))
                 .where('difficulty', '==', diff)
@@ -324,7 +326,7 @@ async function fetchfbQuestions(category, amount = 10, difficulty = 'mixed') {
                 question: decodeHTML(doc.data().question),
                 correct: decodeHTML(doc.data().correct_answer),
                 options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
-                category: queryCategory,
+                category: doc.data().category,
                 subcategory: doc.data().subcategory || '',
                 difficulty: doc.data().difficulty || diff,
                 titbits: doc.data().titbits || '',
@@ -447,7 +449,6 @@ export function initTriviaGame(category) {
         state.difficulty = localStorage.getItem('triviaMasterDifficulty') || 'mixed';
     }
     
-12
     els.game().classList.add('active');
     els.game().classList.remove('hidden');
     els.summary().classList.remove('active');
@@ -574,9 +575,7 @@ function checkAnswer(correct) {
         btn.disabled = true;
         btn.classList.add(btn.dataset.correct === 'true' ? 'correct' : 'wrong');
     });
-    if (correct) {
-        state.score += state.isTimedMode ? (state.timeLeft * 10 + 50) : 100; // Add base points for correct answers
-    }
+    if (correct && state.isTimedMode) state.score += state.timeLeft * 10;
     els.score().textContent = state.score;
     const q = state.questions[state.current];
     const existingTitbits = els.question().querySelector('.question-titbits');
@@ -638,6 +637,18 @@ async function endGame() {
     clearInterval(state.timerId);
     stopAllSounds();
 
+    // Clear any active timers first
+    clearInterval(state.timerId);
+    stopAllSounds();
+    
+    // Reset game state
+    state.questions = [];
+    state.current = 0;
+    state.score = 0;
+    state.answers = [];
+    state.isScoreSaved = false;
+    state.isNextPending = false;
+
     const category = state.questions[0]?.category || 'general knowledge';
     let globalHigh = null;
     try {
@@ -652,10 +663,9 @@ async function endGame() {
     }
 
     try {
-        await saveHighScore();
+        saveHighScore();
     } catch (error) {
         console.error('endGame: Error in saveHighScore:', error);
-        showError('Failed to save high score. Please try again.');
     }
 
     try {
@@ -664,15 +674,7 @@ async function endGame() {
         console.error('endGame: Error in showSummary:', error);
     }
     
-    // Move state reset here to preserve state.answers for showSummary
-    state.questions = [];
-    state.current = 0;
-    state.score = 0;
-    state.answers = [];
-    state.isScoreSaved = false;
-    state.isNextPending = false;
-
-    if (SPECIAL_QUIZ_TYPES.includes(category)) {
+    if (SPECIAL_QUIZ_TYPES.includes(state.questions[0]?.category)) {
         const actionButtons = document.querySelector('.action-buttons');
         if (actionButtons) {
             actionButtons.innerHTML = `
@@ -680,7 +682,9 @@ async function endGame() {
                     <p>You've completed today's ${toInitCaps(category)} challenge!</p>
                     <p>New questions in <span id="daily-reset-timer"></span></p>
                     <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
-                    <a href="/" class="btn"><span class="material-icons">home</span> Back Home</a>
+                    <a href="/" class="btn primary">
+                    <span class="material-icons">home</span> Back Home
+                    </a>
                 </div>`;
             const upgradeBtn = document.getElementById('upgrade-btn');
             if (upgradeBtn) {
@@ -702,7 +706,9 @@ async function endGame() {
                 <button class="btn primary" id="restart-btn">
                     <span class="material-icons">replay</span>Play Again
                 </button>
-                <a href="/" class="btn"><span class="material-icons">home</span> Back Home</a>`;
+               <a href="/" class="btn primary">
+                    <span class="material-icons">home</span> Back Home
+                </a>`;
             const restartBtn = document.getElementById('restart-btn');
             if (restartBtn) {
                 restartBtn.addEventListener('click', restartGame);
@@ -762,7 +768,7 @@ function startGameWithSettings(category) {
             showQuestion();
         }).catch(err => {
             console.error('Error pre-fetching images:', err);
-            showQuestion();
+            showQuestion(); // Fallback to showing question without images
         });
     }).catch(err => {
         console.error('Error fetching questions:', err);
@@ -788,9 +794,7 @@ function restartGame() {
 }
 
 async function showSummary(globalHigh) {
-    console.log('showSummary: state.answers:', state.answers);
-    console.log('showSummary: state.answers.length:', state.answers.length);
-    console.log('showSummary: correctCount:', state.answers.filter(a => a.correct).length);
+    console.log('Starting showSummary, globalHigh:', globalHigh);
     const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.timeLeft) : 0;
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = state.questions[0]?.category || 'general knowledge';
@@ -862,51 +866,70 @@ async function showSummary(globalHigh) {
         `).join('') : 
         '<p class="no-scores">No high scores yet</p>';
     
+    const actionButtons = document.querySelector('.action-buttons');
+    if (actionButtons) {
+        if (SPECIAL_QUIZ_TYPES.includes(state.questions[0]?.category)) {
+            actionButtons.innerHTML = `
+                <div class="progress-message">
+                    <p>You've completed today's ${toInitCaps(category)} challenge!</p>
+                    <p>New questions in <span id="daily-reset-timer"></span></p>
+                    <button id="upgrade-btn" class="btn primary">Try Regular Quiz</button>
+                    <a href="/" class="btn primary">
+                    <span class="material-icons">home</span> Back Home
+                    </a>
+                </div>`;
+            const upgradeBtn = document.getElementById('upgrade-btn');
+            if (upgradeBtn) {
+                upgradeBtn.addEventListener('click', () => {
+                    state.isTimedMode = false;
+                    state.selectedQuestions = 10;
+                    localStorage.removeItem('triviaMasterTimedMode');
+                    localStorage.removeItem('triviaMasterTimerDuration');
+                    initTriviaGame('general knowledge');
+                });
+            }
+            updateDailyResetTimer();
+            setInterval(updateDailyResetTimer, 1000);
+        } else {
+            actionButtons.innerHTML = `
+                <button class="btn primary" id="restart-btn">
+                    <span class="material-icons">replay</span>Play Again
+                </button>
+                <a href="/" class="btn primary">
+                    <span class="material-icons">home</span> Back Home
+                </a>`;
+            const restartBtn = document.getElementById('restart-btn');
+            if (restartBtn) {
+                restartBtn.addEventListener('click', restartGame);
+            }
+        }
+    }
+    
+    els.highscores().classList.remove('hidden');
+    localStorage.setItem('gamesPlayed', (parseInt(localStorage.getItem('gamesPlayed') || '0') + 1));
     await updateHighScores();
 }
 
 async function saveHighScore() {
-    if (state.isScoreSaved || !state.score) {
-        console.log('saveHighScore: Skipped - isScoreSaved:', state.isScoreSaved, 'score:', state.score);
-        return;
-    }
-    const category = CATEGORY_ALIASES[state.questions[0]?.category] || state.questions[0]?.category || 'general knowledge';
+    if (state.isScoreSaved || !state.score) return;
+    const category = state.questions[0]?.category || 'general knowledge';
     const name = prompt('Enter your name:', 'Anonymous') || 'Anonymous';
-    console.log('saveHighScore: Saving score:', {
-        name,
-        score: state.score,
-        category,
+    await db.collection('scores').add({
+        name, 
+        score: state.score, 
+        category, 
         difficulty: state.difficulty,
         timestamp: firebase.firestore.Timestamp.now()
     });
-    let attempts = 2;
-    while (attempts > 0) {
-        try {
-            await db.collection('scores').add({
-                name,
-                score: state.score,
-                category,
-                difficulty: state.difficulty,
-                timestamp: firebase.firestore.Timestamp.now()
-            });
-            state.isScoreSaved = true;
-            console.log('saveHighScore: Score saved successfully');
-            return;
-        } catch (error) {
-            console.error('saveHighScore: Error saving score (attempt ' + (3 - attempts) + '):', error);
-            attempts--;
-            if (attempts === 0) {
-                showError('Failed to save high score after retries. Please try again.');
-            }
-        }
-    }
+    state.isScoreSaved = true;
+    updateHighScores();
 }
 
 async function updateHighScores() {
     const highscoresList = els.highscoresList();
     if (!highscoresList) return;
 
-    const category = CATEGORY_ALIASES[state.questions[0]?.category] || state.questions[0]?.category || 'general knowledge';
+    const category = state.questions[0]?.category || 'general knowledge';
     try {
         const snapshot = await db.collection('scores')
             .where('category', '==', category)

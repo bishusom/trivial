@@ -200,12 +200,12 @@ function extractKeywordNLP(question) {
 
 async function fetchImage(keyword) {
     if (imageCache[keyword]) return imageCache[keyword];
-    console.log('Fetching image for ', keyword);
+    
+    console.log('Fetching image for', keyword);
     try {
         const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) throw new Error('Invalid content type');
+        
         const data = await response.json();
         if (data.url) {
             imageCache[keyword] = data.url;
@@ -218,30 +218,43 @@ async function fetchImage(keyword) {
     }
 }
 
-async function preFetchImages(questions) {
-    const keywords = questions.map(q => q.image_keyword || extractKeywordNLP(q.question));
-    const uniqueKeywords = [...new Set(keywords)];
-    try {
-        await Promise.all(uniqueKeywords.map(async keyword => {
-            if (!imageCache[keyword]) {
+async function preFetchQuestionImages(questions) {
+    const imagePromises = questions.map(async (q) => {
+        const keyword = q.image_keyword || extractKeywordNLP(q.question);
+        if (!imageCache[keyword]) {
+            try {
                 const url = await fetchImage(keyword);
-                if (url) imageCache[keyword] = url;
+                if (url) {
+                    imageCache[keyword] = url;
+                    // Preload the image
+                    new Image().src = url;
+                }
+            } catch (error) {
+                console.error(`Error pre-fetching image for "${keyword}":`, error);
             }
-        }));
-        console.log('All images pre-fetched:', imageCache);
-    } catch (error) {
-        console.error('Error pre-fetching images:', error);
-        imageCache = {};
-    }
+        }
+        return true;
+    });
+
+    await Promise.all(imagePromises);
+    console.log('All images pre-fetched');
 }
 
 async function fetchQuestions(category) {
     try {
         console.log('Fetching questions for category:', category);
-        if (SPECIAL_QUIZ_TYPES.includes(category.toLowerCase())) {
-            return await fetchSpecialQuiz(category.toLowerCase());
+        let questions;
+        
+        if ([QUIZ_TYPES.DAILY, QUIZ_TYPES.WEEKLY, QUIZ_TYPES.MONTHLY].includes(category.toLowerCase())) {
+            questions = await fetchfbQuiz(category.toLowerCase());
+        } else {
+            questions = await fetchfbQuestions(category, state.selectedQuestions, state.difficulty);
         }
-        return await fetchfbQuestions(category, state.selectedQuestions, state.difficulty);
+
+        // Pre-fetch images for all questions in parallel
+        await preFetchQuestionImages(questions);
+        
+        return questions;
     } catch (e) {
         console.error('Error in fetchQuestions:', e);
         showError(e.message || 'Failed to load questions.');
@@ -481,16 +494,20 @@ async function showQuestion() {
     
     const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
     
+    // Show loading state briefly (even though images are pre-fetched)
     els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
     
+    // Get the keyword and check cache (should be pre-loaded)
     const keyword = q.image_keyword || extractKeywordNLP(q.question);
     const imageUrl = imageCache[keyword] || null;
     
+    // Build question HTML immediately (no await needed)
     let questionHTML = '';
     if (imageUrl) {
         questionHTML += `
             <div class="question-image-container">
-                <img src="${imageUrl}" alt="${keyword}" class="question-image">
+                <img src="${imageUrl}" alt="${keyword}" class="question-image" 
+                     onerror="this.style.display='none'">
             </div>
         `;
     }
@@ -505,10 +522,15 @@ async function showQuestion() {
     
     els.question().innerHTML = questionHTML;
     
-    els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
+    // Rest of the function remains the same...
+    els.options().innerHTML = q.options.map((opt, i) => 
+        `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`
+    ).join('');
+    
     if (els.questionCounter()) {
         els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
     }
+    
     toggleClass(els.game(), 'add', 'active');
     toggleClass(els.summary(), 'remove', 'active');
     els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';

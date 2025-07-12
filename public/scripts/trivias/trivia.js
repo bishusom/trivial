@@ -63,7 +63,7 @@ const SPECIAL_QUIZ_TYPES = ['daily', '90s movie trivia', 'pub quiz', 'famous quo
 
 const CATEGORY_ALIASES = {
     'board games': 'board-games',
-    'video games': 'video-games', // Corrected typo from 'vidoe-games'
+    'video games': 'video-games',
     'famous quotes': 'famous-quotes',
     'country capitals': 'country-capitals',
     '90s movie trivia': '90s-movie-trivia',
@@ -194,67 +194,84 @@ function extractKeywordNLP(question) {
     if (nouns.length > 0) return nouns[0];
     const adjectives = doc.adjectives().out('array');
     if (adjectives.length > 0) return adjectives[0];
-    const words = question.replace('?', '').split(' ');
-    return words.find(w => w.length > 3) || words[0];
+    const words = question.replace(/[^a-zA-Z0-9\s]/g, '').split(' ');
+    const validWords = words.filter(w => w.length > 3 && !['what', 'which', 'where', 'when', 'who', 'how'].includes(w.toLowerCase()));
+    return validWords[0] || words[0] || 'trivia';
 }
 
 async function fetchImage(keyword) {
-    if (imageCache[keyword]) return imageCache[keyword];
-    
-    console.log('Fetching image for', keyword);
-    try {
-        const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        const data = await response.json();
-        if (data.url) {
-            imageCache[keyword] = data.url;
-            return data.url;
-        }
-        return null;
-    } catch (error) {
-        console.error('Error fetching image:', error);
+    if (!keyword || typeof keyword !== 'string') {
+        console.warn('Invalid keyword for image fetch:', keyword);
         return null;
     }
+    if (imageCache[keyword]) {
+        console.log('Using cached image for keyword:', keyword, imageCache[keyword]);
+        return imageCache[keyword];
+    }
+    console.log('Fetching image for keyword:', keyword);
+    let attempts = 2;
+    while (attempts > 0) {
+        try {
+            const response = await fetch(`/.netlify/functions/get-image?keyword=${encodeURIComponent(keyword)}`);
+            console.log('fetchImage response status:', response.status, 'keyword:', keyword);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('fetchImage HTTP error:', response.status, errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('fetchImage invalid content type:', contentType);
+                throw new Error('Invalid content type');
+            }
+            const data = await response.json();
+            console.log('fetchImage response data:', data);
+            if (data.url) {
+                imageCache[keyword] = data.url;
+                return data.url;
+            }
+            console.warn('fetchImage: No URL in response for keyword:', keyword);
+            return null;
+        } catch (error) {
+            console.error(`fetchImage: Error (attempt ${3 - attempts}) for keyword "${keyword}":`, error);
+            attempts--;
+            if (attempts === 0) {
+                return null;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+        }
+    }
+    return null;
 }
 
-async function preFetchQuestionImages(questions) {
-    const imagePromises = questions.map(async (q) => {
-        const keyword = q.image_keyword || extractKeywordNLP(q.question);
-        if (!imageCache[keyword]) {
-            try {
+async function preFetchImages(questions) {
+    const keywords = questions.map(q => q.image_keyword || extractKeywordNLP(q.question));
+    const uniqueKeywords = [...new Set(keywords)];
+    console.log('Pre-fetching images for keywords:', uniqueKeywords);
+    try {
+        await Promise.all(uniqueKeywords.map(async keyword => {
+            if (!imageCache[keyword]) {
                 const url = await fetchImage(keyword);
                 if (url) {
                     imageCache[keyword] = url;
-                    // Preload the image
-                    new Image().src = url;
+                    console.log('Cached image for', keyword, ':', url);
                 }
-            } catch (error) {
-                console.error(`Error pre-fetching image for "${keyword}":`, error);
             }
-        }
-        return true;
-    });
-
-    await Promise.all(imagePromises);
-    console.log('All images pre-fetched');
+        }));
+        console.log('All images pre-fetched:', imageCache);
+    } catch (error) {
+        console.error('Error pre-fetching images:', error);
+        // Do not clear imageCache to preserve existing entries
+    }
 }
 
 async function fetchQuestions(category) {
     try {
         console.log('Fetching questions for category:', category);
-        let questions;
-        
-        if ([QUIZ_TYPES.DAILY, QUIZ_TYPES.WEEKLY, QUIZ_TYPES.MONTHLY].includes(category.toLowerCase())) {
-            questions = await fetchfbQuiz(category.toLowerCase());
-        } else {
-            questions = await fetchfbQuestions(category, state.selectedQuestions, state.difficulty);
+        if (SPECIAL_QUIZ_TYPES.includes(category.toLowerCase())) {
+            return await fetchSpecialQuiz(category.toLowerCase());
         }
-
-        // Pre-fetch images for all questions in parallel
-        await preFetchQuestionImages(questions);
-        
-        return questions;
+        return await fetchfbQuestions(category, state.selectedQuestions, state.difficulty);
     } catch (e) {
         console.error('Error in fetchQuestions:', e);
         showError(e.message || 'Failed to load questions.');
@@ -292,7 +309,7 @@ async function fetchSpecialQuiz(category) {
         question: decodeHTML(doc.data().question),
         correct: decodeHTML(doc.data().correct_answer),
         options: shuffle([...doc.data().incorrect_answers.map(decodeHTML), decodeHTML(doc.data().correct_answer)]),
-        category: queryCategory, // Use normalized category
+        category: queryCategory,
         subcategory: doc.data().subcategory,
         difficulty: doc.data().difficulty,
         titbits: doc.data().titbits || '',
@@ -460,7 +477,6 @@ export function initTriviaGame(category) {
         state.difficulty = localStorage.getItem('triviaMasterDifficulty') || 'mixed';
     }
     
-12
     els.game().classList.add('active');
     els.game().classList.remove('hidden');
     els.summary().classList.remove('active');
@@ -494,20 +510,19 @@ async function showQuestion() {
     
     const displayCategory = q.category === 'general knowledge' ? 'general knowledge' : toInitCaps(q.category);
     
-    // Show loading state briefly (even though images are pre-fetched)
     els.question().innerHTML = '<div class="question-loading">Loading question...</div>';
     
-    // Get the keyword and check cache (should be pre-loaded)
     const keyword = q.image_keyword || extractKeywordNLP(q.question);
-    const imageUrl = imageCache[keyword] || null;
+    let imageUrl = imageCache[keyword] || null;
+    if (!imageUrl) {
+        imageUrl = await fetchImage(keyword); // Fallback fetch if not pre-fetched
+    }
     
-    // Build question HTML immediately (no await needed)
     let questionHTML = '';
     if (imageUrl) {
         questionHTML += `
             <div class="question-image-container">
-                <img src="${imageUrl}" alt="${keyword}" class="question-image" 
-                     onerror="this.style.display='none'">
+                <img src="${imageUrl}" alt="${keyword}" class="question-image">
             </div>
         `;
     }
@@ -522,15 +537,10 @@ async function showQuestion() {
     
     els.question().innerHTML = questionHTML;
     
-    // Rest of the function remains the same...
-    els.options().innerHTML = q.options.map((opt, i) => 
-        `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`
-    ).join('');
-    
+    els.options().innerHTML = q.options.map((opt, i) => `<button style="animation-delay: ${i * 0.1}s" data-correct="${opt === q.correct}">${opt}</button>`).join('');
     if (els.questionCounter()) {
         els.questionCounter().textContent = `${state.current + 1}/${state.selectedQuestions}`;
     }
-    
     toggleClass(els.game(), 'add', 'active');
     toggleClass(els.summary(), 'remove', 'active');
     els.questionTimer().textContent = state.isTimedMode ? state.timeLeft : 'N/A';
@@ -597,7 +607,7 @@ function checkAnswer(correct) {
         btn.classList.add(btn.dataset.correct === 'true' ? 'correct' : 'wrong');
     });
     if (correct) {
-        state.score += state.isTimedMode ? (state.timeLeft * 10 + 50) : 100; // Add base points for correct answers
+        state.score += state.isTimedMode ? (state.timeLeft * 10 + 50) : 100;
     }
     els.score().textContent = state.score;
     const q = state.questions[state.current];
@@ -686,7 +696,6 @@ async function endGame() {
         console.error('endGame: Error in showSummary:', error);
     }
     
-    // Move state reset here to preserve state.answers for showSummary
     state.questions = [];
     state.current = 0;
     state.score = 0;

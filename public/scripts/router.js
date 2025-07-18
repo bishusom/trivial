@@ -159,6 +159,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Navigation Functions
     function navigateTo(path) {
+        // Skip routing for share function URLs
+        if (path.includes('/.netlify/functions/share')) {
+            return; // Allow the share function to handle its own redirect
+        }
+        
         if (activeDropdown) {
             activeDropdown.style.display = 'none';
             const toggle = activeDropdown.closest('.dropdown').querySelector('.dropdown-toggle');

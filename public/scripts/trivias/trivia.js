@@ -696,13 +696,6 @@ async function endGame() {
         console.error('endGame: Error in showSummary:', error);
     }
     
-    state.questions = [];
-    state.current = 0;
-    state.score = 0;
-    state.answers = [];
-    state.isScoreSaved = false;
-    state.isNextPending = false;
-
     if (SPECIAL_QUIZ_TYPES.includes(category)) {
         const actionButtons = document.querySelector('.action-buttons');
         if (actionButtons) {
@@ -740,6 +733,16 @@ async function endGame() {
             }
         }
     }
+     // Now add share buttons AFTER setting the base content
+    addShareButtons(state.score, correctCount, state.selectedQuestions, category);
+
+    // Only now reset the game state
+    state.questions = [];
+    state.current = 0;
+    state.score = 0;
+    state.answers = [];
+    state.isScoreSaved = false;
+    state.isNextPending = false;
 }
 
 function updateDailyResetTimer() {
@@ -821,39 +824,49 @@ function restartGame() {
 // Function to generate share URLs
 function generateShareUrls(score, correctCount, totalQuestions, category) {
     const shareUrl = `${window.location.origin}/.netlify/functions/share?score=${score}&correct=${correctCount}&total=${totalQuestions}&category=${encodeURIComponent(category)}`;
+    const shareText = `I scored ${score} points in ${category} trivia! Can you beat me? ${shareUrl}`;
     
     return {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`I scored ${score} points on ${category} trivia!`)}&url=${encodeURIComponent(shareUrl)}`,
-        whatsapp: `https://wa.me/?text=${encodeURIComponent(`I scored ${score} points on ${category} trivia! ${shareUrl}`)}`,
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
         directUrl: shareUrl
     };
 }
 
-
-// Function to add share buttons to the summary screen
+// Function to add share buttons
 function addShareButtons(score, correctCount, totalQuestions, category) {
     const actionButtons = document.querySelector('.action-buttons');
-    if (!actionButtons) return;
+    if (!actionButtons) {
+        console.error('Action buttons container not found');
+        return;
+    }
+
+    // Remove existing share buttons if any
+    const existingShare = actionButtons.querySelector('.share-buttons');
+    if (existingShare) existingShare.remove();
 
     const shareUrls = generateShareUrls(score, correctCount, totalQuestions, category);
     
     const shareHTML = `
         <div class="share-buttons">
-            <p>Share your score:</p>
-            <a href="${shareUrls.facebook}" target="_blank" class="btn share-btn facebook">
-                <i class="fab fa-facebook-f"></i> Facebook
-            </a>
-            <a href="${shareUrls.twitter}" target="_blank" class="btn share-btn twitter">
-                <i class="fab fa-twitter"></i> Twitter
-            </a>
-            <a href="${shareUrls.whatsapp}" target="_blank" class="btn share-btn whatsapp">
-                <i class="fab fa-whatsapp"></i> WhatsApp
-            </a>
+            <p class="share-title">Share your score:</p>
+            <div class="share-buttons-row">
+                <a href="${shareUrls.facebook}" target="_blank" class="share-btn facebook" aria-label="Share on Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="${shareUrls.twitter}" target="_blank" class="share-btn twitter" aria-label="Share on Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="${shareUrls.whatsapp}" target="_blank" class="share-btn whatsapp" aria-label="Share on WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
+            </div>
         </div>
     `;
     
-    actionButtons.insertAdjacentHTML('afterbegin', shareHTML);
+    // Insert share buttons at the end of action buttons
+    actionButtons.insertAdjacentHTML('beforeend', shareHTML);
 }
 
 
@@ -864,8 +877,6 @@ async function showSummary(globalHigh) {
     const timeUsed = state.isTimedMode ? (state.selectedQuestions * timers[state.timerDuration] - state.timeLeft) : 0;
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = state.questions[0]?.category || 'general knowledge';
-    
-    addShareButtons(state.score, correctCount, state.selectedQuestions, category);
 
     let messageCategory, messageClass;
     if (correctCount === 0) {

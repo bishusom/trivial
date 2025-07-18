@@ -830,30 +830,6 @@ function generateShareUrls(score, correctCount, totalQuestions, category) {
     };
 }
 
-// Function to add share buttons to the summary screen
-function addShareButtons(score, correctCount, totalQuestions, category) {
-    const actionButtons = document.querySelector('.action-buttons');
-    if (!actionButtons) return;
-
-    const shareUrls = generateShareUrls(score, correctCount, totalQuestions, category);
-    
-    const shareHTML = `
-        <div class="share-buttons">
-            <p>Share your score:</p>
-            <a href="${shareUrls.facebook}" target="_blank" class="btn share-btn facebook">
-                <i class="fab fa-facebook-f"></i> Facebook
-            </a>
-            <a href="${shareUrls.twitter}" target="_blank" class="btn share-btn twitter">
-                <i class="fab fa-twitter"></i> Twitter
-            </a>
-            <a href="${shareUrls.whatsapp}" target="_blank" class="btn share-btn whatsapp">
-                <i class="fab fa-whatsapp"></i> WhatsApp
-            </a>
-        </div>
-    `;
-    
-    actionButtons.insertAdjacentHTML('afterbegin', shareHTML);
-}
 
 // Function to add share buttons to the summary screen
 function addShareButtons(score, correctCount, totalQuestions, category) {

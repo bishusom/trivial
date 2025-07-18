@@ -1,10 +1,4 @@
-const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
-
-// Register fallback fonts (must be before handler)
-GlobalFonts.registerFromPath(
-  require.resolve('@napi-rs/canvas/assets/arial.ttf'),
-  'Arial'
-);
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
 
 exports.handler = async (event) => {
   try {
@@ -12,67 +6,72 @@ exports.handler = async (event) => {
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
-    // Background
-    ctx.fillStyle = '#1a2b3c';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Gradient overlay
+    // 1. Gradient Background (blue to purple)
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#2980b9');
-    gradient.addColorStop(1, '#6a3093');
+    gradient.addColorStop(0, '#3498db');
+    gradient.addColorStop(1, '#9b59b6');
     ctx.fillStyle = gradient;
-    ctx.globalAlpha = 0.4;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1.0;
 
-    // Logo
+    // 2. Semi-transparent overlay
+    ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 3. Logo with perfect dimensions (200px height, proportional width)
     try {
       const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
-      const logoHeight = 100;
-      const logoWidth = logo.height ? logoHeight * (logo.width/logo.height) : logoHeight;
-      ctx.drawImage(logo, 50, 50, logoWidth, logoHeight);
+      
+      // Logo dimensions calculation
+      const targetHeight = 100; // Your preferred height
+      const aspectRatio = logo.width / logo.height;
+      const targetWidth = targetHeight * aspectRatio;
+      
+      // Position (50px from top/left)
+      const logoX = 50;
+      const logoY = 50;
+      
+      ctx.drawImage(logo, logoX, logoY, targetWidth, targetHeight);
     } catch (e) {
+      // Fallback text if logo fails
       ctx.fillStyle = '#ffffff';
-      ctx.font = '36px Arial';
+      ctx.font = 'bold 36px Arial';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // Text Rendering with Fallbacks
+    // 4. Text Content (unchanged from working version)
     ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'top'; // Ensure consistent text positioning
-
-    // Title with explicit font stack
-    ctx.font = 'bold 60px "Arial", "Liberation Sans", "DejaVu Sans", sans-serif';
+    ctx.textBaseline = 'top';
+    
+    // Title (positioned below logo)
+    ctx.font = 'bold 60px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Triviaah Results', canvas.width/2, 150);
+    ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
-    // Score details with simpler font
-    ctx.font = '48px "Arial"';
-    ctx.fillText(`Score: ${score}`, canvas.width/2, 250);
-    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 320);
-    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 390);
+    // Score details
+    ctx.font = '48px Arial';
+    ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
+    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
+    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
 
     // Divider line
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(canvas.width/4, 450);
-    ctx.lineTo((canvas.width/4)*3, 450);
+    ctx.moveTo(canvas.width * 0.2, 480);
+    ctx.lineTo(canvas.width * 0.8, 480);
     ctx.stroke();
 
     // Footer
-    ctx.font = '28px "Arial"';
+    ctx.font = '28px Arial';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
-    const buffer = canvas.toBuffer('image/png');
-    
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=86400'
       },
-      body: buffer.toString('base64'),
+      body: canvas.toBuffer('image/png').toString('base64'),
       isBase64Encoded: true
     };
   } catch (error) {
@@ -80,7 +79,7 @@ exports.handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        stack: error.stack 
+        note: "Check logo URL and image generation"
       })
     };
   }

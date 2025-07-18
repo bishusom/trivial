@@ -1,4 +1,10 @@
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
+
+// Register fallback fonts (must be before handler)
+GlobalFonts.registerFromPath(
+  require.resolve('@napi-rs/canvas/assets/arial.ttf'),
+  'Arial'
+);
 
 exports.handler = async (event) => {
   try {
@@ -6,11 +12,11 @@ exports.handler = async (event) => {
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
-    // 1. Background with better contrast
+    // Background
     ctx.fillStyle = '#1a2b3c';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Gradient overlay (more subtle)
+    // Gradient overlay
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, '#2980b9');
     gradient.addColorStop(1, '#6a3093');
@@ -19,30 +25,28 @@ exports.handler = async (event) => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.globalAlpha = 1.0;
 
-    // 3. Logo handling with error fallback
+    // Logo
     try {
       const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
-      // Maintain aspect ratio for logo
-      const logoAspectRatio = logo.width / logo.height;
       const logoHeight = 100;
-      const logoWidth = logoHeight * logoAspectRatio;
+      const logoWidth = logo.height ? logoHeight * (logo.width/logo.height) : logoHeight;
       ctx.drawImage(logo, 50, 50, logoWidth, logoHeight);
     } catch (e) {
-      console.log('Logo failed to load, using text fallback');
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px Arial';
+      ctx.font = '36px Arial';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // 4. Text rendering with explicit font registration
+    // Text Rendering with Fallbacks
     ctx.fillStyle = '#ffffff';
-    
-    // Main title
-    ctx.font = 'bold 60px "Arial"';
+    ctx.textBaseline = 'top'; // Ensure consistent text positioning
+
+    // Title with explicit font stack
+    ctx.font = 'bold 60px "Arial", "Liberation Sans", "DejaVu Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 150);
 
-    // Score details
+    // Score details with simpler font
     ctx.font = '48px "Arial"';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 250);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 320);
@@ -56,7 +60,7 @@ exports.handler = async (event) => {
     ctx.lineTo((canvas.width/4)*3, 450);
     ctx.stroke();
 
-    // Footer text
+    // Footer
     ctx.font = '28px "Arial"';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 

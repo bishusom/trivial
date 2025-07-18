@@ -1,63 +1,72 @@
-// /netlify/functions/generate-image.js
 const { createCanvas, loadImage } = require('@napi-rs/canvas');
-const path = require('path');
 
 exports.handler = async (event) => {
   try {
-    // Parse query parameters
     const { score, correct, total, category } = event.queryStringParameters;
-    
-    // Create canvas
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
-    
-    // Fill background
-    ctx.fillStyle = '#2c3e50';
+
+    // 1. Background with better contrast
+    ctx.fillStyle = '#1a2b3c';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Add gradient overlay
+
+    // 2. Gradient overlay (more subtle)
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#3498db');
-    gradient.addColorStop(1, '#9b59b6');
+    gradient.addColorStop(0, '#2980b9');
+    gradient.addColorStop(1, '#6a3093');
     ctx.fillStyle = gradient;
-    ctx.globalAlpha = 0.6;
+    ctx.globalAlpha = 0.4;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.globalAlpha = 1.0;
-    
-    // Load logo (make sure this exists in your site)
-    const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
-    ctx.drawImage(logo, 50, 50, 200, 200);
-    
-    // Add text
+
+    // 3. Logo handling with error fallback
+    try {
+      const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
+      // Maintain aspect ratio for logo
+      const logoAspectRatio = logo.width / logo.height;
+      const logoHeight = 100;
+      const logoWidth = logoHeight * logoAspectRatio;
+      ctx.drawImage(logo, 50, 50, logoWidth, logoHeight);
+    } catch (e) {
+      console.log('Logo failed to load, using text fallback');
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 36px Arial';
+      ctx.fillText('TRIVIAAH', 50, 100);
+    }
+
+    // 4. Text rendering with explicit font registration
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 72px "Arial"';
+    
+    // Main title
+    ctx.font = 'bold 60px "Arial"';
     ctx.textAlign = 'center';
-    ctx.fillText('Trivia Master Results', canvas.width/2, 150);
-    
+    ctx.fillText('Triviaah Results', canvas.width/2, 150);
+
+    // Score details
     ctx.font = '48px "Arial"';
-    ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
-    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
-    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
-    
-    // Add decorative elements
+    ctx.fillText(`Score: ${score}`, canvas.width/2, 250);
+    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 320);
+    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 390);
+
+    // Divider line
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(200, 500);
-    ctx.lineTo(canvas.width - 200, 500);
+    ctx.moveTo(canvas.width/4, 450);
+    ctx.lineTo((canvas.width/4)*3, 450);
     ctx.stroke();
-    
-    ctx.font = '32px "Arial"';
-    ctx.fillText('Play now at triviaah.com', canvas.width/2, 550);
-    
-    // Convert to buffer
+
+    // Footer text
+    ctx.font = '28px "Arial"';
+    ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
+
     const buffer = canvas.toBuffer('image/png');
     
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+        'Cache-Control': 'public, max-age=86400'
       },
       body: buffer.toString('base64'),
       isBase64Encoded: true
@@ -65,7 +74,10 @@ exports.handler = async (event) => {
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ 
+        error: error.message,
+        stack: error.stack 
+      })
     };
   }
 };

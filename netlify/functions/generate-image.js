@@ -1,5 +1,5 @@
 // /netlify/functions/generate-image.js
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
 
 exports.handler = async (event) => {

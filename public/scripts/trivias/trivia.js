@@ -818,6 +818,69 @@ function restartGame() {
     initTriviaGame(state.category);
 }
 
+// Function to generate share URLs
+function generateShareUrls(score, correctCount, totalQuestions, category) {
+    const shareUrl = `${window.location.origin}/.netlify/functions/share?score=${score}&correct=${correctCount}&total=${totalQuestions}&category=${encodeURIComponent(category)}`;
+    
+    return {
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`I scored ${score} points on ${category} trivia!`)}&url=${encodeURIComponent(shareUrl)}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(`I scored ${score} points on ${category} trivia! ${shareUrl}`)}`,
+        directUrl: shareUrl
+    };
+}
+
+// Function to add share buttons to the summary screen
+function addShareButtons(score, correctCount, totalQuestions, category) {
+    const actionButtons = document.querySelector('.action-buttons');
+    if (!actionButtons) return;
+
+    const shareUrls = generateShareUrls(score, correctCount, totalQuestions, category);
+    
+    const shareHTML = `
+        <div class="share-buttons">
+            <p>Share your score:</p>
+            <a href="${shareUrls.facebook}" target="_blank" class="btn share-btn facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </a>
+            <a href="${shareUrls.twitter}" target="_blank" class="btn share-btn twitter">
+                <i class="fab fa-twitter"></i> Twitter
+            </a>
+            <a href="${shareUrls.whatsapp}" target="_blank" class="btn share-btn whatsapp">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </a>
+        </div>
+    `;
+    
+    actionButtons.insertAdjacentHTML('afterbegin', shareHTML);
+}
+
+// Function to add share buttons to the summary screen
+function addShareButtons(score, correctCount, totalQuestions, category) {
+    const actionButtons = document.querySelector('.action-buttons');
+    if (!actionButtons) return;
+
+    const shareUrls = generateShareUrls(score, correctCount, totalQuestions, category);
+    
+    const shareHTML = `
+        <div class="share-buttons">
+            <p>Share your score:</p>
+            <a href="${shareUrls.facebook}" target="_blank" class="btn share-btn facebook">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </a>
+            <a href="${shareUrls.twitter}" target="_blank" class="btn share-btn twitter">
+                <i class="fab fa-twitter"></i> Twitter
+            </a>
+            <a href="${shareUrls.whatsapp}" target="_blank" class="btn share-btn whatsapp">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </a>
+        </div>
+    `;
+    
+    actionButtons.insertAdjacentHTML('afterbegin', shareHTML);
+}
+
+
 async function showSummary(globalHigh) {
     console.log('showSummary: state.answers:', state.answers);
     console.log('showSummary: state.answers.length:', state.answers.length);
@@ -826,6 +889,8 @@ async function showSummary(globalHigh) {
     const correctCount = state.answers.filter(a => a.correct).length;
     const category = state.questions[0]?.category || 'general knowledge';
     
+    addShareButtons(state.score, correctCount, state.selectedQuestions, category);
+
     let messageCategory, messageClass;
     if (correctCount === 0) {
         messageCategory = 'zero';

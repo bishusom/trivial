@@ -3,27 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Triviaah: Free Daily Trivia Games | 20+ Categories & 5000 questions</title>
-    <meta name="description" content="Play free online trivia games daily on Triviaah! Compete in 20+ categories including movies, history, and science, 10000+ questions. No signup required - start playing now!">
-    <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, movie trivia, history quiz, science trivia">
+    <title>Triviaah: Free Daily Trivia, Word Games & Number Puzzles | 20+ Categories, 10,000+ Questions</title>
+    <meta name="description" content="Play free online trivia, word games (anagram, spelling bee, word search), and number puzzles (sudoku, prime hunter, number scramble) daily on Triviaah! 20+ categories, 10,000+ questions. No signup required – start playing now!">
+    <meta name="keywords" content="free trivia games, daily trivia quiz, online trivia competition, word games, anagram game, spelling bee, word search, boggle, number puzzles, sudoku, prime hunter, number scramble, math puzzles, movie trivia, history quiz, science trivia, general knowledge quiz">
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://triviaah.com/">
-    <meta property="og:title" content="Triviaah: Free Daily Trivia Games">
-    <meta property="og:description" content="Play free online trivia games daily with 10000+ questions across 20+ categories!">
+    <meta property="og:title" content="Triviaah: Free Word Games, Number Puzzles & Trivia Quizzes">
+    <meta property="og:description" content="Daily challenges: trivia, word games (anagram, word search), and number puzzles (sudoku, prime hunter). Play free, compete on leaderboards!">
     <meta property="og:image" content="https://triviaah.com/social-preview.webp">
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Triviaah: Free Daily Trivia Games">
-    <meta name="twitter:description" content="Daily trivia challenges with 20+ categories. Play free and compete on leaderboards!">
+    <meta name="twitter:title" content="Triviaah: Free Word Games, Number Puzzles & Trivia">
+    <meta name="twitter:description" content="Play free word games, number puzzles, and trivia daily. 20+ categories, 10,000+ questions!">
     <meta name="twitter:image" content="https://triviaah.com/social-preview.webp">
     <link rel="canonical" href="https://www.triviaah.com/">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Triviaah",
+    "url": "https://triviaah.com/",
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://triviaah.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+    },
+    "description": "Free online trivia, word games, and number puzzles. Play daily quizzes in 20+ categories!",
+    "keywords": [
+        "trivia", "word games", "number puzzles", "anagram", "sudoku", 
+        "spelling bee", "prime hunter", "daily quiz"
+    ]
+    }
+    </script>
     
     <!-- Preload critical resources -->
     <link rel="preload" href="https://fonts.googleapis.com/icon?family=Material+Icons" as="style">
     <link rel="preload" href="/styles/styles.min.css" as="style">
     <link rel="preload" href="/imgs/triviaah-logo-200.webp" as="image">
     <link rel="preload" href="/imgs/triviaah-logo-140.webp" as="image" fetchpriority="high">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <!-- CSS -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="/styles/styles.min.css">
@@ -490,7 +512,11 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', 'G-K4KZ7XR85V');
+
+        // Check if the hostname is not localhost or 127.0.0.1 before sending data
+        if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+            gtag('config', 'G-K4KZ7XR85V');
+        }
     </script>
     
     <!-- Firebase -->

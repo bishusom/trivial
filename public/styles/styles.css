@@ -1375,7 +1375,49 @@ input:checked + .slider:before {
     text-align: center;
 }
 
-/* Add this to your styles.css */
+.share-buttons {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.share-buttons p {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 5px;
+    padding: 8px 15px;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.share-btn i {
+    margin-right: 5px;
+}
+
+.facebook {
+    background-color: #3b5998;
+}
+
+.twitter {
+    background-color: #1da1f2;
+}
+
+.whatsapp {
+    background-color: #25d366;
+}
+
+.share-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
 .action-buttons {
     display: flex;
     flex-direction: column; /* Stack buttons vertically */

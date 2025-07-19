@@ -3,8 +3,8 @@ const path = require('path');
 
 // Register fonts
 try {
-  registerFont(path.join(__dirname, '../fonts/Arial.ttf'), { family: 'Arial' });
-  registerFont(path.join(__dirname, '../fonts/Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
+  registerFont(path.join(__dirname, './fonts/Arial.ttf'), { family: 'Arial' });
+  registerFont(path.join(__dirname, './fonts/Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
   console.log('Fonts registered successfully');
 } catch (e) {
   console.error('Error registering fonts:', e);

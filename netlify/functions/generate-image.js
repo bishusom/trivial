@@ -60,13 +60,12 @@ exports.handler = async (event) => {
     ctx.antialias = 'default';
 
     // Title with fallback
-    try {
-      ctx.font = 'bold 60px Arial, sans-serif';
-      ctx.fillText('Triviaah Results', canvas.width/2, 180);
-    } catch (e) {
-      ctx.font = 'bold 60px sans-serif';
-      ctx.fillText('Triviaah Results', canvas.width/2, 180);
-    }
+    ctx.fillStyle = '#ffffff'; // white text
+    ctx.fillRect(0, 160, canvas.width, 100); // white box to ensure visibility
+    ctx.fillStyle = '#000000'; // black text for contrast
+    ctx.font = 'bold 60px sans-serif';
+    ctx.fillText('Triviaah Results', canvas.width/2, 180);
+
 
     // Score details
     try {

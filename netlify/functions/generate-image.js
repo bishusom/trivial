@@ -2,14 +2,24 @@ const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const axios = require('axios');
 const path = require('path');
 
-// Register fonts from filesystem (Netlify has limited system fonts)
+// Register fonts from filesystem
 try {
   const fontsDir = path.join(__dirname, 'fonts');
+  console.log('Attempting to register fonts from:', fontsDir);
+
+  // Register Regular Arial
   GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial.ttf'), 'Arial');
+  console.log('Registered Arial.ttf');
+
+  // Register Arial Bold, specifying the weight explicitly for the 'Arial' family
   GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial-Bold.ttf'), 'Arial', { weight: 'bold' });
+  console.log('Registered Arial-Bold.ttf with weight: bold');
+
   console.log('Custom fonts registered successfully');
 } catch (e) {
-  console.log('Using fallback fonts:', e.message);
+  console.error('Error registering fonts:', e.message);
+  console.error('Font registration stack trace:', e.stack);
+  console.log('Using fallback fonts due to registration error.');
 }
 
 exports.handler = async (event) => {
@@ -23,8 +33,8 @@ exports.handler = async (event) => {
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
-    // Log available fonts for debugging
-    console.log('Available font families:', GlobalFonts.families);
+    // Log available fonts for debugging - check styles array here again
+    console.log('Available font families after registration:', GlobalFonts.families);
 
     // Gradient Background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -49,7 +59,7 @@ exports.handler = async (event) => {
     } catch (e) {
       console.error('Error loading logo:', e);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px Arial, sans-serif';
+      ctx.font = 'bold 36px Arial, sans-serif'; // Fallback for logo text
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
@@ -58,7 +68,8 @@ exports.handler = async (event) => {
     ctx.textBaseline = 'top';
     
     // Use registered font or fallback
-    const fontFamily = GlobalFonts.families.includes('Arial') ? 'Arial' : 'sans-serif';
+    const fontFamily = GlobalFonts.families.some(f => f.family === 'Arial' && f.styles.some(s => s.weight === 'bold')) ? 'Arial' : 'sans-serif'; // More robust check
+    console.log('Using font family for text:', fontFamily); // Log which font is actually used
     
     // Title
     ctx.font = `bold 60px ${fontFamily}`;

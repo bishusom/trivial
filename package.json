@@ -6,11 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "echo \"Build script\""
-  },
-  "dependencies": {
-    "axios": "^1.9.0",
-    "node-fetch": "^3.3.2"
-  },
+  }, 
+ "dependencies": {
+  "@resvg/resvg-js": "^2.4.0",
+  "axios": "^1.9.0",
+  "node-fetch": "^3.3.2"
+ },
   "engines": {
     "node": ">=16"
   }

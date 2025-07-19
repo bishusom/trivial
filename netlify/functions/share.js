@@ -1,6 +1,6 @@
 exports.handler = async (event) => {
   const { score, correct, total, category } = event.queryStringParameters;
-  const imageUrl = `${process.env.URL}/.netlify/functions/generate-image?score=${score}&correct=${correct}&total=${total}&category=${encodeURIComponent(category)}&t=${Date.now()}`;
+  const imageUrl = `${process.env.URL}/.netlify/functions/generate-image?score=${score}&correct=${correct}&total=${total}&category=${encodeURIComponent(category)}&t=${Date.now()}&format=png`;
   
   const shareUrl = event.rawUrl;
   

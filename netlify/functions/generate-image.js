@@ -1,3 +1,5 @@
+const { Resvg } = require('@resvg/resvg-js');
+
 exports.handler = async (event) => {
   const { score, correct, total, category } = event.queryStringParameters;
   
@@ -35,12 +37,23 @@ exports.handler = async (event) => {
   </svg>
   `;
 
+  // Convert to PNG
+  const resvg = new Resvg(svg, {
+    fitTo: {
+      mode: 'width',
+      value: 1200,
+    },
+  });
+  const pngData = resvg.render();
+  const pngBuffer = pngData.asPng();
+
   return {
     statusCode: 200,
     headers: {
-      'Content-Type': 'image/svg+xml',
+      'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=86400'
     },
-    body: svg
+    body: pngBuffer.toString('base64'),
+    isBase64Encoded: true
   };
 };

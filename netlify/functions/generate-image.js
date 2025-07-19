@@ -1,18 +1,17 @@
-const { createCanvas, loadImage, registerFont } = require('@napi-rs/canvas');
+const { createCanvas, loadImage } = require('canvas');
 const path = require('path');
 
-// Get absolute path to fonts directory
-const fontsDir = path.join(__dirname, 'fonts');
-
-// Register fonts with better error handling
+// Register fonts with absolute paths
 try {
-  console.log(`Attempting to register fonts from: ${fontsDir}`);
-  registerFont(path.join(fontsDir, 'Arial.ttf'), { family: 'Arial' });
-  registerFont(path.join(fontsDir, 'Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
+  const fontsDir = path.join(process.cwd(), 'fonts');
+  require('canvas').registerFont(path.join(fontsDir, 'Arial.ttf'), { family: 'Arial' });
+  require('canvas').registerFont(path.join(fontsDir, 'Arial-Bold.ttf'), { 
+    family: 'Arial', 
+    weight: 'bold' 
+  });
   console.log('Fonts registered successfully');
 } catch (e) {
-  console.error('Error registering fonts:', e);
-  // Continue execution but we'll know fonts failed to load
+  console.error('Font registration error:', e);
 }
 
 exports.handler = async (event) => {
@@ -52,11 +51,11 @@ exports.handler = async (event) => {
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // 4. Text Content with better font fallbacks
+    // 4. Text Content with proper fallbacks
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
-    // Title - with fallback to generic sans-serif
+    // Title
     ctx.font = 'bold 60px "Arial", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
@@ -94,8 +93,8 @@ exports.handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        note: "Check logo URL and image generation",
-        details: error.stack
+        note: "Check parameters and image generation",
+        stack: error.stack
       })
     };
   }

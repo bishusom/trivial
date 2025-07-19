@@ -10,10 +10,10 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas"]
+  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas","convert-svg-to-png"]
   included_files = ["fonts/*"]
 
 [dev]
-   framework = "#static"
-  targetPort = 8888  # Netlify's default
+  framework = "#static"
+  targetPort = 8888
   autoLaunch = false

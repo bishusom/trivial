@@ -11,3 +11,9 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["@napi-rs/canvas"]
+  included_files = ["fonts/*.ttf"]
+
+[dev]
+  framework = "#custom"
+  targetPort = 3000
+  autoLaunch = false

@@ -1,8 +1,24 @@
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, loadImage, registerFont } = require('@napi-rs/canvas');
+const path = require('path');
+
+// Register fonts
+try {
+  registerFont(path.join(__dirname, '../fonts/Arial.ttf'), { family: 'Arial' });
+  registerFont(path.join(__dirname, '../fonts/Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
+  console.log('Fonts registered successfully');
+} catch (e) {
+  console.error('Error registering fonts:', e);
+}
 
 exports.handler = async (event) => {
   try {
     const { score, correct, total, category } = event.queryStringParameters;
+    
+    // Validate parameters
+    if (!score || !correct || !total || !category) {
+      throw new Error('Missing required parameters');
+    }
+
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
@@ -17,38 +33,30 @@ exports.handler = async (event) => {
     ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 3. Logo with perfect dimensions (200px height, proportional width)
+    // 3. Logo
     try {
       const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
-      
-      // Logo dimensions calculation
-      const targetHeight = 100; // Your preferred height
+      const targetHeight = 100;
       const aspectRatio = logo.width / logo.height;
       const targetWidth = targetHeight * aspectRatio;
-      
-      // Position (50px from top/left)
-      const logoX = 50;
-      const logoY = 50;
-      
-      ctx.drawImage(logo, logoX, logoY, targetWidth, targetHeight);
+      ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
     } catch (e) {
-      // Fallback text if logo fails
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px Arial';
+      ctx.font = 'bold 36px "Arial"';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // 4. Text Content (unchanged from working version)
+    // 4. Text Content with proper font fallbacks
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
-    // Title (positioned below logo)
-    ctx.font = 'bold 60px Arial';
+    // Title
+    ctx.font = 'bold 60px "Arial"';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
     // Score details
-    ctx.font = '48px Arial';
+    ctx.font = '48px "Arial"';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -62,7 +70,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = '28px Arial';
+    ctx.font = '28px "Arial"';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {

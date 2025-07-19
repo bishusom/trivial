@@ -23,10 +23,7 @@ exports.handler = async (event) => {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Semi-transparent overlay (move after text to avoid obscuring)
-    // Moved below to ensure text is not obscured
-
-    // 3. Logo
+    // 2. Logo
     try {
       const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
       const targetHeight = 100;
@@ -44,8 +41,9 @@ exports.handler = async (event) => {
       console.log('Fallback logo text drawn');
     }
 
-    // 4. Text Content with system fonts
-    ctx.fillStyle = '#ffffff'; // Ensure white text for visibility
+    // 3. Text Content with system fonts and explicit context
+    ctx.save(); // Save context state for text rendering
+    ctx.fillStyle = '#ff0000'; // Bright red for visibility testing
     ctx.textBaseline = 'top';
     ctx.textAlign = 'center';
 
@@ -81,9 +79,10 @@ exports.handler = async (event) => {
     console.log('Drawing footer with font:', ctx.font);
     ctx.fillText('Play now at triviaah.com', canvas.width / 2, 520);
     console.log('Footer drawn');
+    ctx.restore(); // Restore context state
 
-    // 5. Semi-transparent overlay (moved here to ensure text visibility)
-    ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
+    // 4. Semi-transparent overlay (applied after text)
+    ctx.fillStyle = 'rgba(26, 43, 60, 0.2)'; // Reduced opacity to 0.2 for testing
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Return the image

@@ -827,7 +827,7 @@ function generateShareUrls(score, correctCount, totalQuestions, category) {
     const shareText = `I scored ${score} points in ${category} trivia! Can you beat me? ${shareUrl}`;
     
     return {
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&display=popup`,
         twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
         whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
         directUrl: shareUrl

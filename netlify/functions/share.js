@@ -2,8 +2,7 @@ exports.handler = async (event) => {
   const { score, correct, total, category } = event.queryStringParameters;
   const imageUrl = `${process.env.URL}/.netlify/functions/generate-image?score=${score}&correct=${correct}&total=${total}&category=${encodeURIComponent(category)}&t=${Date.now()}`;
   
-  // Validate URL format
-  const shareUrl = event.rawUrl.split('?')[0].replace('--', '--');
+  const shareUrl = event.rawUrl;
   
   const html = `
   <!DOCTYPE html>
@@ -11,6 +10,7 @@ exports.handler = async (event) => {
   <head>
     <meta charset="utf-8">
     <title>Triviaah Score</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <!-- Critical OG Tags -->
     <meta property="og:title" content="I scored ${score} points in ${decodeURIComponent(category)} trivia!" />
@@ -30,11 +30,21 @@ exports.handler = async (event) => {
     
     <!-- WhatsApp Specific -->
     <meta property="og:image:secure_url" content="${imageUrl}" />
-    
-    <meta http-equiv="refresh" content="0;url=${process.env.URL}" />
   </head>
   <body>
-    <p>Redirecting to Triviaah...</p>
+    <script>
+      // Optional: Redirect after a delay if you want
+      setTimeout(() => {
+        window.location.href = '${process.env.URL}';
+      }, 3000);
+    </script>
+    <div style="text-align:center;padding:20px;">
+      <h1>Triviaah Results</h1>
+      <p>Score: ${score}</p>
+      <p>${correct} out of ${total} correct</p>
+      <p>Category: ${decodeURIComponent(category)}</p>
+      <p>Redirecting to triviaah.com...</p>
+    </div>
   </body>
   </html>
   `;

@@ -4,6 +4,12 @@
   publish = "public"
 
 [[redirects]]
+  from = "/imgs/*"
+  to = "/imgs/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
@@ -14,6 +20,6 @@
   included_files = ["functions/generate-image/fonts/*"]
 
 [dev]
-   framework = "#static"
-  targetPort = 8888  # Netlify's default
+  framework = "#static"
+  targetPort = 8888
   autoLaunch = false

@@ -1,29 +1,23 @@
 const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { readFileSync } = require('fs');
+const { join } = require('path');
 
-// List of available fonts in Netlify's environment
-const AVAILABLE_FONTS = [
-  'Arial',
-  'Helvetica',
-  'Verdana',
-  'DejaVu Sans',
-  'Liberation Sans',
-  'sans-serif'
-];
+// Fallback to pure JS canvas if @napi-rs fails
+let canvasLib;
+try {
+  canvasLib = require('@napi-rs/canvas');
+} catch (e) {
+  console.warn('@napi-rs/canvas failed, falling back to canvas');
+  canvasLib = require('canvas');
+}
 
-// Helper function to get the first available font
-const getAvailableFont = (weight = 'normal') => {
-  const available = AVAILABLE_FONTS.find(font => {
-    try {
-      const canvas = createCanvas(1, 1);
-      const ctx = canvas.getContext('2d');
-      ctx.font = `${weight} 12px "${font}"`;
-      return ctx.font.includes(font);
-    } catch {
-      return false;
-    }
-  });
-  return available || 'sans-serif';
-};
+// Font buffer as fallback
+let fontBuffer;
+try {
+  fontBuffer = readFileSync(join(__dirname, 'fonts', 'Arial.ttf'));
+} catch (e) {
+  console.warn('Could not load font file');
+}
 
 exports.handler = async (event) => {
   try {
@@ -33,13 +27,18 @@ exports.handler = async (event) => {
       throw new Error('Missing required parameters');
     }
 
-    const canvas = createCanvas(1200, 630);
+    const canvas = canvasLib.createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
-    // Get available fonts
-    const normalFont = getAvailableFont();
-    const boldFont = getAvailableFont('bold');
-    console.log(`Using fonts - Normal: ${normalFont}, Bold: ${boldFont}`);
+    // Register font if available
+    if (fontBuffer && canvasLib.registerFont) {
+      try {
+        canvasLib.registerFont(join(__dirname, 'fonts', 'Arial.ttf'), { family: 'Arial' });
+        console.log('Font registered successfully');
+      } catch (e) {
+        console.warn('Font registration failed:', e.message);
+      }
+    }
 
     // Gradient Background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -62,21 +61,21 @@ exports.handler = async (event) => {
     } catch (e) {
       console.error('Error loading logo:', e);
       ctx.fillStyle = '#ffffff';
-      ctx.font = `bold 36px "${boldFont}"`;
+      ctx.font = 'bold 36px "Arial", sans-serif';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // Text Content
+    // Text Content - with explicit fallbacks
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
     // Title
-    ctx.font = `bold 60px "${boldFont}"`;
+    ctx.font = 'bold 60px "Arial", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
     // Score details
-    ctx.font = `48px "${normalFont}"`;
+    ctx.font = '48px "Arial", sans-serif';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -90,7 +89,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = `28px "${normalFont}"`;
+    ctx.font = '28px "Arial", sans-serif';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {

@@ -1,120 +1,60 @@
-const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
-const axios = require('axios');
-const path = require('path');
-
-// Register fonts from filesystem
-try {
-  const fontsDir = path.join(__dirname, 'fonts');
-  GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial.ttf'), 'Arial');
-  GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial-Bold.ttf'), 'Arial', { weight: 'bold' });
-  console.log('Fonts registered:', GlobalFonts.families);
-} catch (e) {
-  console.error('Font registration failed:', e);
-}
+const sharp = require('sharp');
 
 exports.handler = async (event) => {
   try {
-    const { score, correct, total, category } = event.queryStringParameters;
-    
+    const { score, correct, total, category } = event.queryStringParameters || {};
+
     if (!score || !correct || !total || !category) {
-      throw new Error('Missing required parameters');
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing required parameters" }),
+      };
     }
 
-    const canvas = createCanvas(1200, 630);
-    const ctx = canvas.getContext('2d');
+    // 1. Generate SVG
+    const svg = `
+      <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#3498db" />
+            <stop offset="100%" stop-color="#9b59b6" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#gradient)" />
+        <rect width="100%" height="100%" fill="rgba(26, 43, 60, 0.6)" />
+        
+        <!-- Logo (fallback to text if URL fails) -->
+        <image href="https://triviaah.com/imgs/triviaah-logo-200.webp" x="50" y="50" height="100" />
+        
+        <!-- Text -->
+        <text x="50%" y="220" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#ffffff" text-anchor="middle">Triviaah Results</text>
+        <text x="50%" y="320" font-family="Arial, sans-serif" font-size="48" fill="#ffffff" text-anchor="middle">Score: ${score}</text>
+        <text x="50%" y="390" font-family="Arial, sans-serif" font-size="48" fill="#ffffff" text-anchor="middle">${correct} out of ${total} correct</text>
+        <text x="50%" y="460" font-family="Arial, sans-serif" font-size="48" fill="#ffffff" text-anchor="middle">Category: ${decodeURIComponent(category)}</text>
+        <line x1="240" y1="500" x2="960" y2="500" stroke="rgba(255, 255, 255, 0.5)" stroke-width="3" />
+        <text x="50%" y="550" font-family="Arial, sans-serif" font-size="28" fill="#ffffff" text-anchor="middle">Play now at triviaah.com</text>
+      </svg>
+    `;
 
-    // 1. Gradient Background
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#3498db');
-    gradient.addColorStop(1, '#9b59b6');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 2. Semi-transparent overlay
-    ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 3. Logo with axios
-    try {
-      const response = await axios.get('https://triviaah.com/imgs/triviaah-logo-200.webp', {
-        responseType: 'arraybuffer'
-      });
-      const logo = await loadImage(response.data);
-      const targetHeight = 100;
-      const targetWidth = targetHeight * (logo.width / logo.height);
-      ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
-    } catch (e) {
-      console.error('Error loading logo:', e);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px Arial, sans-serif';
-      ctx.fillText('TRIVIAAH', 50, 100);
-    }
-
-    // 4. Text Rendering with explicit settings
-    ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'top';
-    ctx.textAlign = 'center';
-    
-    // Enable text rendering explicitly
-    ctx.quality = 'best';
-    ctx.antialias = 'default';
-
-    // Title with fallback
-    ctx.fillStyle = '#ffffff'; // white text
-    ctx.fillRect(0, 160, canvas.width, 100); // white box to ensure visibility
-    ctx.fillStyle = '#000000'; // black text for contrast
-    ctx.font = 'bold 60px sans-serif';
-    ctx.fillText('Triviaah Results', canvas.width/2, 180);
-
-
-    // Score details
-    try {
-      ctx.font = '48px Arial, sans-serif';
-      ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
-      ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
-      ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
-    } catch (e) {
-      ctx.font = '48px sans-serif';
-      ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
-      ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
-      ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
-    }
-
-    // Divider line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(canvas.width * 0.2, 480);
-    ctx.lineTo(canvas.width * 0.8, 480);
-    ctx.stroke();
-
-    // Footer
-    try {
-      ctx.font = '28px Arial, sans-serif';
-      ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
-    } catch (e) {
-      ctx.font = '28px sans-serif';
-      ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
-    }
+    // 2. Convert SVG to PNG
+    const pngBuffer = await sharp(Buffer.from(svg)).toFormat('png').toBuffer();
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
-      body: canvas.toBuffer('image/png').toString('base64'),
-      isBase64Encoded: true
+      body: pngBuffer.toString('base64'),
+      isBase64Encoded: true,
     };
   } catch (error) {
-    console.error('Image generation error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ 
-        error: error.message,
-        note: "Check logo URL and image generation",
-        details: error.stack
-      })
+        error: "Image generation failed",
+        details: error.message,
+      }),
     };
   }
 };

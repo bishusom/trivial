@@ -10,8 +10,9 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas"]
+  external_node_modules = ["axios", "node-fetch", "sharp"]
   included_files = ["fonts/*"]
+  generate-image.timeout = 30
 
 [dev]
   framework = "#custom"

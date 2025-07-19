@@ -1,4 +1,4 @@
-const { convertSvgToPng } = require('convert-svg-to-png');
+const { Resvg } = require('@resvg/resvg-js');
 
 exports.handler = async (event) => {
   const { score, correct, total, category } = event.queryStringParameters;
@@ -38,10 +38,14 @@ exports.handler = async (event) => {
   `;
 
   // Convert to PNG
-  const pngBuffer = await convertSvgToPng(svg, {
-    width: 1200,
-    height: 630
+  const resvg = new Resvg(svg, {
+    fitTo: {
+      mode: 'width',
+      value: 1200,
+    },
   });
+  const pngData = resvg.render();
+  const pngBuffer = pngData.asPng();
 
   return {
     statusCode: 200,

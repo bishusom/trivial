@@ -10,7 +10,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas","convert-svg-to-png"]
+  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas","@resvg/resvg-js"]
   included_files = ["fonts/*"]
 
 [dev]

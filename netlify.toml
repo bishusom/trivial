@@ -11,7 +11,7 @@
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas"]
-  included_files = ["fonts/*"]
+  included_files = ["functions/generate-image/fonts/*"]
 
 [dev]
    framework = "#static"

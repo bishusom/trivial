@@ -10,7 +10,6 @@
   "dependencies": {
     "@napi-rs/canvas": "^0.1.74",
     "axios": "^1.9.0",
-    "convert-svg-to-png": "^0.7.1",
     "node-fetch": "^3.3.2"
   },
   "engines": {

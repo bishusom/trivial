@@ -10,10 +10,10 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas","@resvg/resvg-js"]
+  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas"]
   included_files = ["fonts/*"]
 
 [dev]
-  framework = "#static"
-  targetPort = 8888
+   framework = "#static"
+  targetPort = 8888  # Netlify's default
   autoLaunch = false

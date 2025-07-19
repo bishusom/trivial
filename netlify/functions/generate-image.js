@@ -1,13 +1,18 @@
 const { createCanvas, loadImage, registerFont } = require('@napi-rs/canvas');
 const path = require('path');
 
-// Register fonts
+// Get absolute path to fonts directory
+const fontsDir = path.join(__dirname, 'fonts');
+
+// Register fonts with better error handling
 try {
-  registerFont(path.join(__dirname, './fonts/Arial.ttf'), { family: 'Arial' });
-  registerFont(path.join(__dirname, './fonts/Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
+  console.log(`Attempting to register fonts from: ${fontsDir}`);
+  registerFont(path.join(fontsDir, 'Arial.ttf'), { family: 'Arial' });
+  registerFont(path.join(fontsDir, 'Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
   console.log('Fonts registered successfully');
 } catch (e) {
   console.error('Error registering fonts:', e);
+  // Continue execution but we'll know fonts failed to load
 }
 
 exports.handler = async (event) => {
@@ -41,22 +46,23 @@ exports.handler = async (event) => {
       const targetWidth = targetHeight * aspectRatio;
       ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
     } catch (e) {
+      console.error('Error loading logo:', e);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px "Arial"';
+      ctx.font = 'bold 36px "Arial", sans-serif';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // 4. Text Content with proper font fallbacks
+    // 4. Text Content with better font fallbacks
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
-    // Title
-    ctx.font = 'bold 60px "Arial"';
+    // Title - with fallback to generic sans-serif
+    ctx.font = 'bold 60px "Arial", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
     // Score details
-    ctx.font = '48px "Arial"';
+    ctx.font = '48px "Arial", sans-serif';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -70,7 +76,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = '28px "Arial"';
+    ctx.font = '28px "Arial", sans-serif';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {
@@ -83,11 +89,13 @@ exports.handler = async (event) => {
       isBase64Encoded: true
     };
   } catch (error) {
+    console.error('Image generation error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        note: "Check logo URL and image generation"
+        note: "Check logo URL and image generation",
+        details: error.stack
       })
     };
   }

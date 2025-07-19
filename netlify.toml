@@ -10,7 +10,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "node-fetch", "canvas-constructor"]
+  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas"]
 
 [dev]
   framework = "#custom"

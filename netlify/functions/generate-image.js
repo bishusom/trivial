@@ -1,60 +1,70 @@
-const { Canvas } = require('canvas-constructor');
-const fetch = require('node-fetch');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
 
 exports.handler = async (event) => {
   try {
     const { score, correct, total, category } = event.queryStringParameters;
     
+    // Validate parameters
     if (!score || !correct || !total || !category) {
       throw new Error('Missing required parameters');
     }
 
-    // Load logo image
-    let logo;
+    const canvas = createCanvas(1200, 630);
+    const ctx = canvas.getContext('2d');
+
+    // 1. Gradient Background (blue to purple)
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, '#3498db');
+    gradient.addColorStop(1, '#9b59b6');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Semi-transparent overlay
+    ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 3. Logo
     try {
-      const response = await fetch('https://triviaah.com/imgs/triviaah-logo-200.webp');
-      logo = await response.buffer();
+      const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
+      const targetHeight = 100;
+      const aspectRatio = logo.width / logo.height;
+      const targetWidth = targetHeight * aspectRatio;
+      ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
     } catch (e) {
       console.error('Error loading logo:', e);
-      logo = null;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // Create image
-    const image = new Canvas(1200, 630)
-      // Gradient background
-      .createLinearGradient(0, 0, 1200, 630)
-      .addColorStop(0, '#3498db')
-      .addColorStop(1, '#9b59b6')
-      .setColorGradient()
-      .printRectangle(0, 0, 1200, 630)
-      
-      // Semi-transparent overlay
-      .setColor('rgba(26, 43, 60, 0.6)')
-      .printRectangle(0, 0, 1200, 630)
-      
-      // Logo (if loaded)
-      .printImage(logo, 50, 50, 100, 100)
-      
-      // Title
-      .setTextAlign('center')
-      .setColor('#ffffff')
-      .setTextFont('bold 60px sans-serif')
-      .printText('Triviaah Results', 600, 180)
-      
-      // Score details
-      .setTextFont('48px sans-serif')
-      .printText(`Score: ${score}`, 600, 280)
-      .printText(`${correct} out of ${total} correct`, 600, 350)
-      .printText(`Category: ${decodeURIComponent(category)}`, 600, 420)
-      
-      // Divider line
-      .setStroke('rgba(255, 255, 255, 0.5)')
-      .setLineWidth(3)
-      .printLine(240, 480, 960, 480)
-      
-      // Footer
-      .setTextFont('28px sans-serif')
-      .printText('Play now at triviaah.com', 600, 520);
+    console.log(GlobalFonts.families);
+
+    // 4. Text Content with system fonts
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'top';
+    
+    // Title
+    ctx.font = 'bold 60px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Triviaah Results', canvas.width/2, 180);
+
+    // Score details
+    ctx.font = '48px sans-serif';
+    ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
+    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
+    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
+
+    // Divider line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(canvas.width * 0.2, 480);
+    ctx.lineTo(canvas.width * 0.8, 480);
+    ctx.stroke();
+
+    // Footer
+    ctx.font = '28px sans-serif';
+    ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {
       statusCode: 200,
@@ -62,7 +72,7 @@ exports.handler = async (event) => {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=86400'
       },
-      body: image.toBuffer().toString('base64'),
+      body: canvas.toBuffer('image/png').toString('base64'),
       isBase64Encoded: true
     };
   } catch (error) {

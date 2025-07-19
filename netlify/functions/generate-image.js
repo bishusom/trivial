@@ -1,4 +1,4 @@
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 
 exports.handler = async (event) => {
   try {
@@ -8,6 +8,9 @@ exports.handler = async (event) => {
     if (!score || !correct || !total || !category) {
       throw new Error('Missing required parameters');
     }
+
+    // Log available font families
+    console.log('Available font families:', GlobalFonts.families);
 
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
@@ -37,19 +40,20 @@ exports.handler = async (event) => {
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    console.log(GlobalFonts.families);
-
     // 4. Text Content with system fonts
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
+    // Use a font family that exists in GlobalFonts.families
+    const fontFamily = GlobalFonts.families.includes('Arial') ? 'Arial' : 'sans-serif';
+    
     // Title
-    ctx.font = 'bold 60px sans-serif';
+    ctx.font = `bold 60px ${fontFamily}`;
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
     // Score details
-    ctx.font = '48px sans-serif';
+    ctx.font = `48px ${fontFamily}`;
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -63,7 +67,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = '28px sans-serif';
+    ctx.font = `28px ${fontFamily}`;
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {

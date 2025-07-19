@@ -1,5 +1,5 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install --platform=linux --arch=x64 && npm run build"
   functions = "netlify/functions"
   publish = "public"
 

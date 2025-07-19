@@ -1,22 +1,23 @@
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
-const { readFileSync } = require('fs');
-const { join } = require('path');
+const { createCanvas: createNapiCanvas, loadImage: loadNapiImage } = require('@napi-rs/canvas');
+const { createCanvas: createJsCanvas, loadImage: loadJsImage } = require('canvas');
 
-// Fallback to pure JS canvas if @napi-rs fails
-let canvasLib;
+// Determine which canvas implementation to use
+let canvasImpl;
 try {
-  canvasLib = require('@napi-rs/canvas');
-} catch (e) {
-  console.warn('@napi-rs/canvas failed, falling back to canvas');
-  canvasLib = require('canvas');
-}
-
-// Font buffer as fallback
-let fontBuffer;
-try {
-  fontBuffer = readFileSync(join(__dirname, 'fonts', 'Arial.ttf'));
-} catch (e) {
-  console.warn('Could not load font file');
+  // Try to use @napi-rs/canvas first
+  canvasImpl = {
+    createCanvas: createNapiCanvas,
+    loadImage: loadNapiImage
+  };
+  // Test if it works
+  const testCanvas = createNapiCanvas(1, 1);
+  console.log('Using @napi-rs/canvas implementation');
+} catch (napiError) {
+  console.log('Falling back to pure JS canvas implementation');
+  canvasImpl = {
+    createCanvas: createJsCanvas,
+    loadImage: loadJsImage
+  };
 }
 
 exports.handler = async (event) => {
@@ -27,18 +28,8 @@ exports.handler = async (event) => {
       throw new Error('Missing required parameters');
     }
 
-    const canvas = canvasLib.createCanvas(1200, 630);
+    const canvas = canvasImpl.createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
-
-    // Register font if available
-    if (fontBuffer && canvasLib.registerFont) {
-      try {
-        canvasLib.registerFont(join(__dirname, 'fonts', 'Arial.ttf'), { family: 'Arial' });
-        console.log('Font registered successfully');
-      } catch (e) {
-        console.warn('Font registration failed:', e.message);
-      }
-    }
 
     // Gradient Background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
@@ -53,29 +44,28 @@ exports.handler = async (event) => {
 
     // Logo
     try {
-      const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
+      const logo = await canvasImpl.loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
       const targetHeight = 100;
-      const aspectRatio = logo.width / logo.height;
-      const targetWidth = targetHeight * aspectRatio;
+      const targetWidth = targetHeight * (logo.width / logo.height);
       ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
     } catch (e) {
       console.error('Error loading logo:', e);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px "Arial", sans-serif';
+      ctx.font = 'bold 36px sans-serif';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // Text Content - with explicit fallbacks
+    // Text Content
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
     // Title
-    ctx.font = 'bold 60px "Arial", sans-serif';
+    ctx.font = 'bold 60px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
     // Score details
-    ctx.font = '48px "Arial", sans-serif';
+    ctx.font = '48px sans-serif';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -89,7 +79,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = '28px "Arial", sans-serif';
+    ctx.font = '28px sans-serif';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {

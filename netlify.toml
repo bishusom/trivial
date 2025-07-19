@@ -9,9 +9,9 @@
   status = 200
 
 [functions]
-  included_files = ["fonts/*"]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "@napi-rs/canvas",  "node-fetch"]
+  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas", "canvas"]
+  included_files = ["fonts/*"]
 
 [dev]
   framework = "#custom"

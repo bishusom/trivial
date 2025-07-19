@@ -8,10 +8,10 @@
     "build": "echo \"Build script\""
   },
   "dependencies": {
-    "@resvg/resvg-js": "^2.6.2",
+    "@sparticuz/chromium-min": "^109.0.1",
     "axios": "^1.9.0",
-    "cloudinary": "^1.41.3",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "puppeteer-core": "^19.11.1"
   },
   "engines": {
     "node": ">=16"

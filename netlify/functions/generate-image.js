@@ -1,101 +1,46 @@
-const { createCanvas, loadImage } = require('canvas');
-const path = require('path');
-
-// Register fonts with absolute paths
-try {
-  const fontsDir = path.join(process.cwd(), 'fonts');
-  require('canvas').registerFont(path.join(fontsDir, 'Arial.ttf'), { family: 'Arial' });
-  require('canvas').registerFont(path.join(fontsDir, 'Arial-Bold.ttf'), { 
-    family: 'Arial', 
-    weight: 'bold' 
-  });
-  console.log('Fonts registered successfully');
-} catch (e) {
-  console.error('Font registration error:', e);
-}
-
 exports.handler = async (event) => {
-  try {
-    const { score, correct, total, category } = event.queryStringParameters;
+  const { score, correct, total, category } = event.queryStringParameters;
+  
+  // Using direct URL (no base64 required)
+  const logoUrl = 'https://triviaah.com/imgs/triviaah-logo-200.webp';
+  
+  const svg = `
+  <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Gradient background -->
+    <defs>
+      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3498db"/>
+        <stop offset="100%" stop-color="#9b59b6"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#gradient)"/>
     
-    // Validate parameters
-    if (!score || !correct || !total || !category) {
-      throw new Error('Missing required parameters');
-    }
-
-    const canvas = createCanvas(1200, 630);
-    const ctx = canvas.getContext('2d');
-
-    // 1. Gradient Background (blue to purple)
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, '#3498db');
-    gradient.addColorStop(1, '#9b59b6');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 2. Semi-transparent overlay
-    ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 3. Logo
-    try {
-      const logo = await loadImage('https://triviaah.com/imgs/triviaah-logo-200.webp');
-      const targetHeight = 100;
-      const aspectRatio = logo.width / logo.height;
-      const targetWidth = targetHeight * aspectRatio;
-      ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
-    } catch (e) {
-      console.error('Error loading logo:', e);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px "Arial", sans-serif';
-      ctx.fillText('TRIVIAAH', 50, 100);
-    }
-
-    // 4. Text Content with proper fallbacks
-    ctx.fillStyle = '#ffffff';
-    ctx.textBaseline = 'top';
+    <!-- Semi-transparent overlay -->
+    <rect width="100%" height="100%" fill="rgba(26, 43, 60, 0.6)"/>
     
-    // Title
-    ctx.font = 'bold 60px "Arial", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Triviaah Results', canvas.width/2, 180);
+    <!-- Logo (using direct URL) -->
+    <image href="${logoUrl}" x="50" y="50" height="100" preserveAspectRatio="xMidYMid meet"/>
+    
+    <!-- Text content -->
+    <text x="600" y="180" font-family="Arial" font-size="60" font-weight="bold" fill="white" text-anchor="middle">Triviaah Results</text>
+    <text x="600" y="280" font-family="Arial" font-size="48" fill="white" text-anchor="middle">Score: ${score}</text>
+    <text x="600" y="350" font-family="Arial" font-size="48" fill="white" text-anchor="middle">${correct} out of ${total} correct</text>
+    <text x="600" y="420" font-family="Arial" font-size="48" fill="white" text-anchor="middle">Category: ${decodeURIComponent(category)}</text>
+    
+    <!-- Divider line -->
+    <line x1="240" y1="480" x2="960" y2="480" stroke="rgba(255, 255, 255, 0.5)" stroke-width="3"/>
+    
+    <!-- Footer -->
+    <text x="600" y="520" font-family="Arial" font-size="28" fill="white" text-anchor="middle">Play now at triviaah.com</text>
+  </svg>
+  `;
 
-    // Score details
-    ctx.font = '48px "Arial", sans-serif';
-    ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
-    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
-    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
-
-    // Divider line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(canvas.width * 0.2, 480);
-    ctx.lineTo(canvas.width * 0.8, 480);
-    ctx.stroke();
-
-    // Footer
-    ctx.font = '28px "Arial", sans-serif';
-    ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=86400'
-      },
-      body: canvas.toBuffer('image/png').toString('base64'),
-      isBase64Encoded: true
-    };
-  } catch (error) {
-    console.error('Image generation error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ 
-        error: error.message,
-        note: "Check parameters and image generation",
-        stack: error.stack
-      })
-    };
-  }
+  return {
+    statusCode: 200,
+    headers: {
+      'Content-Type': 'image/svg+xml',
+      'Cache-Control': 'public, max-age=86400'
+    },
+    body: svg
+  };
 };

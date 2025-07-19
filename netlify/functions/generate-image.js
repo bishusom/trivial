@@ -2,14 +2,14 @@ const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const axios = require('axios');
 const path = require('path');
 
-// Register fonts from filesystem (Netlify has limited system fonts)
+// Register fonts from filesystem
 try {
   const fontsDir = path.join(__dirname, 'fonts');
   GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial.ttf'), 'Arial');
   GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial-Bold.ttf'), 'Arial', { weight: 'bold' });
-  console.log('Custom fonts registered successfully');
+  console.log('Fonts registered:', GlobalFonts.families);
 } catch (e) {
-  console.log('Using fallback fonts:', e.message);
+  console.error('Font registration failed:', e);
 }
 
 exports.handler = async (event) => {
@@ -23,21 +23,18 @@ exports.handler = async (event) => {
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
-    // Log available fonts for debugging
-    console.log('Available font families:', GlobalFonts.families);
-
-    // Gradient Background
+    // 1. Gradient Background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, '#3498db');
     gradient.addColorStop(1, '#9b59b6');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Semi-transparent overlay
+    // 2. Semi-transparent overlay
     ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Logo - using axios for reliable fetching
+    // 3. Logo with axios
     try {
       const response = await axios.get('https://triviaah.com/imgs/triviaah-logo-200.webp', {
         responseType: 'arraybuffer'
@@ -53,23 +50,36 @@ exports.handler = async (event) => {
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // Text Content
+    // 4. Text Rendering with explicit settings
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
-    
-    // Use registered font or fallback
-    const fontFamily = GlobalFonts.families.includes('Arial') ? 'Arial' : 'sans-serif';
-    
-    // Title
-    ctx.font = `bold 60px ${fontFamily}`;
     ctx.textAlign = 'center';
-    ctx.fillText('Triviaah Results', canvas.width/2, 180);
+    
+    // Enable text rendering explicitly
+    ctx.quality = 'best';
+    ctx.antialias = 'default';
+
+    // Title with fallback
+    try {
+      ctx.font = 'bold 60px Arial, sans-serif';
+      ctx.fillText('Triviaah Results', canvas.width/2, 180);
+    } catch (e) {
+      ctx.font = 'bold 60px sans-serif';
+      ctx.fillText('Triviaah Results', canvas.width/2, 180);
+    }
 
     // Score details
-    ctx.font = `48px ${fontFamily}`;
-    ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
-    ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
-    ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
+    try {
+      ctx.font = '48px Arial, sans-serif';
+      ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
+      ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
+      ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
+    } catch (e) {
+      ctx.font = '48px sans-serif';
+      ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
+      ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
+      ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
+    }
 
     // Divider line
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -80,14 +90,19 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = `28px ${fontFamily}`;
-    ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
+    try {
+      ctx.font = '28px Arial, sans-serif';
+      ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
+    } catch (e) {
+      ctx.font = '28px sans-serif';
+      ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
+    }
 
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=86400'
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
       body: canvas.toBuffer('image/png').toString('base64'),
       isBase64Encoded: true

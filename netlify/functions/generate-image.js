@@ -1,19 +1,5 @@
-const { createCanvas, loadImage, registerFont } = require('@napi-rs/canvas');
+const { createCanvas, loadImage } = require('@napi-rs/canvas');
 const path = require('path');
-
-// Get absolute path to fonts directory
-const fontsDir = path.join(__dirname, 'fonts');
-
-// Register fonts with better error handling
-try {
-  console.log(`Attempting to register fonts from: ${fontsDir}`);
-  registerFont(path.join(fontsDir, 'Arial.ttf'), { family: 'Arial' });
-  registerFont(path.join(fontsDir, 'Arial-Bold.ttf'), { family: 'Arial', weight: 'bold' });
-  console.log('Fonts registered successfully');
-} catch (e) {
-  console.error('Error registering fonts:', e);
-  // Continue execution but we'll know fonts failed to load
-}
 
 exports.handler = async (event) => {
   try {
@@ -48,21 +34,21 @@ exports.handler = async (event) => {
     } catch (e) {
       console.error('Error loading logo:', e);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px "Arial", sans-serif';
+      ctx.font = 'bold 36px sans-serif';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // 4. Text Content with better font fallbacks
+    // 4. Text Content with system fonts
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
     
-    // Title - with fallback to generic sans-serif
-    ctx.font = 'bold 60px "Arial", sans-serif';
+    // Title
+    ctx.font = 'bold 60px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
     // Score details
-    ctx.font = '48px "Arial", sans-serif';
+    ctx.font = '48px sans-serif';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -76,7 +62,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = '28px "Arial", sans-serif';
+    ctx.font = '28px sans-serif';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {

@@ -1,5 +1,5 @@
 [build]
-  command = "npm install --platform=linux --arch=x64 && npm run build"
+  command = "npm install && npm run build"
   functions = "netlify/functions"
   publish = "public"
 
@@ -10,9 +10,8 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["axios", "node-fetch", "sharp"]
+  external_node_modules = ["axios", "node-fetch", "@napi-rs/canvas"]
   included_files = ["fonts/*"]
-  generate-image.timeout = 30
 
 [dev]
    framework = "#static"

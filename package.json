@@ -8,11 +8,9 @@
     "build": "echo \"Build script\""
   },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.36",
-    "canvas": "^2.11.2",
-    "@resvg/resvg-js": "^2.6.2",
     "axios": "^1.9.0",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "canvas-constructor": "^4.1.0"
   },
   "engines": {
     "node": ">=16"

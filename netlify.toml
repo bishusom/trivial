@@ -1,5 +1,9 @@
 [build]
-  command = "npm install && npm run build"
+  command = """
+    echo 'Installing system dependencies (may require custom image if this fails)'
+    apt-get update && apt-get install -y libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi7 libjpeg62-turbo libpng16-16 || echo 'apt-get failed, consider using a custom Docker image'
+    npm install && npm run build
+  """
   functions = "netlify/functions"
   publish = "public"
 

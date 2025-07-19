@@ -1,4 +1,4 @@
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, loadImage } = require('canvas');
 const path = require('path');
 
 exports.handler = async (event) => {
@@ -43,7 +43,7 @@ exports.handler = async (event) => {
 
     // 3. Text Content with system fonts and explicit context
     ctx.save(); // Save context state for text rendering
-    ctx.fillStyle = '#ff0000'; // Bright red for visibility testing
+    ctx.fillStyle = '#ffffff'; // White text for visibility
     ctx.textBaseline = 'top';
     ctx.textAlign = 'center';
 
@@ -82,7 +82,7 @@ exports.handler = async (event) => {
     ctx.restore(); // Restore context state
 
     // 4. Semi-transparent overlay (applied after text)
-    ctx.fillStyle = 'rgba(26, 43, 60, 0.2)'; // Reduced opacity to 0.2 for testing
+    ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Return the image

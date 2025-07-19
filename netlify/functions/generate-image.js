@@ -2,24 +2,26 @@ const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const axios = require('axios');
 const path = require('path');
 
-// Register fonts from filesystem
+// Register fonts with explicit style definitions
 try {
   const fontsDir = path.join(__dirname, 'fonts');
-  console.log('Attempting to register fonts from:', fontsDir);
+  console.log('Font directory:', fontsDir);
 
-  // Register Regular Arial
-  GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial.ttf'), 'Arial');
-  console.log('Registered Arial.ttf');
+  // Register Arial with explicit normal weight
+  GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial.ttf'), 'Arial', {
+    weight: 'normal',
+    style: 'normal'
+  });
 
-  // Register Arial Bold, specifying the weight explicitly for the 'Arial' family
-  GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial-Bold.ttf'), 'Arial', { weight: 'bold' });
-  console.log('Registered Arial-Bold.ttf with weight: bold');
+  // Register Arial Bold with explicit bold weight
+  GlobalFonts.registerFromPath(path.join(fontsDir, 'Arial-Bold.ttf'), 'Arial', {
+    weight: 'bold',
+    style: 'normal'
+  });
 
-  console.log('Custom fonts registered successfully');
+  console.log('Registered fonts:', GlobalFonts.families);
 } catch (e) {
-  console.error('Error registering fonts:', e.message);
-  console.error('Font registration stack trace:', e.stack);
-  console.log('Using fallback fonts due to registration error.');
+  console.error('Font registration failed:', e);
 }
 
 exports.handler = async (event) => {
@@ -33,21 +35,19 @@ exports.handler = async (event) => {
     const canvas = createCanvas(1200, 630);
     const ctx = canvas.getContext('2d');
 
-    // Log available fonts for debugging - check styles array here again
-    console.log('Available font families after registration:', GlobalFonts.families);
+    // Debug: Log available font families with their styles
+    console.log('Available font families:', JSON.stringify(GlobalFonts.families, null, 2));
 
-    // Gradient Background
+    // Background
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, '#3498db');
     gradient.addColorStop(1, '#9b59b6');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Semi-transparent overlay
     ctx.fillStyle = 'rgba(26, 43, 60, 0.6)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Logo - using axios for reliable fetching
+    // Logo
     try {
       const response = await axios.get('https://triviaah.com/imgs/triviaah-logo-200.webp', {
         responseType: 'arraybuffer'
@@ -57,27 +57,23 @@ exports.handler = async (event) => {
       const targetWidth = targetHeight * (logo.width / logo.height);
       ctx.drawImage(logo, 50, 50, targetWidth, targetHeight);
     } catch (e) {
-      console.error('Error loading logo:', e);
+      console.error('Logo load failed, using fallback:', e);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px Arial, sans-serif'; // Fallback for logo text
+      ctx.font = 'bold 36px Arial, sans-serif';
       ctx.fillText('TRIVIAAH', 50, 100);
     }
 
-    // Text Content
+    // Text rendering with explicit font selection
     ctx.fillStyle = '#ffffff';
     ctx.textBaseline = 'top';
-    
-    // Use registered font or fallback
-    const fontFamily = GlobalFonts.families.some(f => f.family === 'Arial' && f.styles.some(s => s.weight === 'bold')) ? 'Arial' : 'sans-serif'; // More robust check
-    console.log('Using font family for text:', fontFamily); // Log which font is actually used
-    
-    // Title
-    ctx.font = `bold 60px ${fontFamily}`;
     ctx.textAlign = 'center';
+
+    // Title with bold font
+    ctx.font = 'bold 60px Arial, sans-serif';
     ctx.fillText('Triviaah Results', canvas.width/2, 180);
 
-    // Score details
-    ctx.font = `48px ${fontFamily}`;
+    // Score details with regular font
+    ctx.font = '48px Arial, sans-serif';
     ctx.fillText(`Score: ${score}`, canvas.width/2, 280);
     ctx.fillText(`${correct} out of ${total} correct`, canvas.width/2, 350);
     ctx.fillText(`Category: ${decodeURIComponent(category)}`, canvas.width/2, 420);
@@ -91,7 +87,7 @@ exports.handler = async (event) => {
     ctx.stroke();
 
     // Footer
-    ctx.font = `28px ${fontFamily}`;
+    ctx.font = '28px Arial, sans-serif';
     ctx.fillText('Play now at triviaah.com', canvas.width/2, 520);
 
     return {
@@ -104,13 +100,12 @@ exports.handler = async (event) => {
       isBase64Encoded: true
     };
   } catch (error) {
-    console.error('Image generation error:', error);
+    console.error('Image generation failed:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        note: "Check logo URL and image generation",
-        details: error.stack
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       })
     };
   }

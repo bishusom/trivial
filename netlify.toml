@@ -15,6 +15,6 @@
   generate-image.timeout = 30
 
 [dev]
-  framework = "#custom"
-  targetPort = 3000
+   framework = "#static"
+  targetPort = 8888  # Netlify's default
   autoLaunch = false
